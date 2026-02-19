@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
 import { Plus, Search } from 'lucide-react';
-import { useMentorados, useMentores, useEncontros, useUpdateEncontroStatus } from '@/hooks/useSupabaseData';
+import { useMentorados, useEncontros, useUpdateEncontroStatus } from '@/hooks/useSupabaseData';
 import { StatusBadge, TipoBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,16 +14,12 @@ import NovoEncontroModal from '@/components/NovoEncontroModal';
 export default function EncontrosPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [mentorFilter, setMentorFilter] = useState('all');
   const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
   const [showNovo, setShowNovo] = useState(false);
 
   const { data: encontros = [], isLoading } = useEncontros();
   const { data: mentorados = [] } = useMentorados();
-  const { data: mentores = [] } = useMentores();
   const updateStatus = useUpdateEncontroStatus();
-
-  const mentorMap = useMemo(() => { const m: Record<string, string> = {}; mentores.forEach(mt => { m[mt.id] = mt.nome; }); return m; }, [mentores]);
   const mentoradoMap = useMemo(() => { const m: Record<string, string> = {}; mentorados.forEach(mt => { m[mt.id] = mt.nome; }); return m; }, [mentorados]);
 
   const filtered = useMemo(() => {
@@ -31,10 +27,9 @@ export default function EncontrosPage() {
       const matchSearch = !search || e.titulo.toLowerCase().includes(search.toLowerCase()) ||
         mentoradoMap[e.mentorado_id]?.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === 'all' || e.status === statusFilter;
-      const matchMentor = mentorFilter === 'all' || e.mentor_id === mentorFilter;
-      return matchSearch && matchStatus && matchMentor;
+      return matchSearch && matchStatus;
     }).sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime());
-  }, [search, statusFilter, mentorFilter, encontros, mentoradoMap]);
+  }, [search, statusFilter, encontros, mentoradoMap]);
 
   if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
 
@@ -65,13 +60,6 @@ export default function EncontrosPage() {
             <SelectItem value="Reagendado">Reagendado</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={mentorFilter} onValueChange={setMentorFilter}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Mentor" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os mentores</SelectItem>
-            {mentores.map(m => <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>)}
-          </SelectContent>
-        </Select>
       </div>
 
       <div className="rounded-xl border bg-card overflow-hidden">
@@ -81,7 +69,7 @@ export default function EncontrosPage() {
               <TableHead className="table-header">Data/Hora</TableHead>
               <TableHead className="table-header">Título</TableHead>
               <TableHead className="table-header">Mentorado</TableHead>
-              <TableHead className="table-header">Mentor</TableHead>
+              
               <TableHead className="table-header">Tipo</TableHead>
               <TableHead className="table-header">Local</TableHead>
               <TableHead className="table-header">Status</TableHead>
@@ -98,14 +86,14 @@ export default function EncontrosPage() {
                 </TableCell>
                 <TableCell className="text-sm font-medium">{e.titulo}</TableCell>
                 <TableCell className="text-sm">{mentoradoMap[e.mentorado_id]}</TableCell>
-                <TableCell className="text-sm">{mentorMap[e.mentor_id]}</TableCell>
+                
                 <TableCell><TipoBadge tipo={e.tipo as any} /></TableCell>
                 <TableCell className="text-sm text-muted-foreground">{e.local}</TableCell>
                 <TableCell><StatusBadge status={e.status as any} /></TableCell>
               </TableRow>
             ))}
             {filtered.length === 0 && (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhum encontro encontrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum encontro encontrado.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
@@ -114,7 +102,7 @@ export default function EncontrosPage() {
       <MeetingModal
         encontro={selectedEncontro}
         mentorado={selectedEncontro ? mentorados.find(m => m.id === selectedEncontro.mentorado_id) as any : undefined}
-        mentor={selectedEncontro ? mentores.find(m => m.id === selectedEncontro.mentor_id) as any : undefined}
+        
         open={!!selectedEncontro}
         onOpenChange={(o) => !o && setSelectedEncontro(null)}
         onStatusChange={(id, status) => updateStatus.mutate({ id, status })}

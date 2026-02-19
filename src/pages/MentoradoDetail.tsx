@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Phone, Mail, MapPin, CalendarPlus, Clock } from 'lucide-react';
-import { useMentorados, useMentores, useEncontros, useHistoricos } from '@/hooks/useSupabaseData';
+import { useMentorados, useEncontros, useHistoricos } from '@/hooks/useSupabaseData';
 import { StatusBadge, TagBadge, TipoBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,12 +17,10 @@ export default function MentoradoDetail() {
   const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
 
   const { data: mentorados = [], isLoading: lm } = useMentorados();
-  const { data: mentores = [] } = useMentores();
   const { data: encontros = [], isLoading: le } = useEncontros();
   const { data: historicos = [] } = useHistoricos(id);
 
   const mentorado = mentorados.find(m => m.id === id);
-  const mentor = mentorado?.mentor_id ? mentores.find(m => m.id === mentorado.mentor_id) : null;
   const mentoradoEncontros = useMemo(() => encontros.filter(e => e.mentorado_id === id).sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime()), [id, encontros]);
 
   if (lm || le) return <div className="space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
@@ -53,7 +51,7 @@ export default function MentoradoDetail() {
               <div className="flex items-center gap-2 text-muted-foreground"><MapPin className="h-4 w-4" /><span>{mentorado.cidade}</span></div>
             </div>
             <Separator />
-            <div><p className="text-xs text-muted-foreground mb-1">Mentor</p><p className="font-medium">{mentor?.nome || '—'}</p></div>
+            
             <div><p className="text-xs text-muted-foreground mb-1">Origem</p><p>{mentorado.origem}</p></div>
             {mentorado.observacoes_gerais && (
               <div><p className="text-xs text-muted-foreground mb-1">Observações</p><p className="text-muted-foreground">{mentorado.observacoes_gerais}</p></div>
@@ -117,7 +115,6 @@ export default function MentoradoDetail() {
       <MeetingModal
         encontro={selectedEncontro}
         mentorado={mentorado as any}
-        mentor={mentor as any}
         open={!!selectedEncontro}
         onOpenChange={(o) => !o && setSelectedEncontro(null)}
       />

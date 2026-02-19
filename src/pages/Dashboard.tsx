@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { format, isToday, isThisWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock } from 'lucide-react';
-import { useMentores, useMentorados, useEncontros } from '@/hooks/useSupabaseData';
+import { useMentorados, useEncontros } from '@/hooks/useSupabaseData';
 import { StatusBadge, TipoBadge } from '@/components/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +12,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { data: mentorados = [], isLoading: loadingM } = useMentorados();
   const { data: encontros = [], isLoading: loadingE } = useEncontros();
-  const { data: mentores = [] } = useMentores();
+  
 
   const loading = loadingM || loadingE;
 
@@ -32,11 +32,6 @@ export default function Dashboard() {
       .slice(0, 6),
   [encontros]);
 
-  const mentorMap = useMemo(() => {
-    const m: Record<string, string> = {};
-    mentores.forEach(mt => { m[mt.id] = mt.nome; });
-    return m;
-  }, [mentores]);
 
   const mentoradoMap = useMemo(() => {
     const m: Record<string, string> = {};
@@ -110,7 +105,7 @@ export default function Dashboard() {
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{e.titulo}</p>
                     <p className="text-xs text-muted-foreground truncate">
-                      {mentoradoMap[e.mentorado_id]} • {mentorMap[e.mentor_id]}
+                      {mentoradoMap[e.mentorado_id]}
                     </p>
                   </div>
                 </div>
