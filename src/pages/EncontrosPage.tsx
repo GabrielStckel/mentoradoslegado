@@ -1,24 +1,28 @@
 import { useState, useMemo } from 'react';
 import { format } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
 import { Plus, Search } from 'lucide-react';
-import { encontros, mentorados, mentores } from '@/data/mock';
+import { useMentorados, useMentores, useEncontros, useUpdateEncontroStatus } from '@/hooks/useSupabaseData';
 import { StatusBadge, TipoBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Encontro, EncontroStatus } from '@/types';
+import { Skeleton } from '@/components/ui/skeleton';
 import MeetingModal from '@/components/MeetingModal';
 
 export default function EncontrosPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [mentorFilter, setMentorFilter] = useState('all');
-  const [selectedEncontro, setSelectedEncontro] = useState<Encontro | null>(null);
+  const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
 
-  const mentorMap = useMemo(() => { const m: Record<string, string> = {}; mentores.forEach(mt => { m[mt.id] = mt.nome; }); return m; }, []);
-  const mentoradoMap = useMemo(() => { const m: Record<string, string> = {}; mentorados.forEach(mt => { m[mt.id] = mt.nome; }); return m; }, []);
+  const { data: encontros = [], isLoading } = useEncontros();
+  const { data: mentorados = [] } = useMentorados();
+  const { data: mentores = [] } = useMentores();
+  const updateStatus = useUpdateEncontroStatus();
+
+  const mentorMap = useMemo(() => { const m: Record<string, string> = {}; mentores.forEach(mt => { m[mt.id] = mt.nome; }); return m; }, [mentores]);
+  const mentoradoMap = useMemo(() => { const m: Record<string, string> = {}; mentorados.forEach(mt => { m[mt.id] = mt.nome; }); return m; }, [mentorados]);
 
   const filtered = useMemo(() => {
     return encontros.filter(e => {
@@ -28,7 +32,9 @@ export default function EncontrosPage() {
       const matchMentor = mentorFilter === 'all' || e.mentor_id === mentorFilter;
       return matchSearch && matchStatus && matchMentor;
     }).sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime());
-  }, [search, statusFilter, mentorFilter]);
+  }, [search, statusFilter, mentorFilter, encontros, mentoradoMap]);
+
+  if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
 
   return (
     <div className="space-y-6">
@@ -90,9 +96,9 @@ export default function EncontrosPage() {
                 <TableCell className="text-sm font-medium">{e.titulo}</TableCell>
                 <TableCell className="text-sm">{mentoradoMap[e.mentorado_id]}</TableCell>
                 <TableCell className="text-sm">{mentorMap[e.mentor_id]}</TableCell>
-                <TableCell><TipoBadge tipo={e.tipo} /></TableCell>
+                <TableCell><TipoBadge tipo={e.tipo as any} /></TableCell>
                 <TableCell className="text-sm text-muted-foreground">{e.local}</TableCell>
-                <TableCell><StatusBadge status={e.status} /></TableCell>
+                <TableCell><StatusBadge status={e.status as any} /></TableCell>
               </TableRow>
             ))}
             {filtered.length === 0 && (
@@ -104,10 +110,11 @@ export default function EncontrosPage() {
 
       <MeetingModal
         encontro={selectedEncontro}
-        mentorado={selectedEncontro ? mentorados.find(m => m.id === selectedEncontro.mentorado_id) : undefined}
-        mentor={selectedEncontro ? mentores.find(m => m.id === selectedEncontro.mentor_id) : undefined}
+        mentorado={selectedEncontro ? mentorados.find(m => m.id === selectedEncontro.mentorado_id) as any : undefined}
+        mentor={selectedEncontro ? mentores.find(m => m.id === selectedEncontro.mentor_id) as any : undefined}
         open={!!selectedEncontro}
         onOpenChange={(o) => !o && setSelectedEncontro(null)}
+        onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
       />
     </div>
   );

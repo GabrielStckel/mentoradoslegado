@@ -1,20 +1,26 @@
 import { useState } from 'react';
-import { encontros, mentorados, mentores } from '@/data/mock';
+import { useEncontros, useMentorados, useMentores } from '@/hooks/useSupabaseData';
 import CalendarView from '@/components/CalendarView';
 import MeetingModal from '@/components/MeetingModal';
-import { Encontro } from '@/types';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function CalendarioPage() {
-  const [selectedEncontro, setSelectedEncontro] = useState<Encontro | null>(null);
+  const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
   const [mentorFilter, setMentorFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  const { data: encontros = [], isLoading } = useEncontros();
+  const { data: mentorados = [] } = useMentorados();
+  const { data: mentores = [] } = useMentores();
 
   const filtered = encontros.filter(e => {
     const matchMentor = mentorFilter === 'all' || e.mentor_id === mentorFilter;
     const matchStatus = statusFilter === 'all' || e.status === statusFilter;
     return matchMentor && matchStatus;
   });
+
+  if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-96 w-full" /></div>;
 
   return (
     <div className="space-y-6">
@@ -43,12 +49,12 @@ export default function CalendarioPage() {
         </div>
       </div>
 
-      <CalendarView encontros={filtered} mentores={mentores} onEventClick={setSelectedEncontro} />
+      <CalendarView encontros={filtered as any} mentores={mentores as any} onEventClick={setSelectedEncontro} />
 
       <MeetingModal
         encontro={selectedEncontro}
-        mentorado={selectedEncontro ? mentorados.find(m => m.id === selectedEncontro.mentorado_id) : undefined}
-        mentor={selectedEncontro ? mentores.find(m => m.id === selectedEncontro.mentor_id) : undefined}
+        mentorado={selectedEncontro ? mentorados.find(m => m.id === selectedEncontro.mentorado_id) as any : undefined}
+        mentor={selectedEncontro ? mentores.find(m => m.id === selectedEncontro.mentor_id) as any : undefined}
         open={!!selectedEncontro}
         onOpenChange={(o) => !o && setSelectedEncontro(null)}
       />

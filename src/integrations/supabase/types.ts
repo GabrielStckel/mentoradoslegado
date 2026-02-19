@@ -14,16 +14,300 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      encontros: {
+        Row: {
+          created_at: string
+          fim: string
+          google_event_id: string | null
+          id: string
+          inicio: string
+          lembrete_10min_enviado: boolean
+          lembrete_24h_enviado: boolean
+          lembrete_3h_enviado: boolean
+          link_reuniao: string
+          local: string
+          mentor_id: string
+          mentorado_id: string
+          notas_do_mentor: string
+          notas_operacionais: string
+          proxima_acao: string
+          sincronizado_google: boolean
+          status: string
+          tipo: string
+          titulo: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          fim: string
+          google_event_id?: string | null
+          id?: string
+          inicio: string
+          lembrete_10min_enviado?: boolean
+          lembrete_24h_enviado?: boolean
+          lembrete_3h_enviado?: boolean
+          link_reuniao?: string
+          local?: string
+          mentor_id: string
+          mentorado_id: string
+          notas_do_mentor?: string
+          notas_operacionais?: string
+          proxima_acao?: string
+          sincronizado_google?: boolean
+          status?: string
+          tipo?: string
+          titulo: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          fim?: string
+          google_event_id?: string | null
+          id?: string
+          inicio?: string
+          lembrete_10min_enviado?: boolean
+          lembrete_24h_enviado?: boolean
+          lembrete_3h_enviado?: boolean
+          link_reuniao?: string
+          local?: string
+          mentor_id?: string
+          mentorado_id?: string
+          notas_do_mentor?: string
+          notas_operacionais?: string
+          proxima_acao?: string
+          sincronizado_google?: boolean
+          status?: string
+          tipo?: string
+          titulo?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "encontros_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "encontros_mentorado_id_fkey"
+            columns: ["mentorado_id"]
+            isOneToOne: false
+            referencedRelation: "mentorados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      historicos: {
+        Row: {
+          conteudo: string
+          created_at: string
+          id: string
+          mentor_id: string
+          mentorado_id: string
+          tipo: string
+          visibilidade: string
+        }
+        Insert: {
+          conteudo?: string
+          created_at?: string
+          id?: string
+          mentor_id: string
+          mentorado_id: string
+          tipo?: string
+          visibilidade?: string
+        }
+        Update: {
+          conteudo?: string
+          created_at?: string
+          id?: string
+          mentor_id?: string
+          mentorado_id?: string
+          tipo?: string
+          visibilidade?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "historicos_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentores"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "historicos_mentorado_id_fkey"
+            columns: ["mentorado_id"]
+            isOneToOne: false
+            referencedRelation: "mentorados"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentorados: {
+        Row: {
+          cidade: string
+          created_at: string
+          data_inicio: string
+          email: string
+          id: string
+          mentor_id: string | null
+          nome: string
+          observacoes_gerais: string
+          origem: string
+          status: string
+          tags: string[]
+          telefone_whatsapp: string
+          updated_at: string
+        }
+        Insert: {
+          cidade?: string
+          created_at?: string
+          data_inicio?: string
+          email?: string
+          id?: string
+          mentor_id?: string | null
+          nome: string
+          observacoes_gerais?: string
+          origem?: string
+          status?: string
+          tags?: string[]
+          telefone_whatsapp?: string
+          updated_at?: string
+        }
+        Update: {
+          cidade?: string
+          created_at?: string
+          data_inicio?: string
+          email?: string
+          id?: string
+          mentor_id?: string | null
+          nome?: string
+          observacoes_gerais?: string
+          origem?: string
+          status?: string
+          tags?: string[]
+          telefone_whatsapp?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentorados_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentores: {
+        Row: {
+          carga_max_por_dia: number
+          cor_calendario: string
+          created_at: string
+          email: string
+          especialidade: string
+          google_calendar_connected: boolean
+          google_calendar_id: string | null
+          id: string
+          nome: string
+          status: string
+          telefone_whatsapp: string
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          carga_max_por_dia?: number
+          cor_calendario?: string
+          created_at?: string
+          email: string
+          especialidade?: string
+          google_calendar_connected?: boolean
+          google_calendar_id?: string | null
+          id?: string
+          nome: string
+          status?: string
+          telefone_whatsapp?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          carga_max_por_dia?: number
+          cor_calendario?: string
+          created_at?: string
+          email?: string
+          especialidade?: string
+          google_calendar_connected?: boolean
+          google_calendar_id?: string | null
+          id?: string
+          nome?: string
+          status?: string
+          telefone_whatsapp?: string
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          nome: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          nome: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          nome?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_user_mentor_id: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "mentor" | "operacao"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +434,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "mentor", "operacao"],
+    },
   },
 } as const

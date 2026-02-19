@@ -1,14 +1,20 @@
 import { useMemo } from 'react';
-import { format, isToday, isThisWeek, startOfWeek, endOfWeek } from 'date-fns';
+import { format, isToday, isThisWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock } from 'lucide-react';
-import { encontros, mentorados, mentores } from '@/data/mock';
+import { useMentores, useMentorados, useEncontros } from '@/hooks/useSupabaseData';
 import { StatusBadge, TipoBadge } from '@/components/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useNavigate } from 'react-router-dom';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function Dashboard() {
   const navigate = useNavigate();
+  const { data: mentorados = [], isLoading: loadingM } = useMentorados();
+  const { data: encontros = [], isLoading: loadingE } = useEncontros();
+  const { data: mentores = [] } = useMentores();
+
+  const loading = loadingM || loadingE;
 
   const stats = useMemo(() => {
     const ativos = mentorados.filter(m => m.status === 'Ativo').length;
@@ -17,26 +23,26 @@ export default function Dashboard() {
     const cancelados = encontros.filter(e => e.status === 'Cancelado').length;
     const faltas = encontros.filter(e => e.status === 'Faltou').length;
     return { ativos, hoje, semana, cancelados, faltas };
-  }, []);
+  }, [mentorados, encontros]);
 
   const proximos = useMemo(() =>
     encontros
       .filter(e => new Date(e.inicio) >= new Date() && e.status === 'Agendado')
       .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())
       .slice(0, 6),
-  []);
+  [encontros]);
 
   const mentorMap = useMemo(() => {
     const m: Record<string, string> = {};
     mentores.forEach(mt => { m[mt.id] = mt.nome; });
     return m;
-  }, []);
+  }, [mentores]);
 
   const mentoradoMap = useMemo(() => {
     const m: Record<string, string> = {};
     mentorados.forEach(mt => { m[mt.id] = mt.nome; });
     return m;
-  }, []);
+  }, [mentorados]);
 
   const statCards = [
     { label: 'Mentorados Ativos', value: stats.ativos, icon: Users, color: 'text-primary' },
@@ -46,6 +52,17 @@ export default function Dashboard() {
     { label: 'Faltas', value: stats.faltas, icon: AlertTriangle, color: 'text-warning' },
   ];
 
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div><h1 className="page-title">Dashboard</h1><p className="page-subtitle">Visão geral das mentorias</p></div>
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -53,7 +70,6 @@ export default function Dashboard() {
         <p className="page-subtitle">Visão geral das mentorias</p>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {statCards.map((s) => (
           <div key={s.label} className="stat-card">
@@ -66,7 +82,6 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Próximos encontros */}
       <Card>
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
@@ -100,8 +115,8 @@ export default function Dashboard() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <TipoBadge tipo={e.tipo} />
-                  <StatusBadge status={e.status} />
+                  <TipoBadge tipo={e.tipo as any} />
+                  <StatusBadge status={e.status as any} />
                 </div>
               </div>
             ))}

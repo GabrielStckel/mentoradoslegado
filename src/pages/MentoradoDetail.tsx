@@ -1,26 +1,31 @@
 import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Phone, Mail, MapPin, CalendarPlus, Clock } from 'lucide-react';
-import { mentorados, mentores, encontros, historicos } from '@/data/mock';
+import { useMentorados, useMentores, useEncontros, useHistoricos } from '@/hooks/useSupabaseData';
 import { StatusBadge, TagBadge, TipoBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import MeetingModal from '@/components/MeetingModal';
-import { Encontro } from '@/types';
 
 export default function MentoradoDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [selectedEncontro, setSelectedEncontro] = useState<Encontro | null>(null);
+  const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
+
+  const { data: mentorados = [], isLoading: lm } = useMentorados();
+  const { data: mentores = [] } = useMentores();
+  const { data: encontros = [], isLoading: le } = useEncontros();
+  const { data: historicos = [] } = useHistoricos(id);
 
   const mentorado = mentorados.find(m => m.id === id);
-  const mentor = mentorado ? mentores.find(m => m.id === mentorado.mentor_id) : null;
-  const mentoradoEncontros = useMemo(() => encontros.filter(e => e.mentorado_id === id).sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime()), [id]);
-  const mentoradoHistoricos = useMemo(() => historicos.filter(h => h.mentorado_id === id).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()), [id]);
+  const mentor = mentorado?.mentor_id ? mentores.find(m => m.id === mentorado.mentor_id) : null;
+  const mentoradoEncontros = useMemo(() => encontros.filter(e => e.mentorado_id === id).sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime()), [id, encontros]);
 
+  if (lm || le) return <div className="space-y-4"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
   if (!mentorado) return <div className="p-8 text-center text-muted-foreground">Mentorado não encontrado.</div>;
 
   return (
@@ -37,11 +42,10 @@ export default function MentoradoDetail() {
       </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
-        {/* Info card */}
         <Card className="lg:col-span-1">
           <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Informações</CardTitle></CardHeader>
           <CardContent className="space-y-4 text-sm">
-            <div className="flex items-center gap-2"><StatusBadge status={mentorado.status} /><div className="flex gap-1 flex-wrap">{mentorado.tags.map(t => <TagBadge key={t} tag={t} />)}</div></div>
+            <div className="flex items-center gap-2"><StatusBadge status={mentorado.status as any} /><div className="flex gap-1 flex-wrap">{(mentorado.tags || []).map(t => <TagBadge key={t} tag={t as any} />)}</div></div>
             <Separator />
             <div className="space-y-3">
               <div className="flex items-center gap-2 text-muted-foreground"><Mail className="h-4 w-4" /><span>{mentorado.email}</span></div>
@@ -49,7 +53,7 @@ export default function MentoradoDetail() {
               <div className="flex items-center gap-2 text-muted-foreground"><MapPin className="h-4 w-4" /><span>{mentorado.cidade}</span></div>
             </div>
             <Separator />
-            <div><p className="text-xs text-muted-foreground mb-1">Mentor</p><p className="font-medium">{mentor?.nome}</p></div>
+            <div><p className="text-xs text-muted-foreground mb-1">Mentor</p><p className="font-medium">{mentor?.nome || '—'}</p></div>
             <div><p className="text-xs text-muted-foreground mb-1">Origem</p><p>{mentorado.origem}</p></div>
             {mentorado.observacoes_gerais && (
               <div><p className="text-xs text-muted-foreground mb-1">Observações</p><p className="text-muted-foreground">{mentorado.observacoes_gerais}</p></div>
@@ -57,9 +61,7 @@ export default function MentoradoDetail() {
           </CardContent>
         </Card>
 
-        {/* Encontros + Histórico */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Encontros */}
           <Card>
             <CardHeader className="pb-3">
               <div className="flex items-center justify-between">
@@ -81,7 +83,7 @@ export default function MentoradoDetail() {
                         <p className="text-xs text-muted-foreground">{e.local}{e.link_reuniao && ` • ${e.link_reuniao}`}</p>
                       </div>
                     </div>
-                    <div className="flex gap-2"><TipoBadge tipo={e.tipo} /><StatusBadge status={e.status} /></div>
+                    <div className="flex gap-2"><TipoBadge tipo={e.tipo as any} /><StatusBadge status={e.status as any} /></div>
                   </div>
                 ))}
                 {mentoradoEncontros.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhum encontro registrado.</p>}
@@ -89,12 +91,11 @@ export default function MentoradoDetail() {
             </CardContent>
           </Card>
 
-          {/* Histórico */}
           <Card>
             <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Histórico</CardTitle></CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {mentoradoHistoricos.map(h => (
+                {historicos.map(h => (
                   <div key={h.id} className="flex gap-3 text-sm">
                     <div className="w-2 h-2 rounded-full bg-primary mt-2 flex-shrink-0" />
                     <div>
@@ -106,7 +107,7 @@ export default function MentoradoDetail() {
                     </div>
                   </div>
                 ))}
-                {mentoradoHistoricos.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhum registro.</p>}
+                {historicos.length === 0 && <p className="text-sm text-muted-foreground text-center py-4">Nenhum registro.</p>}
               </div>
             </CardContent>
           </Card>
@@ -115,8 +116,8 @@ export default function MentoradoDetail() {
 
       <MeetingModal
         encontro={selectedEncontro}
-        mentorado={mentorado}
-        mentor={mentor || undefined}
+        mentorado={mentorado as any}
+        mentor={mentor as any}
         open={!!selectedEncontro}
         onOpenChange={(o) => !o && setSelectedEncontro(null)}
       />
