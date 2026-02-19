@@ -1,6 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+export function useOrigens() {
+  return useQuery({
+    queryKey: ['origens'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('origens').select('*').order('nome');
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export function useMentores() {
   return useQuery({
     queryKey: ['mentores'],
