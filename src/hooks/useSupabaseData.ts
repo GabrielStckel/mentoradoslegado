@@ -12,6 +12,17 @@ export function useOrigens() {
   });
 }
 
+export function useEspecialidades() {
+  return useQuery({
+    queryKey: ['especialidades'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('especialidades').select('*').order('nome');
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 export function useMentores() {
   return useQuery({
     queryKey: ['mentores'],

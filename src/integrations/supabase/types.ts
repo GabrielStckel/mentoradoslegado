@@ -98,6 +98,24 @@ export type Database = {
           },
         ]
       }
+      especialidades: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
       historicos: {
         Row: {
           conteudo: string
