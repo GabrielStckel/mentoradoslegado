@@ -7,8 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useMentores } from '@/hooks/useSupabaseData';
+import { useMentores, useOrigens } from '@/hooks/useSupabaseData';
 import { toast } from 'sonner';
+import { Settings } from 'lucide-react';
+import OrigensManagerModal from '@/components/OrigensManagerModal';
 
 interface Props {
   open: boolean;
@@ -18,7 +20,8 @@ interface Props {
 export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
   const queryClient = useQueryClient();
   const { data: mentores = [] } = useMentores();
-
+  const { data: origens = [] } = useOrigens();
+  const [showOrigens, setShowOrigens] = useState(false);
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [telefone, setTelefone] = useState('');
@@ -57,6 +60,7 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
   });
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -83,14 +87,16 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
               <Input id="cidade" value={cidade} onChange={e => setCidade(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label>Origem</Label>
+              <div className="flex items-center justify-between">
+                <Label>Origem</Label>
+                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowOrigens(true)}>
+                  <Settings className="h-3.5 w-3.5" />
+                </Button>
+              </div>
               <Select value={origem} onValueChange={setOrigem}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Indicação">Indicação</SelectItem>
-                  <SelectItem value="Site">Site</SelectItem>
-                  <SelectItem value="Instagram">Instagram</SelectItem>
-                  <SelectItem value="Outro">Outro</SelectItem>
+                  {origens.map(o => <SelectItem key={o.id} value={o.nome}>{o.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -118,5 +124,7 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
         </form>
       </DialogContent>
     </Dialog>
+    <OrigensManagerModal open={showOrigens} onOpenChange={setShowOrigens} />
+    </>
   );
 }
