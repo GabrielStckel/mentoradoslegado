@@ -8,7 +8,7 @@ import AppLayout from "./components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import MentoradosPage from "./pages/MentoradosPage";
 import MentoradoDetail from "./pages/MentoradoDetail";
-import MentoresPage from "./pages/MentoresPage";
+
 import EncontrosPage from "./pages/EncontrosPage";
 import CalendarioPage from "./pages/CalendarioPage";
 import AuthPage from "./pages/AuthPage";
@@ -37,7 +37,7 @@ function ProtectedRoutes() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/mentorados" element={<MentoradosPage />} />
         <Route path="/mentorados/:id" element={<MentoradoDetail />} />
-        <Route path="/mentores" element={<MentoresPage />} />
+        
         <Route path="/encontros" element={<EncontrosPage />} />
         <Route path="/calendario" element={<CalendarioPage />} />
         <Route path="*" element={<NotFound />} />
