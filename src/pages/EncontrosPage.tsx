@@ -9,12 +9,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import MeetingModal from '@/components/MeetingModal';
+import NovoEncontroModal from '@/components/NovoEncontroModal';
 
 export default function EncontrosPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [mentorFilter, setMentorFilter] = useState('all');
   const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
+  const [showNovo, setShowNovo] = useState(false);
 
   const { data: encontros = [], isLoading } = useEncontros();
   const { data: mentorados = [] } = useMentorados();
@@ -43,8 +45,9 @@ export default function EncontrosPage() {
           <h1 className="page-title">Encontros</h1>
           <p className="page-subtitle">{encontros.length} encontros registrados</p>
         </div>
-        <Button><Plus className="h-4 w-4 mr-2" /> Novo Encontro</Button>
+        <Button onClick={() => setShowNovo(true)}><Plus className="h-4 w-4 mr-2" /> Novo Encontro</Button>
       </div>
+      <NovoEncontroModal open={showNovo} onOpenChange={setShowNovo} />
 
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
