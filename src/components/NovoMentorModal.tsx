@@ -5,7 +5,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useEspecialidades } from '@/hooks/useSupabaseData';
 import { toast } from 'sonner';
+import { Settings } from 'lucide-react';
+import EspecialidadesManagerModal from '@/components/EspecialidadesManagerModal';
 
 interface Props {
   open: boolean;
@@ -14,6 +18,8 @@ interface Props {
 
 export default function NovoMentorModal({ open, onOpenChange }: Props) {
   const queryClient = useQueryClient();
+  const { data: especialidades = [] } = useEspecialidades();
+  const [showEspecialidades, setShowEspecialidades] = useState(false);
 
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -51,6 +57,7 @@ export default function NovoMentorModal({ open, onOpenChange }: Props) {
   });
 
   return (
+    <>
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
@@ -71,8 +78,18 @@ export default function NovoMentorModal({ open, onOpenChange }: Props) {
               <Input id="m-tel" value={telefone} onChange={e => setTelefone(e.target.value)} />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="m-esp">Especialidade</Label>
-              <Input id="m-esp" value={especialidade} onChange={e => setEspecialidade(e.target.value)} />
+              <div className="flex items-center justify-between">
+                <Label>Especialidade</Label>
+                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowEspecialidades(true)}>
+                  <Settings className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+              <Select value={especialidade} onValueChange={setEspecialidade}>
+                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
+                <SelectContent>
+                  {especialidades.map(e => <SelectItem key={e.id} value={e.nome}>{e.nome}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -94,5 +111,7 @@ export default function NovoMentorModal({ open, onOpenChange }: Props) {
         </form>
       </DialogContent>
     </Dialog>
+    <EspecialidadesManagerModal open={showEspecialidades} onOpenChange={setShowEspecialidades} />
+    </>
   );
 }
