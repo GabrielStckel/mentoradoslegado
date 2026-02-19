@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -7,8 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { useMentorados, useMentores } from '@/hooks/useSupabaseData';
 import { toast } from 'sonner';
+import { Check, ChevronsUpDown } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface Props {
   open: boolean;
@@ -22,7 +26,7 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
 
   const [titulo, setTitulo] = useState('');
   const [mentoradoId, setMentoradoId] = useState('');
-  const [mentorId, setMentorId] = useState('');
+  const [mentoradoOpen, setMentoradoOpen] = useState(false);
   const [tipo, setTipo] = useState('Sessão');
   const [local, setLocal] = useState('Online');
   const [linkReuniao, setLinkReuniao] = useState('');
@@ -31,8 +35,10 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
   const [horaFim, setHoraFim] = useState('');
   const [notasOperacionais, setNotasOperacionais] = useState('');
 
+  const selectedMentorado = useMemo(() => mentorados.find(m => m.id === mentoradoId), [mentorados, mentoradoId]);
+
   const reset = () => {
-    setTitulo(''); setMentoradoId(''); setMentorId('');
+    setTitulo(''); setMentoradoId('');
     setTipo('Sessão'); setLocal('Online'); setLinkReuniao('');
     setDataInicio(''); setHoraInicio(''); setHoraFim('');
     setNotasOperacionais('');
@@ -42,6 +48,11 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
     mutationFn: async () => {
       const inicio = new Date(`${dataInicio}T${horaInicio}`).toISOString();
       const fim = new Date(`${dataInicio}T${horaFim}`).toISOString();
+      
+      // Auto-assign mentor: use mentorado's mentor_id or first available mentor
+      const mentorId = selectedMentorado?.mentor_id || mentores[0]?.id;
+      if (!mentorId) throw new Error('Nenhum mentor disponível');
+
       const { error } = await supabase.from('encontros').insert({
         titulo,
         mentorado_id: mentoradoId,
@@ -78,25 +89,39 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
             <Input id="ne-titulo" value={titulo} onChange={e => setTitulo(e.target.value)} required placeholder="Ex: Sessão de mentoria" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Mentorado *</Label>
-              <Select value={mentoradoId} onValueChange={setMentoradoId}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {mentorados.map(m => <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Mentor *</Label>
-              <Select value={mentorId} onValueChange={setMentorId}>
-                <SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger>
-                <SelectContent>
-                  {mentores.map(m => <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label>Mentorado *</Label>
+            <Popover open={mentoradoOpen} onOpenChange={setMentoradoOpen}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" role="combobox" aria-expanded={mentoradoOpen} className="w-full justify-between font-normal">
+                  {selectedMentorado ? selectedMentorado.nome : 'Buscar mentorado...'}
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                <Command>
+                  <CommandInput placeholder="Buscar mentorado..." />
+                  <CommandList>
+                    <CommandEmpty>Nenhum mentorado encontrado.</CommandEmpty>
+                    <CommandGroup>
+                      {mentorados.map(m => (
+                        <CommandItem
+                          key={m.id}
+                          value={m.nome}
+                          onSelect={() => {
+                            setMentoradoId(m.id);
+                            setMentoradoOpen(false);
+                          }}
+                        >
+                          <Check className={cn("mr-2 h-4 w-4", mentoradoId === m.id ? "opacity-100" : "opacity-0")} />
+                          {m.nome}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
@@ -155,7 +180,7 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
 
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={!titulo || !mentoradoId || !mentorId || !dataInicio || !horaInicio || !horaFim || mutation.isPending}>
+            <Button type="submit" disabled={!titulo || !mentoradoId || !dataInicio || !horaInicio || !horaFim || mutation.isPending}>
               {mutation.isPending ? 'Salvando...' : 'Criar Encontro'}
             </Button>
           </div>
