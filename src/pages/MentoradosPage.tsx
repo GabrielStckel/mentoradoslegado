@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Phone } from 'lucide-react';
 import { useMentorados, useMentores } from '@/hooks/useSupabaseData';
+import NovoMentoradoModal from '@/components/NovoMentoradoModal';
 import { StatusBadge, TagBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,6 +15,7 @@ export default function MentoradosPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [mentorFilter, setMentorFilter] = useState('all');
+  const [showNovo, setShowNovo] = useState(false);
 
   const { data: mentorados = [], isLoading } = useMentorados();
   const { data: mentores = [] } = useMentores();
@@ -46,10 +48,11 @@ export default function MentoradosPage() {
           <h1 className="page-title">Mentorados</h1>
           <p className="page-subtitle">{mentorados.length} mentorados cadastrados</p>
         </div>
-        <Button>
+        <Button onClick={() => setShowNovo(true)}>
           <Plus className="h-4 w-4 mr-2" /> Novo Mentorado
         </Button>
       </div>
+      <NovoMentoradoModal open={showNovo} onOpenChange={setShowNovo} />
 
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-sm">

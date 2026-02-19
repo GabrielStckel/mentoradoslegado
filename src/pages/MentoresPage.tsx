@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Plus, Wifi, WifiOff } from 'lucide-react';
 import { useMentores } from '@/hooks/useSupabaseData';
+import NovoMentorModal from '@/components/NovoMentorModal';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -8,6 +10,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MentoresPage() {
   const { data: mentores = [], isLoading } = useMentores();
+  const [showNovo, setShowNovo] = useState(false);
 
   if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
 
@@ -18,8 +21,9 @@ export default function MentoresPage() {
           <h1 className="page-title">Mentores</h1>
           <p className="page-subtitle">{mentores.length} mentores cadastrados</p>
         </div>
-        <Button><Plus className="h-4 w-4 mr-2" /> Novo Mentor</Button>
+        <Button onClick={() => setShowNovo(true)}><Plus className="h-4 w-4 mr-2" /> Novo Mentor</Button>
       </div>
+      <NovoMentorModal open={showNovo} onOpenChange={setShowNovo} />
 
       <div className="rounded-xl border bg-card overflow-hidden">
         <Table>
