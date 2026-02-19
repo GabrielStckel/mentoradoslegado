@@ -1,0 +1,61 @@
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+
+export function useMentores() {
+  return useQuery({
+    queryKey: ['mentores'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('mentores').select('*').order('nome');
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useMentorados() {
+  return useQuery({
+    queryKey: ['mentorados'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('mentorados').select('*').order('nome');
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useEncontros() {
+  return useQuery({
+    queryKey: ['encontros'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('encontros').select('*').order('inicio', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useHistoricos(mentoradoId?: string) {
+  return useQuery({
+    queryKey: ['historicos', mentoradoId],
+    queryFn: async () => {
+      let query = supabase.from('historicos').select('*').order('created_at', { ascending: false });
+      if (mentoradoId) query = query.eq('mentorado_id', mentoradoId);
+      const { data, error } = await query;
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
+export function useUpdateEncontroStatus() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
+      const { error } = await supabase.from('encontros').update({ status }).eq('id', id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['encontros'] });
+    },
+  });
+}

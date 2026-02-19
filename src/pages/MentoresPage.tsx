@@ -1,12 +1,16 @@
-import { useState, useMemo } from 'react';
 import { Plus, Wifi, WifiOff } from 'lucide-react';
-import { mentores } from '@/data/mock';
+import { useMentores } from '@/hooks/useSupabaseData';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MentoresPage() {
+  const { data: mentores = [], isLoading } = useMentores();
+
+  if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
@@ -40,7 +44,7 @@ export default function MentoresPage() {
                 </TableCell>
                 <TableCell className="text-sm">{m.especialidade}</TableCell>
                 <TableCell className="text-sm">{m.carga_max_por_dia} sessões</TableCell>
-                <TableCell><StatusBadge status={m.status} /></TableCell>
+                <TableCell><StatusBadge status={m.status as any} /></TableCell>
                 <TableCell>
                   {m.google_calendar_connected ? (
                     <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/20">
@@ -57,6 +61,9 @@ export default function MentoresPage() {
                 </TableCell>
               </TableRow>
             ))}
+            {mentores.length === 0 && (
+              <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum mentor cadastrado.</TableCell></TableRow>
+            )}
           </TableBody>
         </Table>
       </div>

@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Phone } from 'lucide-react';
-import { mentorados, mentores, encontros } from '@/data/mock';
+import { useMentorados, useMentores } from '@/hooks/useSupabaseData';
 import { StatusBadge, TagBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MentoradosPage() {
   const navigate = useNavigate();
@@ -14,11 +15,14 @@ export default function MentoradosPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [mentorFilter, setMentorFilter] = useState('all');
 
+  const { data: mentorados = [], isLoading } = useMentorados();
+  const { data: mentores = [] } = useMentores();
+
   const mentorMap = useMemo(() => {
     const m: Record<string, string> = {};
     mentores.forEach(mt => { m[mt.id] = mt.nome; });
     return m;
-  }, []);
+  }, [mentores]);
 
   const filtered = useMemo(() => {
     return mentorados.filter(m => {
@@ -29,7 +33,11 @@ export default function MentoradosPage() {
       const matchMentor = mentorFilter === 'all' || m.mentor_id === mentorFilter;
       return matchSearch && matchStatus && matchMentor;
     });
-  }, [search, statusFilter, mentorFilter]);
+  }, [search, statusFilter, mentorFilter, mentorados]);
+
+  if (isLoading) {
+    return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
+  }
 
   return (
     <div className="space-y-6">
@@ -43,7 +51,6 @@ export default function MentoradosPage() {
         </Button>
       </div>
 
-      {/* Filters */}
       <div className="flex flex-wrap gap-3">
         <div className="relative flex-1 min-w-[200px] max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -68,7 +75,6 @@ export default function MentoradosPage() {
         </Select>
       </div>
 
-      {/* Table */}
       <div className="rounded-xl border bg-card overflow-hidden">
         <Table>
           <TableHeader>
@@ -91,13 +97,13 @@ export default function MentoradosPage() {
                     <p className="text-xs text-muted-foreground">{m.email}</p>
                   </div>
                 </TableCell>
-                <TableCell className="text-sm">{mentorMap[m.mentor_id]}</TableCell>
+                <TableCell className="text-sm">{m.mentor_id ? mentorMap[m.mentor_id] : '—'}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">{m.cidade}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">{m.origem}</TableCell>
                 <TableCell>
-                  <div className="flex gap-1 flex-wrap">{m.tags.map(t => <TagBadge key={t} tag={t} />)}</div>
+                  <div className="flex gap-1 flex-wrap">{(m.tags || []).map(t => <TagBadge key={t} tag={t as any} />)}</div>
                 </TableCell>
-                <TableCell><StatusBadge status={m.status} /></TableCell>
+                <TableCell><StatusBadge status={m.status as any} /></TableCell>
                 <TableCell>
                   <a
                     href={`https://wa.me/${m.telefone_whatsapp}`}
