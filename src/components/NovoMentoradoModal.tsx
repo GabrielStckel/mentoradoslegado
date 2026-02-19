@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { useMentores, useOrigens } from '@/hooks/useSupabaseData';
+import { useOrigens } from '@/hooks/useSupabaseData';
 import { toast } from 'sonner';
 import { Settings } from 'lucide-react';
 import OrigensManagerModal from '@/components/OrigensManagerModal';
@@ -19,7 +19,6 @@ interface Props {
 
 export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
   const queryClient = useQueryClient();
-  const { data: mentores = [] } = useMentores();
   const { data: origens = [] } = useOrigens();
   const [showOrigens, setShowOrigens] = useState(false);
   const [nome, setNome] = useState('');
@@ -27,12 +26,11 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
   const [telefone, setTelefone] = useState('');
   const [cidade, setCidade] = useState('');
   const [origem, setOrigem] = useState('Outro');
-  const [mentorId, setMentorId] = useState('none');
   const [observacoes, setObservacoes] = useState('');
 
   const reset = () => {
     setNome(''); setEmail(''); setTelefone(''); setCidade('');
-    setOrigem('Outro'); setMentorId('none'); setObservacoes('');
+    setOrigem('Outro'); setObservacoes('');
   };
 
   const mutation = useMutation({
@@ -43,7 +41,6 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
         telefone_whatsapp: telefone,
         cidade,
         origem,
-        mentor_id: mentorId === 'none' ? null : mentorId,
         observacoes_gerais: observacoes,
       });
       if (error) throw error;
@@ -100,16 +97,6 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Mentor</Label>
-            <Select value={mentorId} onValueChange={setMentorId}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Sem mentor</SelectItem>
-                {mentores.map(m => <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>)}
-              </SelectContent>
-            </Select>
           </div>
           <div className="space-y-2">
             <Label htmlFor="obs">Observações</Label>

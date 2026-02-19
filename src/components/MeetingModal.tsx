@@ -66,11 +66,6 @@ export default function MeetingModal({ encontro, mentorado, mentor, open, onOpen
                 <span className="font-medium text-foreground">Mentorado:</span> {mentorado.nome}
               </div>
             )}
-            {mentor && (
-              <div className="text-muted-foreground">
-                <span className="font-medium text-foreground">Mentor:</span> {mentor.nome}
-              </div>
-            )}
           </div>
 
           {encontro.link_reuniao && (

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Phone } from 'lucide-react';
-import { useMentorados, useMentores } from '@/hooks/useSupabaseData';
+import { useMentorados } from '@/hooks/useSupabaseData';
 import NovoMentoradoModal from '@/components/NovoMentoradoModal';
 import { StatusBadge, TagBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
@@ -14,17 +14,9 @@ export default function MentoradosPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [mentorFilter, setMentorFilter] = useState('all');
   const [showNovo, setShowNovo] = useState(false);
 
   const { data: mentorados = [], isLoading } = useMentorados();
-  const { data: mentores = [] } = useMentores();
-
-  const mentorMap = useMemo(() => {
-    const m: Record<string, string> = {};
-    mentores.forEach(mt => { m[mt.id] = mt.nome; });
-    return m;
-  }, [mentores]);
 
   const filtered = useMemo(() => {
     return mentorados.filter(m => {
@@ -32,10 +24,9 @@ export default function MentoradosPage() {
         m.email.toLowerCase().includes(search.toLowerCase()) ||
         m.telefone_whatsapp.includes(search);
       const matchStatus = statusFilter === 'all' || m.status === statusFilter;
-      const matchMentor = mentorFilter === 'all' || m.mentor_id === mentorFilter;
-      return matchSearch && matchStatus && matchMentor;
+      return matchSearch && matchStatus;
     });
-  }, [search, statusFilter, mentorFilter, mentorados]);
+  }, [search, statusFilter, mentorados]);
 
   if (isLoading) {
     return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
@@ -69,13 +60,6 @@ export default function MentoradosPage() {
             <SelectItem value="Finalizado">Finalizado</SelectItem>
           </SelectContent>
         </Select>
-        <Select value={mentorFilter} onValueChange={setMentorFilter}>
-          <SelectTrigger className="w-[160px]"><SelectValue placeholder="Mentor" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Todos os mentores</SelectItem>
-            {mentores.map(m => <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>)}
-          </SelectContent>
-        </Select>
       </div>
 
       <div className="rounded-xl border bg-card overflow-hidden">
@@ -83,7 +67,6 @@ export default function MentoradosPage() {
           <TableHeader>
             <TableRow className="bg-secondary/30 hover:bg-secondary/30">
               <TableHead className="table-header">Nome</TableHead>
-              <TableHead className="table-header">Mentor</TableHead>
               <TableHead className="table-header">Cidade</TableHead>
               <TableHead className="table-header">Origem</TableHead>
               <TableHead className="table-header">Tags</TableHead>
@@ -100,7 +83,7 @@ export default function MentoradosPage() {
                     <p className="text-xs text-muted-foreground">{m.email}</p>
                   </div>
                 </TableCell>
-                <TableCell className="text-sm">{m.mentor_id ? mentorMap[m.mentor_id] : '—'}</TableCell>
+                
                 <TableCell className="text-sm text-muted-foreground">{m.cidade}</TableCell>
                 <TableCell className="text-sm text-muted-foreground">{m.origem}</TableCell>
                 <TableCell>
@@ -121,7 +104,7 @@ export default function MentoradosPage() {
               </TableRow>
             ))}
             {filtered.length === 0 && (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhum mentorado encontrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum mentorado encontrado.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
