@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Phone } from 'lucide-react';
+import { Plus, Search, Phone, CalendarPlus } from 'lucide-react';
 import { useMentorados } from '@/hooks/useSupabaseData';
 import NovoMentoradoModal from '@/components/NovoMentoradoModal';
+import NovoEncontroModal from '@/components/NovoEncontroModal';
+import QuickSessionModal from '@/components/QuickSessionModal';
 import { StatusBadge, TagBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,10 +12,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 
 export default function MentoradosPage() {
-  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showNovo, setShowNovo] = useState(false);
+  const [encontroMentoradoId, setEncontroMentoradoId] = useState<string | null>(null);
+  const [selectedMentorado, setSelectedMentorado] = useState<any>(null);
 
   const { data: mentorados = [], isLoading } = useMentorados();
 
@@ -72,16 +74,20 @@ export default function MentoradosPage() {
               <TableHead className="table-header">Tags</TableHead>
               <TableHead className="table-header">Status</TableHead>
               <TableHead className="table-header">Contato</TableHead>
+              <TableHead className="table-header w-[50px]"></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.map(m => (
-              <TableRow key={m.id} className="cursor-pointer hover:bg-secondary/20" onClick={() => navigate(`/mentorados/${m.id}`)}>
+              <TableRow key={m.id} className="hover:bg-secondary/20">
                 <TableCell>
-                  <div>
-                    <p className="font-medium text-sm">{m.nome}</p>
+                  <button
+                    className="text-left hover:underline"
+                    onClick={() => setSelectedMentorado(m)}
+                  >
+                    <p className="font-medium text-sm text-primary">{m.nome}</p>
                     <p className="text-xs text-muted-foreground">{m.email}</p>
-                  </div>
+                  </button>
                 </TableCell>
                 
                 <TableCell className="text-sm text-muted-foreground">{m.cidade}</TableCell>
@@ -101,14 +107,38 @@ export default function MentoradosPage() {
                     <Phone className="h-3.5 w-3.5" /> WhatsApp
                   </a>
                 </TableCell>
+                <TableCell>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-8 w-8"
+                    title="Agendar encontro"
+                    onClick={(e) => { e.stopPropagation(); setEncontroMentoradoId(m.id); }}
+                  >
+                    <CalendarPlus className="h-4 w-4" />
+                  </Button>
+                </TableCell>
               </TableRow>
             ))}
             {filtered.length === 0 && (
-              <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum mentorado encontrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhum mentorado encontrado.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+
+      <QuickSessionModal
+        mentorado={selectedMentorado}
+        open={!!selectedMentorado}
+        onOpenChange={(o) => !o && setSelectedMentorado(null)}
+      />
+
+      {encontroMentoradoId && (
+        <NovoEncontroModal
+          open={!!encontroMentoradoId}
+          onOpenChange={(o) => !o && setEncontroMentoradoId(null)}
+        />
+      )}
     </div>
   );
 }
