@@ -1,19 +1,20 @@
-import { useState } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { toast } from 'sonner';
-import { format } from 'date-fns';
+import { format, addDays, addWeeks, nextMonday, nextTuesday, nextWednesday, nextThursday, nextFriday, setHours, setMinutes } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarPlus, Lock } from 'lucide-react';
+import { CalendarPlus, Lock, Clock, Zap, Check } from 'lucide-react';
 import { useMentores, useEncontros } from '@/hooks/useSupabaseData';
 
 const ADMIN_PIN = '1234';
+
+const QUICK_TIMES = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
 
 interface Props {
   mentorado: {
@@ -31,11 +32,75 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
   const { data: mentores = [] } = useMentores();
   const { data: encontros = [] } = useEncontros();
 
-  const [proximaData, setProximaData] = useState('');
-  const [proximaHora, setProximaHora] = useState('');
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedTime, setSelectedTime] = useState('');
   const [observacao, setObservacao] = useState('');
   const [pin, setPin] = useState('');
   const [pinError, setPinError] = useState(false);
+
+  // Find the last completed meeting to suggest pattern
+  const lastMeeting = useMemo(() => {
+    if (!mentorado) return null;
+    return encontros
+      .filter(e => e.mentorado_id === mentorado.id)
+      .sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime())[0] || null;
+  }, [mentorado, encontros]);
+
+  // Suggest next date based on pattern (same weekday next week, same time)
+  const suggestedDate = useMemo(() => {
+    if (!lastMeeting) return addDays(new Date(), 7);
+    const last = new Date(lastMeeting.inicio);
+    return addWeeks(last, 1);
+  }, [lastMeeting]);
+
+  const suggestedTime = useMemo(() => {
+    if (!lastMeeting) return '09:00';
+    const last = new Date(lastMeeting.inicio);
+    return format(last, 'HH:mm');
+  }, [lastMeeting]);
+
+  // Auto-select suggested date/time on open
+  useEffect(() => {
+    if (open && mentorado) {
+      // Only if the suggested date is in the future
+      const suggested = suggestedDate;
+      if (suggested > new Date()) {
+        setSelectedDate(suggested);
+        setSelectedTime(suggestedTime);
+      } else {
+        // Find next occurrence of the same weekday
+        const today = new Date();
+        const dayOfWeek = suggestedDate.getDay();
+        let next = addDays(today, 1);
+        while (next.getDay() !== dayOfWeek) {
+          next = addDays(next, 1);
+        }
+        setSelectedDate(next);
+        setSelectedTime(suggestedTime);
+      }
+    }
+  }, [open, mentorado, suggestedDate, suggestedTime]);
+
+  // Quick date options
+  const quickDates = useMemo(() => {
+    const today = new Date();
+    const tomorrow = addDays(today, 1);
+    const days: { label: string; date: Date }[] = [];
+
+    // Next 7 weekdays
+    let d = addDays(today, 1);
+    for (let i = 0; i < 7; i++) {
+      if (d.getDay() !== 0 && d.getDay() !== 6) {
+        const isNextWeekSameDay = selectedDate && d.toDateString() === suggestedDate.toDateString();
+        days.push({
+          label: format(d, "EEE dd/MM", { locale: ptBR }),
+          date: d,
+        });
+      }
+      d = addDays(d, 1);
+    }
+    return days;
+  }, [suggestedDate, selectedDate]);
 
   const proximoEncontro = mentorado
     ? encontros
@@ -44,8 +109,8 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
     : null;
 
   const reset = () => {
-    setProximaData('');
-    setProximaHora('');
+    setSelectedDate(null);
+    setSelectedTime('');
     setObservacao('');
     setPin('');
     setPinError(false);
@@ -61,16 +126,16 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
       const mentorId = mentorado?.mentor_id || mentores[0]?.id;
       if (!mentorId) throw new Error('Nenhum mentor disponível');
 
-      if (!proximaData && !proximaHora && !observacao.trim()) {
+      if (!selectedDate && !observacao.trim()) {
         throw new Error('Preencha ao menos um campo');
       }
 
-      // Create next meeting if date provided
-      if (proximaData && proximaHora) {
-        const inicio = new Date(`${proximaData}T${proximaHora}`).toISOString();
-        const fimDate = new Date(`${proximaData}T${proximaHora}`);
-        fimDate.setHours(fimDate.getHours() + 1);
-        const fim = fimDate.toISOString();
+      if (selectedDate && selectedTime) {
+        const [h, m] = selectedTime.split(':').map(Number);
+        const inicio = new Date(selectedDate);
+        inicio.setHours(h, m, 0, 0);
+        const fim = new Date(inicio);
+        fim.setHours(fim.getHours() + 1);
 
         const { error } = await supabase.from('encontros').insert({
           titulo: `Sessão - ${mentorado!.nome}`,
@@ -78,13 +143,12 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
           mentor_id: mentorId,
           tipo: 'Sessão',
           local: 'Online',
-          inicio,
-          fim,
+          inicio: inicio.toISOString(),
+          fim: fim.toISOString(),
         });
         if (error) throw error;
       }
 
-      // Save observation as historico
       if (observacao.trim()) {
         const { error } = await supabase.from('historicos').insert({
           mentorado_id: mentorado!.id,
@@ -95,8 +159,6 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
         });
         if (error) throw error;
       }
-
-      // All operations completed above
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['encontros'] });
@@ -114,54 +176,98 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
 
   if (!mentorado) return null;
 
+  const isSuggested = (date: Date) => date.toDateString() === suggestedDate.toDateString();
+
   return (
     <Dialog open={open} onOpenChange={(o) => { if (!o) reset(); onOpenChange(o); }}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-lg">{mentorado.nome}</DialogTitle>
-          <p className="text-sm text-muted-foreground">
-            Mentorado desde {format(new Date(mentorado.data_inicio), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-          </p>
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <Zap className="h-5 w-5 text-primary" />
+            {mentorado.nome}
+          </DialogTitle>
+          {lastMeeting && (
+            <p className="text-xs text-muted-foreground">
+              Último encontro: {format(new Date(lastMeeting.inicio), "dd/MM 'às' HH:mm", { locale: ptBR })}
+            </p>
+          )}
         </DialogHeader>
 
-        <div className="space-y-5">
+        <div className="space-y-4">
           {/* Next scheduled meeting info */}
           {proximoEncontro && (
             <div className="p-3 rounded-lg border bg-secondary/30">
-              <p className="text-xs text-muted-foreground mb-1">Próximo encontro agendado</p>
+              <p className="text-xs text-muted-foreground mb-1">Próximo encontro já agendado</p>
               <p className="text-sm font-medium">
-                {format(new Date(proximoEncontro.inicio), "dd/MM/yyyy 'às' HH:mm")}
+                {format(new Date(proximoEncontro.inicio), "EEEE, dd/MM 'às' HH:mm", { locale: ptBR })}
               </p>
-              <p className="text-xs text-muted-foreground">{proximoEncontro.titulo}</p>
             </div>
           )}
 
-          {/* Schedule next meeting */}
-          <div className="space-y-3">
+          {/* Quick date selection */}
+          <div className="space-y-2">
             <div className="flex items-center gap-2">
               <CalendarPlus className="h-4 w-4 text-primary" />
-              <Label className="text-sm font-semibold">Agendar próxima sessão</Label>
+              <Label className="text-sm font-semibold">Próxima sessão</Label>
             </div>
-            <div className="grid grid-cols-2 gap-3">
-              <div className="space-y-1.5">
-                <Label htmlFor="qs-data" className="text-xs text-muted-foreground">Data</Label>
-                <Input id="qs-data" type="date" value={proximaData} onChange={e => setProximaData(e.target.value)} />
-              </div>
-              <div className="space-y-1.5">
-                <Label htmlFor="qs-hora" className="text-xs text-muted-foreground">Horário</Label>
-                <Input id="qs-hora" type="time" value={proximaHora} onChange={e => setProximaHora(e.target.value)} />
-              </div>
+            <div className="flex flex-wrap gap-1.5">
+              {quickDates.map((qd) => (
+                <Button
+                  key={qd.date.toISOString()}
+                  type="button"
+                  size="sm"
+                  variant={selectedDate?.toDateString() === qd.date.toDateString() ? 'default' : 'outline'}
+                  className={`text-xs h-8 px-2.5 ${isSuggested(qd.date) && selectedDate?.toDateString() !== qd.date.toDateString() ? 'border-primary/50 text-primary' : ''}`}
+                  onClick={() => setSelectedDate(qd.date)}
+                >
+                  {isSuggested(qd.date) && <Zap className="h-3 w-3 mr-0.5" />}
+                  {qd.label}
+                </Button>
+              ))}
             </div>
           </div>
 
-          {/* Today's observation */}
+          {/* Quick time selection */}
           <div className="space-y-2">
-            <Label htmlFor="qs-obs" className="text-sm font-semibold">Observação da mentoria de hoje</Label>
+            <div className="flex items-center gap-2">
+              <Clock className="h-4 w-4 text-primary" />
+              <Label className="text-sm font-semibold">Horário</Label>
+            </div>
+            <div className="flex flex-wrap gap-1.5">
+              {QUICK_TIMES.map((t) => (
+                <Button
+                  key={t}
+                  type="button"
+                  size="sm"
+                  variant={selectedTime === t ? 'default' : 'outline'}
+                  className={`text-xs h-8 px-2.5 ${t === suggestedTime && selectedTime !== t ? 'border-primary/50 text-primary' : ''}`}
+                  onClick={() => setSelectedTime(t)}
+                >
+                  {t === suggestedTime && selectedTime !== t && <Zap className="h-3 w-3 mr-0.5" />}
+                  {t}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Summary of selection */}
+          {selectedDate && selectedTime && (
+            <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/10 border border-primary/20">
+              <Check className="h-4 w-4 text-primary flex-shrink-0" />
+              <p className="text-sm font-medium text-primary">
+                {format(selectedDate, "EEEE, dd 'de' MMMM", { locale: ptBR })} às {selectedTime}
+              </p>
+            </div>
+          )}
+
+          {/* Observation */}
+          <div className="space-y-1.5">
+            <Label htmlFor="qs-obs" className="text-sm font-semibold">Observação (opcional)</Label>
             <Textarea
               id="qs-obs"
               value={observacao}
               onChange={e => setObservacao(e.target.value)}
-              rows={3}
+              rows={2}
               placeholder="Como foi a sessão de hoje..."
             />
           </div>
@@ -170,7 +276,7 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Lock className="h-4 w-4 text-muted-foreground" />
-              <Label className="text-sm font-semibold">PIN para salvar</Label>
+              <Label className="text-sm font-semibold">PIN</Label>
             </div>
             <div className="flex justify-center">
               <InputOTP maxLength={4} value={pin} onChange={(v) => { setPin(v); setPinError(false); }}>
@@ -182,11 +288,11 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
                 </InputOTPGroup>
               </InputOTP>
             </div>
-            {pinError && <p className="text-xs text-destructive text-center">PIN incorreto. Tente novamente.</p>}
+            {pinError && <p className="text-xs text-destructive text-center">PIN incorreto.</p>}
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-2 pt-1">
+          <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button
               onClick={() => mutation.mutate()}
