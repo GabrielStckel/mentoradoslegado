@@ -31,6 +31,18 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
   const [dataInicio, setDataInicio] = useState('');
   const [horaInicio, setHoraInicio] = useState('');
   const [horaFim, setHoraFim] = useState('');
+
+  // Auto-calculate end time (1h30min after start)
+  const handleHoraInicioChange = (value: string) => {
+    setHoraInicio(value);
+    if (value) {
+      const [h, m] = value.split(':').map(Number);
+      const totalMin = h * 60 + m + 90;
+      const endH = Math.floor(totalMin / 60) % 24;
+      const endM = totalMin % 60;
+      setHoraFim(`${String(endH).padStart(2, '0')}:${String(endM).padStart(2, '0')}`);
+    }
+  };
   const [notasOperacionais, setNotasOperacionais] = useState('');
 
   const selectedMentorado = useMemo(() => mentorados.find(m => m.id === mentoradoId), [mentorados, mentoradoId]);
@@ -143,7 +155,7 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="ne-hora-ini" className="text-base font-semibold">🕐 Início *</Label>
-              <Input id="ne-hora-ini" type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} required className="h-14 text-lg px-4" />
+              <Input id="ne-hora-ini" type="time" value={horaInicio} onChange={e => handleHoraInicioChange(e.target.value)} required className="h-14 text-lg px-4" />
             </div>
             <div className="space-y-2">
               <Label htmlFor="ne-hora-fim" className="text-base font-semibold">🕑 Fim *</Label>
