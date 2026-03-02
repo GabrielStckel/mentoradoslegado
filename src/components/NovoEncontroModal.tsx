@@ -9,10 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Calendar } from '@/components/ui/calendar';
 import { useMentorados, useMentores } from '@/hooks/useSupabaseData';
 import { toast } from 'sonner';
-import { Check, ChevronsUpDown } from 'lucide-react';
+import { Check, ChevronsUpDown, CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { format } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 interface Props {
   open: boolean;
@@ -28,7 +31,8 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
   const [mentoradoId, setMentoradoId] = useState('');
   const [mentoradoOpen, setMentoradoOpen] = useState(false);
   const [local, setLocal] = useState('Online');
-  const [dataInicio, setDataInicio] = useState('');
+  const [dataSelecionada, setDataSelecionada] = useState<Date | undefined>();
+  const [dataPopoverOpen, setDataPopoverOpen] = useState(false);
   const [horaInicio, setHoraInicio] = useState('');
   const [horaFim, setHoraFim] = useState('');
 
@@ -49,15 +53,17 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
 
   const reset = () => {
     setTitulo(''); setMentoradoId('');
-    setLocal('Online');
-    setDataInicio(''); setHoraInicio(''); setHoraFim('');
+    setLocal('Online'); setDataSelecionada(undefined); setDataPopoverOpen(false);
+    setHoraInicio(''); setHoraFim('');
     setNotasOperacionais('');
   };
 
   const mutation = useMutation({
     mutationFn: async () => {
-      const inicio = new Date(`${dataInicio}T${horaInicio}`).toISOString();
-      const fim = new Date(`${dataInicio}T${horaFim}`).toISOString();
+      if (!dataSelecionada) throw new Error('Data não selecionada');
+      const dateStr = format(dataSelecionada, 'yyyy-MM-dd');
+      const inicio = new Date(`${dateStr}T${horaInicio}`).toISOString();
+      const fim = new Date(`${dateStr}T${horaFim}`).toISOString();
       
       // Auto-assign mentor: use mentorado's mentor_id or first available mentor
       const mentorId = selectedMentorado?.mentor_id || mentores[0]?.id;
@@ -148,8 +154,50 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="ne-data" className="text-base font-semibold">📅 Data do encontro *</Label>
-            <Input id="ne-data" type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} required className="h-14 text-lg px-4" />
+            <Label className="text-base font-semibold">📅 Data do encontro *</Label>
+            <Popover open={dataPopoverOpen} onOpenChange={setDataPopoverOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  className={cn(
+                    "w-full h-14 text-lg px-4 justify-start text-left font-normal",
+                    !dataSelecionada && "text-muted-foreground"
+                  )}
+                >
+                  <CalendarIcon className="mr-2 h-5 w-5" />
+                  {dataSelecionada ? format(dataSelecionada, "dd 'de' MMMM 'de' yyyy", { locale: ptBR }) : 'Selecione a data'}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dataSelecionada}
+                  onSelect={(date) => { setDataSelecionada(date); setDataPopoverOpen(false); }}
+                  initialFocus
+                  locale={ptBR}
+                  className={cn("p-4 pointer-events-auto text-base")}
+                  classNames={{
+                    months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+                    month: "space-y-4",
+                    caption: "flex justify-center pt-1 relative items-center",
+                    caption_label: "text-base font-semibold",
+                    nav_button: cn("h-9 w-9 bg-transparent p-0 opacity-50 hover:opacity-100"),
+                    nav_button_previous: "absolute left-1",
+                    nav_button_next: "absolute right-1",
+                    table: "w-full border-collapse space-y-1",
+                    head_row: "flex",
+                    head_cell: "text-muted-foreground rounded-md w-12 font-normal text-sm",
+                    row: "flex w-full mt-2",
+                    cell: "h-12 w-12 text-center text-base p-0 relative focus-within:relative focus-within:z-20",
+                    day: "h-12 w-12 p-0 font-normal text-base hover:bg-accent hover:text-accent-foreground rounded-md transition-colors",
+                    day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground",
+                    day_today: "bg-accent text-accent-foreground font-bold",
+                    day_outside: "text-muted-foreground opacity-50",
+                    day_disabled: "text-muted-foreground opacity-50",
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -170,7 +218,7 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
 
           <div className="flex justify-end gap-2 pt-2">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-            <Button type="submit" disabled={!titulo || !mentoradoId || !dataInicio || !horaInicio || !horaFim || mutation.isPending}>
+            <Button type="submit" disabled={!titulo || !mentoradoId || !dataSelecionada || !horaInicio || !horaFim || mutation.isPending}>
               {mutation.isPending ? 'Salvando...' : 'Criar Encontro'}
             </Button>
           </div>
