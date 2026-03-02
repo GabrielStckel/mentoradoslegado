@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import ScrollTimePicker from '@/components/ScrollTimePicker';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -108,15 +109,15 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
             <Label>Mentorado *</Label>
             <Popover open={mentoradoOpen} onOpenChange={setMentoradoOpen}>
               <PopoverTrigger asChild>
-                <Button variant="outline" role="combobox" aria-expanded={mentoradoOpen} className="w-full justify-between font-normal">
+                <Button variant="outline" role="combobox" aria-expanded={mentoradoOpen} className="w-full h-12 text-base justify-between font-normal">
                   {selectedMentorado ? selectedMentorado.nome : 'Buscar mentorado...'}
-                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  <ChevronsUpDown className="ml-2 h-5 w-5 shrink-0 opacity-50" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
                 <Command>
-                  <CommandInput placeholder="Buscar mentorado..." />
-                  <CommandList>
+                  <CommandInput placeholder="Buscar mentorado..." className="h-12 text-base" />
+                  <CommandList className="max-h-[200px]">
                     <CommandEmpty>Nenhum mentorado encontrado.</CommandEmpty>
                     <CommandGroup>
                       {mentorados.map(m => (
@@ -202,12 +203,12 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="ne-hora-ini" className="text-base font-semibold">🕐 Início *</Label>
-              <Input id="ne-hora-ini" type="time" value={horaInicio} onChange={e => handleHoraInicioChange(e.target.value)} required className="h-14 text-lg px-4" />
+              <Label className="text-base font-semibold">🕐 Início *</Label>
+              <ScrollTimePicker value={horaInicio} onChange={handleHoraInicioChange} label="Início" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="ne-hora-fim" className="text-base font-semibold">🕑 Fim *</Label>
-              <Input id="ne-hora-fim" type="time" value={horaFim} onChange={e => setHoraFim(e.target.value)} required className="h-14 text-lg px-4" />
+              <Label className="text-base font-semibold">🕑 Fim *</Label>
+              <ScrollTimePicker value={horaFim} onChange={setHoraFim} label="Fim" />
             </div>
           </div>
 
