@@ -2,10 +2,11 @@ import { useState } from 'react';
 import { NavLink as RouterNavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Users, UserCheck, CalendarDays, CalendarClock,
-  Menu, X, Search, Bell, ChevronLeft, LogOut, Settings
+  Menu, X, Search, Bell, ChevronLeft, LogOut, Settings, Sun, Moon
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
+import { useTheme } from '@/hooks/useTheme';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -23,7 +24,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { profile, role, signOut } = useAuth();
-
+  const { theme, toggleTheme } = useTheme();
   const displayName = profile?.nome || 'Usuário';
   const initials = displayName.split(' ').map(n => n[0]).join('').slice(0, 2);
 
@@ -69,6 +70,13 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className={cn('border-t border-sidebar-border p-3', collapsed && 'px-2')}>
+          <button
+            onClick={toggleTheme}
+            className={cn('sidebar-item sidebar-item-inactive w-full', collapsed && 'justify-center px-2')}
+          >
+            {theme === 'light' ? <Moon className="h-5 w-5 flex-shrink-0" /> : <Sun className="h-5 w-5 flex-shrink-0" />}
+            {!collapsed && <span>{theme === 'light' ? 'Tema Escuro' : 'Tema Claro'}</span>}
+          </button>
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="hidden md:flex sidebar-item sidebar-item-inactive w-full justify-center"
