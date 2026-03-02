@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { NavLink as RouterNavLink, useLocation } from 'react-router-dom';
+import { useState, useMemo, useRef, useEffect } from 'react';
+import { NavLink as RouterNavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, UserCheck, CalendarDays, CalendarClock,
   Menu, X, Search, Bell, ChevronLeft, LogOut, Settings, Sun, Moon
@@ -7,6 +7,7 @@ import {
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 import { useTheme } from '@/hooks/useTheme';
+import { useMentorados, useMentores } from '@/hooks/useSupabaseData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -22,11 +23,33 @@ const navItems = [
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(true);
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [globalSearch, setGlobalSearch] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
+  const navigate = useNavigate();
   const { profile, role, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
+  const { data: mentorados = [] } = useMentorados();
+  const { data: mentores = [] } = useMentores();
   const displayName = profile?.nome || 'Usuário';
   const initials = displayName.split(' ').map(n => n[0]).join('').slice(0, 2);
+
+  const searchResults = useMemo(() => {
+    if (!globalSearch.trim()) return [];
+    const q = globalSearch.toLowerCase();
+    const mts = mentorados.filter(m => m.nome.toLowerCase().includes(q) || m.email.toLowerCase().includes(q)).slice(0, 5).map(m => ({ type: 'mentorado' as const, id: m.id, name: m.nome, sub: m.email || m.cidade }));
+    const mrs = mentores.filter(m => m.nome.toLowerCase().includes(q) || m.email.toLowerCase().includes(q)).slice(0, 3).map(m => ({ type: 'mentor' as const, id: m.id, name: m.nome, sub: m.especialidade }));
+    return [...mts, ...mrs];
+  }, [globalSearch, mentorados, mentores]);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setSearchOpen(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -113,12 +136,45 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setMobileOpen(true)}>
               <Menu className="h-5 w-5" />
             </Button>
-            <div className="relative hidden sm:block">
+            <div className="relative hidden sm:block" ref={searchRef}>
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Buscar mentorado, mentor..."
+                value={globalSearch}
+                onChange={e => { setGlobalSearch(e.target.value); setSearchOpen(true); }}
+                onFocus={() => setSearchOpen(true)}
                 className="pl-9 w-64 bg-secondary/50 border-transparent focus:border-primary/30 focus:bg-card"
               />
+              {searchOpen && searchResults.length > 0 && (
+                <div className="absolute top-full left-0 mt-1 w-80 rounded-lg border bg-card shadow-lg z-50 max-h-64 overflow-y-auto">
+                  {searchResults.map((r) => (
+                    <button
+                      key={`${r.type}-${r.id}`}
+                      onClick={() => {
+                        if (r.type === 'mentorado') navigate(`/mentorados/${r.id}`);
+                        setGlobalSearch('');
+                        setSearchOpen(false);
+                      }}
+                      className="flex items-center gap-3 w-full p-3 hover:bg-accent/40 transition-colors text-left"
+                    >
+                      <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs flex-shrink-0">
+                        {r.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium truncate">{r.name}</p>
+                        <p className="text-xs text-muted-foreground truncate">
+                          {r.type === 'mentorado' ? 'Mentorado' : 'Mentor'} · {r.sub || ''}
+                        </p>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+              {searchOpen && globalSearch.trim() && searchResults.length === 0 && (
+                <div className="absolute top-full left-0 mt-1 w-80 rounded-lg border bg-card shadow-lg z-50 p-4 text-center text-sm text-muted-foreground">
+                  Nenhum resultado encontrado.
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
