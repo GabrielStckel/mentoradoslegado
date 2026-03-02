@@ -27,9 +27,7 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
   const [titulo, setTitulo] = useState('');
   const [mentoradoId, setMentoradoId] = useState('');
   const [mentoradoOpen, setMentoradoOpen] = useState(false);
-  const [tipo, setTipo] = useState('Sessão');
   const [local, setLocal] = useState('Online');
-  const [linkReuniao, setLinkReuniao] = useState('');
   const [dataInicio, setDataInicio] = useState('');
   const [horaInicio, setHoraInicio] = useState('');
   const [horaFim, setHoraFim] = useState('');
@@ -39,7 +37,7 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
 
   const reset = () => {
     setTitulo(''); setMentoradoId('');
-    setTipo('Sessão'); setLocal('Online'); setLinkReuniao('');
+    setLocal('Online');
     setDataInicio(''); setHoraInicio(''); setHoraFim('');
     setNotasOperacionais('');
   };
@@ -57,9 +55,8 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
         titulo,
         mentorado_id: mentoradoId,
         mentor_id: mentorId,
-        tipo,
+        tipo: 'Sessão',
         local,
-        link_reuniao: linkReuniao,
         inicio,
         fim,
         notas_operacionais: notasOperacionais,
@@ -124,53 +121,34 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
             </Popover>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div className="space-y-2">
-              <Label>Tipo</Label>
-              <Select value={tipo} onValueChange={setTipo}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Sessão">Sessão</SelectItem>
-                  <SelectItem value="Follow-up">Follow-up</SelectItem>
-                  <SelectItem value="Avaliação">Avaliação</SelectItem>
-                  <SelectItem value="Outro">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-2">
-              <Label>Local</Label>
-              <Select value={local} onValueChange={setLocal}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Online">Online</SelectItem>
-                  <SelectItem value="Presencial">Presencial</SelectItem>
-                  <SelectItem value="Google Meet">Google Meet</SelectItem>
-                  <SelectItem value="Zoom">Zoom</SelectItem>
-                  <SelectItem value="Outro">Outro</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          <div className="space-y-2">
+            <Label>Local</Label>
+            <Select value={local} onValueChange={setLocal}>
+              <SelectTrigger className="h-12 text-base"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Online">Online</SelectItem>
+                <SelectItem value="Presencial">Presencial</SelectItem>
+                <SelectItem value="Google Meet">Google Meet</SelectItem>
+                <SelectItem value="Zoom">Zoom</SelectItem>
+                <SelectItem value="Outro">Outro</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="ne-data">Data *</Label>
-            <Input id="ne-data" type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} required />
+            <Label htmlFor="ne-data" className="text-base font-semibold">📅 Data do encontro *</Label>
+            <Input id="ne-data" type="date" value={dataInicio} onChange={e => setDataInicio(e.target.value)} required className="h-14 text-lg px-4" />
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="ne-hora-ini">Hora início *</Label>
-              <Input id="ne-hora-ini" type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} required />
+              <Label htmlFor="ne-hora-ini" className="text-base font-semibold">🕐 Início *</Label>
+              <Input id="ne-hora-ini" type="time" value={horaInicio} onChange={e => setHoraInicio(e.target.value)} required className="h-14 text-lg px-4" />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="ne-hora-fim">Hora fim *</Label>
-              <Input id="ne-hora-fim" type="time" value={horaFim} onChange={e => setHoraFim(e.target.value)} required />
+              <Label htmlFor="ne-hora-fim" className="text-base font-semibold">🕑 Fim *</Label>
+              <Input id="ne-hora-fim" type="time" value={horaFim} onChange={e => setHoraFim(e.target.value)} required className="h-14 text-lg px-4" />
             </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="ne-link">Link da reunião</Label>
-            <Input id="ne-link" value={linkReuniao} onChange={e => setLinkReuniao(e.target.value)} placeholder="https://meet.google.com/..." />
           </div>
 
           <div className="space-y-2">
