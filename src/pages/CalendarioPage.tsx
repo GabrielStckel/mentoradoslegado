@@ -1,24 +1,40 @@
 import { useState } from 'react';
 import { useEncontros, useMentorados, useMentores } from '@/hooks/useSupabaseData';
+import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 import CalendarView from '@/components/CalendarView';
 import MeetingModal from '@/components/MeetingModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import { toast } from '@/hooks/use-toast';
+import { CheckCircle, Link2 } from 'lucide-react';
 
 export default function CalendarioPage() {
   const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
   const [mentorFilter, setMentorFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [connecting, setConnecting] = useState(false);
 
   const { data: encontros = [], isLoading } = useEncontros();
   const { data: mentorados = [] } = useMentorados();
   const { data: mentores = [] } = useMentores();
+  const { connected, loading: gcLoading, connect } = useGoogleCalendar();
 
   const filtered = encontros.filter(e => {
     const matchMentor = mentorFilter === 'all' || e.mentor_id === mentorFilter;
     const matchStatus = statusFilter === 'all' || e.status === statusFilter;
     return matchMentor && matchStatus;
   });
+
+  const handleConnect = async () => {
+    setConnecting(true);
+    try {
+      await connect();
+    } catch {
+      toast({ title: 'Erro', description: 'Não foi possível iniciar a conexão com o Google Calendar.', variant: 'destructive' });
+    }
+    setConnecting(false);
+  };
 
   if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-96 w-full" /></div>;
 
@@ -29,7 +45,20 @@ export default function CalendarioPage() {
           <h1 className="page-title">Calendário</h1>
           <p className="page-subtitle">Visualização dos encontros</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-2 items-center">
+          {!gcLoading && (
+            connected ? (
+              <div className="flex items-center gap-1.5 text-sm text-success px-3 py-1.5 rounded-md bg-success/10">
+                <CheckCircle className="h-4 w-4" />
+                Google Calendar conectado
+              </div>
+            ) : (
+              <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting}>
+                <Link2 className="h-4 w-4 mr-1.5" />
+                {connecting ? 'Conectando...' : 'Conectar Google Calendar'}
+              </Button>
+            )
+          )}
           <Select value={mentorFilter} onValueChange={setMentorFilter}>
             <SelectTrigger className="w-[160px]"><SelectValue placeholder="Mentor" /></SelectTrigger>
             <SelectContent>
