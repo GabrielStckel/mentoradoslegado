@@ -19,19 +19,17 @@ Deno.serve(async (req) => {
 
     // Get the user from the auth header
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header");
+    if (!authHeader?.startsWith("Bearer ")) throw new Error("No authorization header");
 
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
-    if (!anonKey) throw new Error("Supabase anon key not configured");
+    const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
 
-    const supabase = createClient(
-      SUPABASE_URL,
-      anonKey,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user }, error } = await supabase.auth.getUser();
-    if (error || !user) throw new Error("Not authenticated");
+    const token = authHeader.replace("Bearer ", "");
+    const { data, error } = await supabase.auth.getClaims(token);
+    if (error || !data?.claims) throw new Error("Not authenticated");
+    const userId = data.claims.sub as string;
 
     const redirectUri = `${SUPABASE_URL}/functions/v1/google-calendar-callback`;
 
@@ -42,7 +40,7 @@ Deno.serve(async (req) => {
       scope: "https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/calendar.events",
       access_type: "offline",
       prompt: "consent",
-      state: user.id,
+      state: userId,
     });
 
     const authUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;

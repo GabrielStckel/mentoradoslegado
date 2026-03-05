@@ -53,21 +53,18 @@ Deno.serve(async (req) => {
     const SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
     const authHeader = req.headers.get("Authorization");
-    if (!authHeader) throw new Error("No authorization header");
-
-    const anonKey = Deno.env.get("SUPABASE_ANON_KEY") || Deno.env.get("SUPABASE_PUBLISHABLE_KEY");
-    if (!anonKey) throw new Error("Supabase anon key not configured");
-
-    const supabaseUser = createClient(
-      SUPABASE_URL,
-      anonKey,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-
-    const { data: { user }, error: authError } = await supabaseUser.auth.getUser();
-    if (authError || !user) throw new Error("Not authenticated");
+    if (!authHeader?.startsWith("Bearer ")) throw new Error("No authorization header");
 
     const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+    const supabaseUser = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
+      global: { headers: { Authorization: authHeader } },
+    });
+
+    const token = authHeader.replace("Bearer ", "");
+    const { data: claimsData, error: authError } = await supabaseUser.auth.getClaims(token);
+    if (authError || !claimsData?.claims) throw new Error("Not authenticated");
+    const user = { id: claimsData.claims.sub as string };
 
     // Get tokens
     const { data: tokens, error: tokensError } = await supabaseAdmin
