@@ -49,9 +49,26 @@ export function useEncontros() {
   return useQuery({
     queryKey: ['encontros'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('encontros').select('*').order('inicio', { ascending: false });
-      if (error) throw error;
-      return data;
+      const allData: any[] = [];
+      let from = 0;
+      const PAGE_SIZE = 1000;
+
+      while (true) {
+        const { data, error } = await supabase
+          .from('encontros')
+          .select('*')
+          .gte('inicio', '2026-01-01T00:00:00Z')
+          .order('inicio', { ascending: false })
+          .range(from, from + PAGE_SIZE - 1);
+
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        allData.push(...data);
+        if (data.length < PAGE_SIZE) break;
+        from += PAGE_SIZE;
+      }
+
+      return allData;
     },
   });
 }
