@@ -55,16 +55,14 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization");
     if (!authHeader?.startsWith("Bearer ")) throw new Error("No authorization header");
 
+    const token = authHeader.replace("Bearer ", "");
+
     const supabaseAdmin = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
 
-    const supabaseUser = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
-
-    const token = authHeader.replace("Bearer ", "");
-    const { data: claimsData, error: authError } = await supabaseUser.auth.getClaims(token);
-    if (authError || !claimsData?.claims) throw new Error("Not authenticated");
-    const user = { id: claimsData.claims.sub as string };
+    // Verify JWT and get user using service role
+    const { data: userData, error: authError } = await supabaseAdmin.auth.getUser(token);
+    if (authError || !userData?.user) throw new Error("Not authenticated");
+    const user = { id: userData.user.id };
 
     // Get tokens
     const { data: tokens, error: tokensError } = await supabaseAdmin
