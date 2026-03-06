@@ -369,14 +369,34 @@ Deno.serve(async (req) => {
       });
     }
 
-    const accessToken = await getValidAccessToken(tokens, supabaseAdmin);
-
     if (action === "import") {
       const result = await importEventsForUser(tokens, supabaseAdmin);
       return new Response(JSON.stringify({ success: true, ...result }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    if (action === "import-batch") {
+      const result = await importEventsBatchForUser(tokens, supabaseAdmin, {
+        cursor: body?.cursor ?? null,
+        batchSize: body?.batchSize,
+      });
+
+      return new Response(JSON.stringify({ success: true, ...result }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "finalize-import") {
+      const seenEventIds = Array.isArray(body?.seenEventIds) ? body.seenEventIds : [];
+      const result = await finalizeImportForUser(tokens, supabaseAdmin, seenEventIds);
+
+      return new Response(JSON.stringify({ success: true, ...result }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const accessToken = await getValidAccessToken(tokens, supabaseAdmin);
 
     if (action === "create") {
       const { data: mentorado } = await supabaseAdmin
