@@ -147,6 +147,16 @@ export default function EncontrosPage() {
               {e.local && (
                 <p className="text-xs text-muted-foreground">{e.local}</p>
               )}
+              {e.status === 'Agendado' && (
+                <div className="flex gap-2 pt-1">
+                  <Button size="sm" variant="outline" className="text-xs h-7 text-destructive border-destructive/30" onClick={(ev) => handleQuickStatus(ev, e.id, 'Cancelado')}>
+                    <XCircle className="h-3.5 w-3.5 mr-1" /> Cancelar
+                  </Button>
+                  <Button size="sm" variant="outline" className="text-xs h-7 text-warning border-warning/30" onClick={(ev) => handleQuickStatus(ev, e.id, 'Faltou')}>
+                    <UserX className="h-3.5 w-3.5 mr-1" /> Falta
+                  </Button>
+                </div>
+              )}
             </div>
           ))}
           {filtered.length === 0 && (
@@ -181,6 +191,18 @@ export default function EncontrosPage() {
                   <TableCell><TipoBadge tipo={e.tipo as any} /></TableCell>
                   <TableCell className="text-sm text-muted-foreground">{e.local}</TableCell>
                   <TableCell><StatusBadge status={e.status as any} /></TableCell>
+                  <TableCell>
+                    {e.status === 'Agendado' && (
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive hover:text-destructive" title="Cancelar" onClick={(ev) => handleQuickStatus(ev, e.id, 'Cancelado')}>
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-warning hover:text-warning" title="Falta" onClick={(ev) => handleQuickStatus(ev, e.id, 'Faltou')}>
+                          <UserX className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
               {filtered.length === 0 && (
