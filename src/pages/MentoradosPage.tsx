@@ -184,6 +184,15 @@ export default function MentoradosPage() {
                         size="icon"
                         variant="ghost"
                         className="h-8 w-8"
+                        title="Ver detalhes"
+                        onClick={(e) => { e.stopPropagation(); navigate(`/mentorados/${m.id}`); }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
                         title="Editar"
                         onClick={(e) => { e.stopPropagation(); setEditMentorado(m); }}
                       >
