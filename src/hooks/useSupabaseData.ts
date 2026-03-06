@@ -58,7 +58,7 @@ export function useEncontros() {
           .from('encontros')
           .select('*')
           .gte('inicio', '2026-01-01T00:00:00Z')
-          .order('inicio', { ascending: false })
+          .order('inicio', { ascending: true })
           .range(from, from + PAGE_SIZE - 1);
 
         if (error) throw error;
