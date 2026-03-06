@@ -211,6 +211,12 @@ export default function MentoradosPage() {
           onOpenChange={(o) => !o && setEncontroMentoradoId(null)}
         />
       )}
+
+      <EditMentoradoModal
+        mentorado={editMentorado}
+        open={!!editMentorado}
+        onOpenChange={(o) => !o && setEditMentorado(null)}
+      />
     </div>
   );
 }
