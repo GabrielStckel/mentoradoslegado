@@ -448,7 +448,7 @@ Deno.serve(async (req) => {
 
         const event = {
           summary: encontro.titulo || `Mentoria - ${mentorado?.nome || ""}`,
-          description: `Tipo: ${encontro.tipo}\nLocal: ${encontro.local}\nLink: ${encontro.link_reuniao || ""}`,
+          description: `Status: ${encontro.status || "Agendado"}\nTipo: ${encontro.tipo}\nLocal: ${encontro.local}\nLink: ${encontro.link_reuniao || ""}`,
           start: { dateTime: encontro.inicio, timeZone: "America/Sao_Paulo" },
           end: { dateTime: encontro.fim, timeZone: "America/Sao_Paulo" },
         };
@@ -466,7 +466,7 @@ Deno.serve(async (req) => {
 
         const event = {
           summary: encontro.titulo || `Mentoria - ${mentorado?.nome || ""}`,
-          description: `Tipo: ${encontro.tipo}\nLocal: ${encontro.local}\nLink: ${encontro.link_reuniao || ""}`,
+          description: `Status: ${encontro.status || "Agendado"}\nTipo: ${encontro.tipo}\nLocal: ${encontro.local}\nLink: ${encontro.link_reuniao || ""}`,
           start: { dateTime: encontro.inicio, timeZone: "America/Sao_Paulo" },
           end: { dateTime: encontro.fim, timeZone: "America/Sao_Paulo" },
         };
