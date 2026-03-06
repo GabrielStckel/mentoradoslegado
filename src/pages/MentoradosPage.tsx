@@ -168,15 +168,26 @@ export default function MentoradosPage() {
                     </a>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8"
-                      title="Agendar encontro"
-                      onClick={(e) => { e.stopPropagation(); setEncontroMentoradoId(m.id); }}
-                    >
-                      <CalendarPlus className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        title="Editar"
+                        onClick={(e) => { e.stopPropagation(); setEditMentorado(m); }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        title="Agendar encontro"
+                        onClick={(e) => { e.stopPropagation(); setEncontroMentoradoId(m.id); }}
+                      >
+                        <CalendarPlus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
