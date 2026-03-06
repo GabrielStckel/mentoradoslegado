@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { format } from 'date-fns';
-import { Plus, Search, UserCheck } from 'lucide-react';
+import { Plus, Search, UserCheck, XCircle, UserX } from 'lucide-react';
 import { useMentorados, useEncontros, useUpdateEncontroStatus } from '@/hooks/useSupabaseData';
 import { StatusBadge, TipoBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
@@ -37,12 +37,18 @@ export default function EncontrosPage() {
 
   const filtered = useMemo(() => {
     return encontros.filter(e => {
+      if (e.titulo === 'VAGO') return false;
       const matchSearch = !search || e.titulo.toLowerCase().includes(search.toLowerCase()) ||
         mentoradoMap[e.mentorado_id]?.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === 'all' || e.status === statusFilter;
       return matchSearch && matchStatus;
     }).sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime());
   }, [search, statusFilter, encontros, mentoradoMap]);
+
+  const handleQuickStatus = useCallback((e: React.MouseEvent, id: string, status: string) => {
+    e.stopPropagation();
+    updateStatus.mutate({ id, status });
+  }, [updateStatus]);
 
   if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
 
@@ -51,7 +57,7 @@ export default function EncontrosPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="page-title">Encontros</h1>
-          <p className="page-subtitle">{encontros.length} encontros registrados</p>
+          <p className="page-subtitle">{filtered.length} encontros</p>
         </div>
         <Button onClick={() => setShowNovo(true)} size={isMobile ? 'sm' : 'default'}>
           <Plus className="h-4 w-4 mr-2" /> Novo
@@ -141,6 +147,16 @@ export default function EncontrosPage() {
               {e.local && (
                 <p className="text-xs text-muted-foreground">{e.local}</p>
               )}
+              {e.status === 'Agendado' && (
+                <div className="flex gap-2 pt-1">
+                  <Button size="sm" variant="outline" className="text-xs h-7 text-destructive border-destructive/30" onClick={(ev) => handleQuickStatus(ev, e.id, 'Cancelado')}>
+                    <XCircle className="h-3.5 w-3.5 mr-1" /> Cancelar
+                  </Button>
+                  <Button size="sm" variant="outline" className="text-xs h-7 text-warning border-warning/30" onClick={(ev) => handleQuickStatus(ev, e.id, 'Faltou')}>
+                    <UserX className="h-3.5 w-3.5 mr-1" /> Falta
+                  </Button>
+                </div>
+              )}
             </div>
           ))}
           {filtered.length === 0 && (
@@ -159,6 +175,7 @@ export default function EncontrosPage() {
                 <TableHead className="table-header">Tipo</TableHead>
                 <TableHead className="table-header">Local</TableHead>
                 <TableHead className="table-header">Status</TableHead>
+                <TableHead className="table-header w-[80px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -175,10 +192,22 @@ export default function EncontrosPage() {
                   <TableCell><TipoBadge tipo={e.tipo as any} /></TableCell>
                   <TableCell className="text-sm text-muted-foreground">{e.local}</TableCell>
                   <TableCell><StatusBadge status={e.status as any} /></TableCell>
+                  <TableCell>
+                    {e.status === 'Agendado' && (
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-destructive hover:text-destructive" title="Cancelar" onClick={(ev) => handleQuickStatus(ev, e.id, 'Cancelado')}>
+                          <XCircle className="h-4 w-4" />
+                        </Button>
+                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-warning hover:text-warning" title="Falta" onClick={(ev) => handleQuickStatus(ev, e.id, 'Faltou')}>
+                          <UserX className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
+                  </TableCell>
                 </TableRow>
               ))}
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum encontro encontrado.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhum encontro encontrado.</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
