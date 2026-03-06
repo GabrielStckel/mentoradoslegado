@@ -70,7 +70,7 @@ export default function MeetingModal({ encontro, mentorado, mentor, open, onOpen
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto w-[calc(100%-2rem)] sm:w-full rounded-xl">
         <DialogHeader>
           <div className="flex items-center gap-3 flex-wrap">
             <DialogTitle className="text-lg">{encontro.titulo}</DialogTitle>
@@ -80,17 +80,17 @@ export default function MeetingModal({ encontro, mentorado, mentor, open, onOpen
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-3 text-sm">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
-              <Clock className="h-4 w-4" />
-              <span>{format(inicio, "dd/MM 'às' HH:mm")} — {format(fim, "HH:mm")}</span>
+              <Clock className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">{format(inicio, "dd/MM 'às' HH:mm")} — {format(fim, "HH:mm")}</span>
             </div>
             <div className="flex items-center gap-2 text-muted-foreground">
-              <MapPin className="h-4 w-4" />
-              <span>{encontro.local}</span>
+              <MapPin className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">{encontro.local}</span>
             </div>
             {mentorado && (
-              <div className="text-muted-foreground">
+              <div className="text-muted-foreground col-span-1 sm:col-span-2">
                 <span className="font-medium text-foreground">Mentorado:</span> {mentorado.nome}
               </div>
             )}
