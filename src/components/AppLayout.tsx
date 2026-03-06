@@ -1,8 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { NavLink as RouterNavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, UserCheck, CalendarDays, CalendarClock,
-  Menu, X, Search, Bell, ChevronLeft, LogOut, Settings, Sun, Moon
+  LayoutDashboard, Users, CalendarDays, CalendarClock,
+  Menu, Search, Bell, ChevronLeft, LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -93,13 +93,25 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className={cn('border-t border-sidebar-border p-3', collapsed && 'px-2')}>
-          <button
-            onClick={toggleTheme}
-            className={cn('sidebar-item sidebar-item-inactive w-full', collapsed && 'justify-center px-2')}
-          >
-            {theme === 'light' ? <Moon className="h-5 w-5 flex-shrink-0" /> : <Sun className="h-5 w-5 flex-shrink-0" />}
-            {!collapsed && <span>{theme === 'light' ? 'Tema Escuro' : 'Tema Claro'}</span>}
-          </button>
+          <div className={cn('flex items-center gap-3 py-2', collapsed ? 'justify-center' : 'px-3')}>
+            {!collapsed && <span className="text-xs text-sidebar-foreground">{theme === 'light' ? '☀️' : '🌙'}</span>}
+            <button
+              onClick={toggleTheme}
+              className={cn(
+                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
+                theme === 'dark' ? 'bg-sidebar-primary' : 'bg-sidebar-accent'
+              )}
+              aria-label="Alternar tema"
+            >
+              <span
+                className={cn(
+                  'inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform',
+                  theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
+                )}
+              />
+            </button>
+            {!collapsed && <span className="text-xs text-sidebar-muted">{theme === 'light' ? 'Claro' : 'Escuro'}</span>}
+          </div>
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="hidden md:flex sidebar-item sidebar-item-inactive w-full justify-center"
