@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Plus, Search, Phone, CalendarPlus, Pencil } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Search, Phone, CalendarPlus, Pencil, Eye } from 'lucide-react';
 import { useMentorados } from '@/hooks/useSupabaseData';
 import NovoMentoradoModal from '@/components/NovoMentoradoModal';
 import EditMentoradoModal from '@/components/EditMentoradoModal';
