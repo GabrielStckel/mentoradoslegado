@@ -9,6 +9,7 @@ import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { CheckCircle, Link2, Download } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function CalendarioPage() {
   const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
@@ -16,6 +17,7 @@ export default function CalendarioPage() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [connecting, setConnecting] = useState(false);
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   const { data: encontros = [], isLoading } = useEncontros();
   const { data: mentorados = [] } = useMentorados();
@@ -54,41 +56,50 @@ export default function CalendarioPage() {
   if (isLoading) return null;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="page-title">Calendário</h1>
-          <p className="page-subtitle">Visualização dos encontros</p>
+    <div className="space-y-4 md:space-y-6">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="page-title">Calendário</h1>
+            <p className="page-subtitle">Visualização dos encontros</p>
+          </div>
         </div>
-        <div className="flex gap-2 items-center">
-          {!gcLoading && (
-            connected ? (
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-1.5 text-sm text-success px-3 py-1.5 rounded-md bg-success/10">
-                  <CheckCircle className="h-4 w-4" />
-                  Google Calendar conectado
+
+        {/* Google Calendar controls */}
+        {!gcLoading && (
+          <div className="flex flex-wrap gap-2">
+            {connected ? (
+              <>
+                <div className="flex items-center gap-1.5 text-xs text-success px-2.5 py-1.5 rounded-md bg-success/10">
+                  <CheckCircle className="h-3.5 w-3.5" />
+                  <span className={isMobile ? 'sr-only' : ''}>Google Calendar conectado</span>
+                  {isMobile && <span>Conectado</span>}
                 </div>
-                <Button variant="outline" size="sm" onClick={handleImport} disabled={importing}>
-                  <Download className="h-4 w-4 mr-1.5" />
-                  {importing ? 'Importando...' : 'Importar eventos'}
+                <Button variant="outline" size="sm" onClick={handleImport} disabled={importing} className="text-xs">
+                  <Download className="h-3.5 w-3.5 mr-1" />
+                  {importing ? 'Importando...' : 'Importar'}
                 </Button>
-              </div>
+              </>
             ) : (
-              <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting}>
-                <Link2 className="h-4 w-4 mr-1.5" />
-                {connecting ? 'Conectando...' : 'Conectar Google Calendar'}
+              <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting} className="text-xs">
+                <Link2 className="h-3.5 w-3.5 mr-1" />
+                {connecting ? 'Conectando...' : 'Conectar Google'}
               </Button>
-            )
-          )}
+            )}
+          </div>
+        )}
+
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-2">
           <Select value={mentorFilter} onValueChange={setMentorFilter}>
-            <SelectTrigger className="w-[160px]"><SelectValue placeholder="Mentor" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[160px]"><SelectValue placeholder="Mentor" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos os mentores</SelectItem>
               {mentores.map(m => <SelectItem key={m.id} value={m.id}>{m.nome}</SelectItem>)}
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
+            <SelectTrigger className="w-full sm:w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos</SelectItem>
               <SelectItem value="Agendado">Agendado</SelectItem>
@@ -100,14 +111,14 @@ export default function CalendarioPage() {
       </div>
 
       {(importing || importProgress.done || importProgress.error) && (
-        <div className="rounded-lg border bg-card p-4 space-y-2">
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">{importProgress.message || 'Sincronização automática do Google Agenda'}</span>
-            <span className="font-medium">{Math.round(importProgress.percent)}%</span>
+        <div className="rounded-lg border bg-card p-3 md:p-4 space-y-2">
+          <div className="flex items-center justify-between text-xs md:text-sm">
+            <span className="text-muted-foreground truncate">{importProgress.message || 'Sincronização'}</span>
+            <span className="font-medium ml-2">{Math.round(importProgress.percent)}%</span>
           </div>
           <Progress value={importProgress.percent} className="h-2" />
           <p className="text-xs text-muted-foreground">
-            Processados: {importProgress.processed} · Novos: {importProgress.imported} · Atualizados: {importProgress.updated} · Removidos: {importProgress.deleted}
+            {importProgress.processed} proc. · {importProgress.imported} novos · {importProgress.updated} atualiz. · {importProgress.deleted} remov.
           </p>
           {importProgress.error && (
             <p className="text-xs text-destructive">{importProgress.error}</p>

@@ -2,14 +2,15 @@ import { useMemo, useState, useRef } from 'react';
 import {
   format, startOfMonth, endOfMonth, startOfWeek, endOfWeek,
   addDays, isSameDay, isSameMonth, addMonths, subMonths,
-  addWeeks, subWeeks, addHours, startOfDay, differenceInMinutes,
-  parseISO, isWithinInterval,
+  addWeeks, subWeeks, differenceInMinutes,
+  parseISO,
 } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Encontro, Mentor } from '@/types';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 type ViewMode = 'day' | 'week' | 'month';
 
@@ -20,13 +21,16 @@ interface Props {
 }
 
 const HOURS = Array.from({ length: 24 }, (_, i) => i);
-const HOUR_HEIGHT = 60; // px per hour
 const DAY_NAMES_SHORT = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
+const DAY_NAMES_TINY = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
 export default function CalendarView({ encontros, mentores, onEventClick }: Props) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<ViewMode>('week');
   const scrollRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
+
+  const HOUR_HEIGHT = isMobile ? 48 : 60;
 
   const mentorMap = useMemo(() => {
     const m: Record<string, Mentor> = {};
@@ -34,7 +38,6 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
     return m;
   }, [mentores]);
 
-  // Navigation
   const navigate = (dir: -1 | 1) => {
     if (view === 'month') setCurrentDate(dir === 1 ? addMonths(currentDate, 1) : subMonths(currentDate, 1));
     else if (view === 'week') setCurrentDate(dir === 1 ? addWeeks(currentDate, 1) : subWeeks(currentDate, 1));
@@ -49,7 +52,9 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
       if (ws.getMonth() === we.getMonth()) return format(ws, "MMMM yyyy", { locale: ptBR });
       return `${format(ws, 'MMM', { locale: ptBR })} – ${format(we, 'MMM yyyy', { locale: ptBR })}`;
     }
-    return format(currentDate, "EEEE, d 'de' MMMM yyyy", { locale: ptBR });
+    return isMobile
+      ? format(currentDate, "dd/MM/yyyy", { locale: ptBR })
+      : format(currentDate, "EEEE, d 'de' MMMM yyyy", { locale: ptBR });
   };
 
   // --- MONTH VIEW ---
@@ -69,18 +74,14 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
 
     const getEventsForDay = (d: Date) => encontros.filter(e => isSameDay(parseISO(e.inicio), d));
     const today = new Date();
-
-    const statusColors: Record<string, string> = {
-      Agendado: 'bg-info', Realizado: 'bg-success', Cancelado: 'bg-destructive',
-      Reagendado: 'bg-warning', Faltou: 'bg-destructive',
-    };
+    const dayNames = isMobile ? DAY_NAMES_TINY : DAY_NAMES_SHORT;
 
     return (
       <div className="border rounded-xl overflow-hidden bg-card">
         <div className="grid grid-cols-7 border-b bg-secondary/30">
-          {DAY_NAMES_SHORT.map(d => (
-            <div key={d} className="py-2 text-center text-[11px] font-semibold text-muted-foreground tracking-wider">
-              {d}.
+          {dayNames.map((d, i) => (
+            <div key={i} className="py-2 text-center text-[11px] font-semibold text-muted-foreground tracking-wider">
+              {isMobile ? d : `${d}.`}
             </div>
           ))}
         </div>
@@ -94,37 +95,59 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                 <div
                   key={di}
                   className={cn(
-                    'min-h-[110px] p-1 border-r last:border-r-0 cursor-pointer hover:bg-accent/20',
+                    'p-0.5 md:p-1 border-r last:border-r-0 cursor-pointer hover:bg-accent/20',
+                    isMobile ? 'min-h-[60px]' : 'min-h-[110px]',
                     !isCurrentMonth && 'bg-muted/20',
                   )}
                   onClick={() => { setCurrentDate(d); setView('day'); }}
                 >
                   <div className={cn(
-                    'text-xs font-medium mb-1 w-6 h-6 flex items-center justify-center rounded-full mx-auto',
+                    'text-xs font-medium mb-0.5 flex items-center justify-center rounded-full mx-auto',
+                    isMobile ? 'w-6 h-6' : 'w-6 h-6',
                     isToday && 'bg-primary text-primary-foreground',
                     !isCurrentMonth && 'text-muted-foreground/50',
                   )}>
                     {format(d, 'd')}
                   </div>
                   <div className="space-y-0.5">
-                    {events.slice(0, 3).map(evt => {
-                      const mentor = mentorMap[evt.mentor_id];
-                      const color = mentor?.cor_calendario || '#0d9488';
-                      return (
-                        <button
-                          key={evt.id}
-                          onClick={(e) => { e.stopPropagation(); onEventClick(evt); }}
-                          className="w-full text-left px-1.5 py-0.5 rounded text-[11px] font-medium truncate hover:opacity-80 flex items-center gap-1"
-                        >
-                          <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                          <span className="truncate">
-                            {format(parseISO(evt.inicio), 'H:mm')} {evt.titulo}
-                          </span>
-                        </button>
-                      );
-                    })}
-                    {events.length > 3 && (
-                      <p className="text-[10px] text-muted-foreground pl-1.5">Mais {events.length - 3}</p>
+                    {isMobile ? (
+                      events.length > 0 && (
+                        <div className="flex justify-center gap-0.5 flex-wrap">
+                          {events.slice(0, 3).map(evt => {
+                            const mentor = mentorMap[evt.mentor_id];
+                            const color = mentor?.cor_calendario || '#0d9488';
+                            return (
+                              <span
+                                key={evt.id}
+                                className="w-1.5 h-1.5 rounded-full"
+                                style={{ backgroundColor: color }}
+                              />
+                            );
+                          })}
+                        </div>
+                      )
+                    ) : (
+                      <>
+                        {events.slice(0, 3).map(evt => {
+                          const mentor = mentorMap[evt.mentor_id];
+                          const color = mentor?.cor_calendario || '#0d9488';
+                          return (
+                            <button
+                              key={evt.id}
+                              onClick={(e) => { e.stopPropagation(); onEventClick(evt); }}
+                              className="w-full text-left px-1.5 py-0.5 rounded text-[11px] font-medium truncate hover:opacity-80 flex items-center gap-1"
+                            >
+                              <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                              <span className="truncate">
+                                {format(parseISO(evt.inicio), 'H:mm')} {evt.titulo}
+                              </span>
+                            </button>
+                          );
+                        })}
+                        {events.length > 3 && (
+                          <p className="text-[10px] text-muted-foreground pl-1.5">Mais {events.length - 3}</p>
+                        )}
+                      </>
                     )}
                   </div>
                 </div>
@@ -139,30 +162,30 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
   // --- WEEK / DAY VIEW (time grid) ---
   const renderTimeGrid = (days: Date[]) => {
     const today = new Date();
-
     const getEventsForDay = (d: Date) =>
       encontros.filter(e => isSameDay(parseISO(e.inicio), d));
+
+    const timeColWidth = isMobile ? 'w-10' : 'w-16';
 
     return (
       <div className="border rounded-xl overflow-hidden bg-card flex flex-col">
         {/* Day headers */}
         <div className="flex border-b bg-secondary/20 sticky top-0 z-10">
-          <div className="w-16 flex-shrink-0 border-r" />
+          <div className={cn(timeColWidth, 'flex-shrink-0 border-r')} />
           {days.map((d, i) => {
             const isToday = isSameDay(d, today);
             return (
               <div
                 key={i}
-                className={cn(
-                  'flex-1 text-center py-2 border-r last:border-r-0 cursor-pointer hover:bg-accent/20',
-                )}
+                className="flex-1 text-center py-1.5 md:py-2 border-r last:border-r-0 cursor-pointer hover:bg-accent/20"
                 onClick={() => { setCurrentDate(d); setView('day'); }}
               >
-                <div className="text-[11px] font-semibold text-muted-foreground tracking-wider">
-                  {DAY_NAMES_SHORT[d.getDay()]}.
+                <div className="text-[10px] md:text-[11px] font-semibold text-muted-foreground tracking-wider">
+                  {isMobile ? DAY_NAMES_TINY[d.getDay()] : `${DAY_NAMES_SHORT[d.getDay()]}.`}
                 </div>
                 <div className={cn(
-                  'text-xl font-semibold mt-0.5 w-10 h-10 flex items-center justify-center rounded-full mx-auto',
+                  'font-semibold mt-0.5 flex items-center justify-center rounded-full mx-auto',
+                  isMobile ? 'text-sm w-7 h-7' : 'text-xl w-10 h-10',
                   isToday && 'bg-primary text-primary-foreground',
                 )}>
                   {format(d, 'd')}
@@ -172,52 +195,17 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
           })}
         </div>
 
-        {/* All-day events row */}
-        {(() => {
-          const allDayEvents = days.map(d =>
-            encontros.filter(e => {
-              const start = parseISO(e.inicio);
-              const end = parseISO(e.fim);
-              return isSameDay(start, d) && differenceInMinutes(end, start) >= 1380;
-            })
-          );
-          const hasAllDay = allDayEvents.some(evts => evts.length > 0);
-          if (!hasAllDay) return null;
-          return (
-            <div className="flex border-b">
-              <div className="w-16 flex-shrink-0 border-r text-[10px] text-muted-foreground p-1 text-right">
-                o dia todo
-              </div>
-              {days.map((d, i) => (
-                <div key={i} className="flex-1 border-r last:border-r-0 p-1 space-y-0.5">
-                  {allDayEvents[i].map(evt => {
-                    const mentor = mentorMap[evt.mentor_id];
-                    const color = mentor?.cor_calendario || '#0d9488';
-                    return (
-                      <button
-                        key={evt.id}
-                        onClick={() => onEventClick(evt)}
-                        className="w-full text-left px-2 py-0.5 rounded text-[11px] font-semibold text-white truncate"
-                        style={{ backgroundColor: color }}
-                      >
-                        {evt.titulo}
-                      </button>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          );
-        })()}
-
         {/* Time grid */}
-        <div ref={scrollRef} className="overflow-y-auto flex-1" style={{ maxHeight: '70vh' }}>
+        <div ref={scrollRef} className="overflow-y-auto flex-1" style={{ maxHeight: isMobile ? '60vh' : '70vh' }}>
           <div className="flex relative">
             {/* Time labels */}
-            <div className="w-16 flex-shrink-0">
+            <div className={cn(timeColWidth, 'flex-shrink-0')}>
               {HOURS.map(h => (
                 <div key={h} className="border-r border-b relative" style={{ height: HOUR_HEIGHT }}>
-                  <span className="absolute -top-2 right-2 text-[10px] text-muted-foreground">
+                  <span className={cn(
+                    'absolute -top-2 right-1 text-muted-foreground',
+                    isMobile ? 'text-[9px]' : 'text-[10px] right-2',
+                  )}>
                     {h === 0 ? '' : `${h}:00`}
                   </span>
                 </div>
@@ -231,15 +219,12 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
 
               return (
                 <div key={di} className={cn('flex-1 relative border-r last:border-r-0', isToday && 'bg-accent/10')}>
-                  {/* Hour lines */}
                   {HOURS.map(h => (
                     <div key={h} className="border-b border-border/50" style={{ height: HOUR_HEIGHT }}>
-                      {/* Half-hour line */}
                       <div className="border-b border-border/20 h-1/2" />
                     </div>
                   ))}
 
-                  {/* Events */}
                   {events.map(evt => {
                     const start = parseISO(evt.inicio);
                     const end = parseISO(evt.fim);
@@ -254,7 +239,7 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                       <button
                         key={evt.id}
                         onClick={() => onEventClick(evt)}
-                        className="absolute left-0.5 right-1 rounded-md px-2 py-1 text-left overflow-hidden hover:opacity-90 shadow-sm"
+                        className="absolute left-0.5 right-0.5 md:right-1 rounded-md px-1 md:px-2 py-0.5 md:py-1 text-left overflow-hidden hover:opacity-90 shadow-sm"
                         style={{
                           top,
                           height: Math.max(height, 22),
@@ -263,15 +248,14 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                           zIndex: 5,
                         }}
                       >
-                        <div className="text-[11px] font-bold truncate">{evt.titulo}</div>
-                        <div className="text-[10px] opacity-90 truncate">
+                        <div className={cn('font-bold truncate', isMobile ? 'text-[9px]' : 'text-[11px]')}>{evt.titulo}</div>
+                        <div className={cn('opacity-90 truncate', isMobile ? 'text-[8px]' : 'text-[10px]')}>
                           {format(start, 'H:mm')} – {format(end, 'H:mm')}
                         </div>
                       </button>
                     );
                   })}
 
-                  {/* Current time indicator */}
                   {isToday && (() => {
                     const now = new Date();
                     const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -296,6 +280,11 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
 
   const renderWeek = () => {
     const ws = startOfWeek(currentDate, { weekStartsOn: 0 });
+    // On mobile week view, show only 3 days centered around today
+    if (isMobile) {
+      const days = Array.from({ length: 3 }, (_, i) => addDays(currentDate, i - 1));
+      return renderTimeGrid(days);
+    }
     const days = Array.from({ length: 7 }, (_, i) => addDays(ws, i));
     return renderTimeGrid(days);
   };
@@ -305,11 +294,11 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3 md:space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setCurrentDate(new Date())}>
+        <div className="flex items-center gap-1 md:gap-2">
+          <Button variant="outline" size="sm" className="text-xs md:text-sm" onClick={() => setCurrentDate(new Date())}>
             Hoje
           </Button>
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(-1)}>
@@ -318,7 +307,7 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
           <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => navigate(1)}>
             <ChevronRight className="h-4 w-4" />
           </Button>
-          <h2 className="text-lg font-semibold capitalize ml-2">
+          <h2 className={cn('font-semibold capitalize', isMobile ? 'text-sm ml-1' : 'text-lg ml-2')}>
             {headerLabel()}
           </h2>
         </div>
@@ -329,19 +318,18 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
               key={v}
               onClick={() => setView(v)}
               className={cn(
-                'px-3 py-1.5 text-sm font-medium',
+                'px-2.5 md:px-3 py-1.5 text-xs md:text-sm font-medium',
                 view === v
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60',
               )}
             >
-              {v === 'day' ? 'Dia' : v === 'week' ? 'Semana' : 'Mês'}
+              {v === 'day' ? 'Dia' : v === 'week' ? 'Sem' : 'Mês'}
             </button>
           ))}
         </div>
       </div>
 
-      {/* View */}
       {view === 'month' && renderMonth()}
       {view === 'week' && renderWeek()}
       {view === 'day' && renderDay()}
