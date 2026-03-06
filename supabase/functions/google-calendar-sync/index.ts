@@ -378,6 +378,132 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === "quick-sync") {
+      // Lightweight sync: only fetch events updated since last sync
+      const lastSynced = tokens.last_synced_at;
+      const syncStartTime = new Date().toISOString();
+      const accessToken2 = await getValidAccessToken(tokens, supabaseAdmin);
+      const calendarId = tokens.calendar_id || "primary";
+      const { timeMin, timeMax } = getSyncWindow();
+
+      const params = new URLSearchParams({
+        timeMin,
+        timeMax,
+        singleEvents: "true",
+        orderBy: "startTime",
+        maxResults: "2500",
+      });
+      if (lastSynced) {
+        params.set("updatedMin", lastSynced);
+      }
+
+      // Fetch all changed events (paginated)
+      const allChangedEvents: any[] = [];
+      let pageToken: string | null = null;
+      do {
+        if (pageToken) params.set("pageToken", pageToken);
+        const res = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params}`,
+          { headers: { Authorization: `Bearer ${accessToken2}` } }
+        );
+        const data = await res.json();
+        if (!res.ok) throw new Error(`Google API error: ${JSON.stringify(data)}`);
+        allChangedEvents.push(...(data.items || []));
+        pageToken = data.nextPageToken || null;
+      } while (pageToken);
+
+      if (allChangedEvents.length === 0) {
+        // Nothing changed, just update timestamp
+        await supabaseAdmin.from("google_calendar_tokens").update({ last_synced_at: syncStartTime }).eq("user_id", user.id);
+        return new Response(JSON.stringify({ success: true, imported: 0, updated: 0, deleted: 0, checked: 0 }), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      }
+
+      const { mentorId, mentoradoId } = await getOrCreateDefaults(supabaseAdmin, user.id);
+      const mentorIds = await getUserMentorIds(supabaseAdmin, user.id);
+      if (!mentorIds.includes(mentorId)) mentorIds.push(mentorId);
+
+      // Separate cancelled/deleted events from active ones
+      const cancelledIds = allChangedEvents.filter(e => e.status === "cancelled").map(e => e.id).filter(Boolean);
+      const activeEvents = allChangedEvents.filter(e => e.status !== "cancelled" && e.id && (e.start?.dateTime || e.start?.date));
+
+      // Delete cancelled events
+      let deleted = 0;
+      if (cancelledIds.length > 0) {
+        for (let i = 0; i < cancelledIds.length; i += 100) {
+          const chunk = cancelledIds.slice(i, i + 100);
+          const { data: toDelete } = await supabaseAdmin
+            .from("encontros")
+            .select("id")
+            .in("google_event_id", chunk)
+            .in("mentor_id", mentorIds);
+          if (toDelete?.length) {
+            await supabaseAdmin.from("encontros").delete().in("id", toDelete.map((r: any) => r.id));
+            deleted += toDelete.length;
+          }
+        }
+      }
+
+      // Upsert active events
+      const eventGoogleIds = activeEvents.map((e: any) => e.id);
+      let existingRows: any[] = [];
+      if (eventGoogleIds.length > 0) {
+        const { data: rows } = await supabaseAdmin
+          .from("encontros").select("id, google_event_id, titulo, inicio, fim, local")
+          .in("google_event_id", eventGoogleIds).in("mentor_id", mentorIds);
+        existingRows = rows || [];
+      }
+      const existingMap = new Map<string, any>();
+      existingRows.forEach((e: any) => { if (e.google_event_id) existingMap.set(e.google_event_id, e); });
+
+      let imported = 0;
+      let updated = 0;
+
+      const newEvents = activeEvents.filter((e: any) => !existingMap.has(e.id)).map((evt: any) => ({
+        titulo: evt.summary || "Evento importado",
+        inicio: evt.start.dateTime || evt.start.date,
+        fim: evt.end?.dateTime || evt.end?.date || evt.start.dateTime || evt.start.date,
+        google_event_id: evt.id,
+        sincronizado_google: true,
+        status: "Agendado",
+        local: evt.location || "Online",
+        link_reuniao: evt.hangoutLink || "",
+        notas_operacionais: evt.description || "",
+        mentor_id: mentorId,
+        mentorado_id: mentoradoId,
+      }));
+
+      if (newEvents.length > 0) {
+        for (let i = 0; i < newEvents.length; i += 50) {
+          const chunk = newEvents.slice(i, i + 50);
+          const { data: ins } = await supabaseAdmin.from("encontros").upsert(chunk, { onConflict: "google_event_id", ignoreDuplicates: false }).select("id");
+          imported += ins?.length || chunk.length;
+        }
+      }
+
+      for (const gEvt of activeEvents) {
+        const existing = existingMap.get(gEvt.id);
+        if (!existing) continue;
+        const gTitle = gEvt.summary || "Evento importado";
+        const gStart = gEvt.start?.dateTime || gEvt.start?.date || "";
+        const gEnd = gEvt.end?.dateTime || gEvt.end?.date || "";
+        const gLocation = gEvt.location || "Online";
+        if (gTitle !== existing.titulo || new Date(gStart).getTime() !== new Date(existing.inicio).getTime() || new Date(gEnd).getTime() !== new Date(existing.fim).getTime() || gLocation !== existing.local) {
+          await supabaseAdmin.from("encontros").update({ titulo: gTitle, inicio: gStart, fim: gEnd, local: gLocation, link_reuniao: gEvt.hangoutLink || "", notas_operacionais: gEvt.description || "" }).eq("id", existing.id);
+          updated++;
+        }
+      }
+
+      await supabaseAdmin.from("google_calendar_tokens").update({ last_synced_at: syncStartTime }).eq("user_id", user.id);
+
+      console.log(`Quick-sync user=${user.id} checked=${allChangedEvents.length} imported=${imported} updated=${updated} deleted=${deleted}`);
+
+      return new Response(JSON.stringify({ success: true, imported, updated, deleted, checked: allChangedEvents.length }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "import") {
       const result = await importEventsForUser(tokens, supabaseAdmin);
       return new Response(JSON.stringify({ success: true, ...result }), {
