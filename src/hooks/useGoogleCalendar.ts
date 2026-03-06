@@ -29,7 +29,6 @@ const initialProgress: ImportProgress = {
 
 let sharedImportPromise: Promise<any> | null = null;
 let sharedProgress: ImportProgress = initialProgress;
-let autoImportedUserId: string | null = null;
 const progressSubscribers = new Set<(progress: ImportProgress) => void>();
 
 function emitProgress() {
