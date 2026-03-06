@@ -140,11 +140,11 @@ export default function EncontrosPage() {
                   <p className="font-medium text-sm truncate">{e.titulo}</p>
                   <p className="text-xs text-muted-foreground truncate">{mentoradoMap[e.mentorado_id]}</p>
                 </div>
-                <StatusBadge status={e.status as any} />
+                {(!e.google_event_id || e.status !== 'Agendado') && <StatusBadge status={e.status as any} />}
               </div>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{format(new Date(e.inicio), 'dd/MM/yyyy')} · {format(new Date(e.inicio), 'HH:mm')} — {format(new Date(e.fim), 'HH:mm')}</span>
-                <TipoBadge tipo={e.tipo as any} />
+                {(!e.google_event_id || (e.tipo !== 'Sessão' && e.tipo !== '')) && <TipoBadge tipo={e.tipo as any} />}
               </div>
               {e.local && (
                 <p className="text-xs text-muted-foreground">{e.local}</p>
