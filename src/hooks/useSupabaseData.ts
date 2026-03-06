@@ -92,6 +92,18 @@ export function useUpdateEncontroStatus() {
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { data, error } = await supabase.from('encontros').update({ status }).eq('id', id).select().single();
       if (error) throw error;
+
+      // Auto-sync status change to Google Calendar
+      if (data) {
+        try {
+          await supabase.functions.invoke('google-calendar-sync', {
+            body: { action: 'update', encontro: data },
+          });
+        } catch (syncErr) {
+          console.error('Google Calendar sync on status change failed:', syncErr);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
