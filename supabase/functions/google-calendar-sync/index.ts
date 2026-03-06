@@ -45,7 +45,7 @@ async function getValidAccessToken(
 function getSyncWindow() {
   const now = new Date();
   return {
-    timeMin: new Date(now.getFullYear() - 2, 0, 1).toISOString(),
+    timeMin: new Date('2026-01-01T00:00:00Z').toISOString(),
     timeMax: new Date(now.getFullYear() + 1, 11, 31).toISOString(),
   };
 }
@@ -177,11 +177,20 @@ async function importEventsBatchForUser(
   const INSERT_BATCH = 50;
   for (let i = 0; i < newEvents.length; i += INSERT_BATCH) {
     const chunk = newEvents.slice(i, i + INSERT_BATCH);
-    const { error: insertErr } = await supabaseAdmin.from("encontros").insert(chunk);
+    const { data: inserted, error: insertErr } = await supabaseAdmin
+      .from("encontros")
+      .upsert(chunk, { onConflict: "google_event_id", ignoreDuplicates: false })
+      .select("id");
     if (!insertErr) {
-      batchImported += chunk.length;
+      batchImported += (inserted?.length || chunk.length);
     } else {
-      console.error("Batch insert error:", JSON.stringify(insertErr));
+      console.error("Batch upsert error:", JSON.stringify(insertErr));
+      // Fallback: insert one by one
+      for (const evt of chunk) {
+        const { error: singleErr } = await supabaseAdmin.from("encontros").upsert(evt, { onConflict: "google_event_id", ignoreDuplicates: false });
+        if (!singleErr) batchImported++;
+        else console.error("Single upsert error:", JSON.stringify(singleErr), "event:", evt.google_event_id);
+      }
     }
   }
 
