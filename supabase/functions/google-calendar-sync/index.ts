@@ -222,19 +222,41 @@ Deno.serve(async (req) => {
 
       const existingIds = new Set((existingEncontros || []).map((e: any) => e.google_event_id));
 
-      // We need a default mentor_id for imported events
-      const { data: defaultMentor } = await supabaseAdmin
+      // Get or create a default mentor for imported events
+      let { data: defaultMentor } = await supabaseAdmin
         .from("mentores")
         .select("id")
         .limit(1)
         .single();
 
-      // We need a default mentorado_id for imported events
-      const { data: defaultMentorado } = await supabaseAdmin
+      if (!defaultMentor) {
+        const { data: createdMentor } = await supabaseAdmin
+          .from("mentores")
+          .insert({ nome: "Importado", email: "importado@sistema.local", user_id: user.id })
+          .select("id")
+          .single();
+        defaultMentor = createdMentor;
+      }
+
+      // Get or create a placeholder mentorado for imported events
+      let { data: defaultMentorado } = await supabaseAdmin
         .from("mentorados")
         .select("id")
-        .limit(1)
+        .eq("nome", "Importado do Google Calendar")
         .single();
+
+      if (!defaultMentorado) {
+        const { data: createdMentorado } = await supabaseAdmin
+          .from("mentorados")
+          .insert({ nome: "Importado do Google Calendar", mentor_id: defaultMentor?.id })
+          .select("id")
+          .single();
+        defaultMentorado = createdMentorado;
+      }
+
+      if (!defaultMentor?.id || !defaultMentorado?.id) {
+        throw new Error("Could not create default mentor/mentorado for import");
+      }
 
       const newEvents = allEvents
         .filter(evt => evt.id && !existingIds.has(evt.id) && evt.start?.dateTime)
@@ -248,8 +270,8 @@ Deno.serve(async (req) => {
           local: evt.location || "Online",
           link_reuniao: evt.hangoutLink || "",
           notas_operacionais: evt.description || "",
-          mentor_id: defaultMentor?.id || user.id,
-          mentorado_id: defaultMentorado?.id || user.id,
+          mentor_id: defaultMentor!.id,
+          mentorado_id: defaultMentorado!.id,
         }));
 
       // Batch insert
