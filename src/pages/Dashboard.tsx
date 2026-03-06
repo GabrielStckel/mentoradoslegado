@@ -1,12 +1,15 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { format, isToday, isThisWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock } from 'lucide-react';
+import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus } from 'lucide-react';
 import { useMentorados, useEncontros } from '@/hooks/useSupabaseData';
 import { StatusBadge, TipoBadge } from '@/components/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
+import NovoEncontroModal from '@/components/NovoEncontroModal';
+import PinModal, { usePinGate } from '@/components/PinModal';
 
 export default function Dashboard() {
   const navigate = useNavigate();
