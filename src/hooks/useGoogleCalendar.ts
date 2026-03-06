@@ -36,31 +36,53 @@ export function useGoogleCalendar() {
     // Open popup synchronously from user click to avoid browser blocking
     const popup = window.open('about:blank', 'google-calendar-auth', 'width=600,height=700');
 
+    const showPopupMessage = (title: string, description: string) => {
+      if (!popup || popup.closed) return;
+      popup.document.write(`
+        <html><body style="font-family:sans-serif;padding:40px;text-align:center">
+          <h2>${title}</h2>
+          <p>${description}</p>
+          <p>Feche esta janela e tente novamente.</p>
+        </body></html>
+      `);
+    };
+
     try {
-      const { data, error } = await supabase.functions.invoke('google-calendar-auth');
-      
-      if (error || !data?.url) {
-        const errorMsg = error?.message || data?.error || 'Erro desconhecido';
-        console.error('Google Calendar auth error:', errorMsg);
-        if (popup && !popup.closed) {
-          popup.document.write(`
-            <html><body style="font-family:sans-serif;padding:40px;text-align:center">
-              <h2>Erro ao conectar</h2>
-              <p>${errorMsg}</p>
-              <p>Feche esta janela e tente novamente.</p>
-            </body></html>
-          `);
-        }
+      const { data: sessionData } = await supabase.auth.getSession();
+      const accessToken = sessionData.session?.access_token;
+
+      if (!accessToken) {
+        showPopupMessage('Sessão expirada', 'Faça login novamente e tente conectar.');
+        throw new Error('No active session');
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/google-calendar-auth`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+          apikey: import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+        },
+        body: JSON.stringify({}),
+      });
+
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok || !payload?.url) {
+        const errorMsg = payload?.error || `Falha na conexão (${response.status})`;
+        showPopupMessage('Erro ao conectar', errorMsg);
         throw new Error(errorMsg);
       }
 
       if (popup && !popup.closed) {
-        popup.location.assign(data.url);
+        popup.location.assign(payload.url);
       } else {
-        // Fallback: try opening directly (may be blocked)
-        window.open(data.url, 'google-calendar-auth', 'width=600,height=700');
+        // Fallback for browsers that block popups
+        window.location.href = payload.url;
       }
     } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro desconhecido';
+      showPopupMessage('Erro ao conectar', message);
       console.error('Error starting Google Calendar auth:', err);
       throw err;
     }
