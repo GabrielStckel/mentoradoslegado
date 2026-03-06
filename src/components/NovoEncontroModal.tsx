@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -27,6 +28,7 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
   const queryClient = useQueryClient();
   const { data: mentorados = [] } = useMentorados();
   const { data: mentores = [] } = useMentores();
+  const { connected, syncEvent } = useGoogleCalendar();
 
   const [titulo, setTitulo] = useState('');
   const [mentoradoId, setMentoradoId] = useState('');
@@ -70,7 +72,7 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
       const mentorId = selectedMentorado?.mentor_id || mentores[0]?.id;
       if (!mentorId) throw new Error('Nenhum mentor disponível');
 
-      const { error } = await supabase.from('encontros').insert({
+      const { data: inserted, error } = await supabase.from('encontros').insert({
         titulo,
         mentorado_id: mentoradoId,
         mentor_id: mentorId,
@@ -79,8 +81,17 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
         inicio,
         fim,
         notas_operacionais: notasOperacionais,
-      });
+      }).select().single();
       if (error) throw error;
+
+      // Auto-sync to Google Calendar if connected
+      if (connected && inserted) {
+        try {
+          await syncEvent('create', inserted);
+        } catch (syncErr) {
+          console.error('Google Calendar sync failed:', syncErr);
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['encontros'] });

@@ -96,5 +96,13 @@ export function useGoogleCalendar() {
     return data;
   };
 
-  return { connected, loading, connect, syncEvent, checkConnection };
+  const importEvents = async () => {
+    const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
+      body: { action: 'import' },
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  return { connected, loading, connect, syncEvent, importEvents, checkConnection };
 }
