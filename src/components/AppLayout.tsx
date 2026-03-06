@@ -1,8 +1,8 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { NavLink as RouterNavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, UserCheck, CalendarDays, CalendarClock,
-  Menu, X, Search, Bell, ChevronLeft, LogOut, Settings, Sun, Moon
+  LayoutDashboard, Users, CalendarDays, CalendarClock,
+  Menu, Search, Bell, ChevronLeft, LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
