@@ -1,39 +1,62 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
 
 export function useGoogleCalendar() {
   const { user } = useAuth();
   const [connected, setConnected] = useState(false);
   const [loading, setLoading] = useState(true);
+  const autoImportDone = useRef(false);
+  const queryClient = useQueryClient();
 
-  const checkConnection = useCallback(async () => {
+  const importEvents = useCallback(async () => {
+    const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
+      body: { action: 'import' },
+    });
+    if (error) throw error;
+    return data;
+  }, []);
+
+  const checkAndAutoImport = useCallback(async () => {
     if (!user) { setConnected(false); setLoading(false); return; }
     try {
       const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
         body: { action: 'check' },
       });
-      setConnected(!error && data?.connected === true);
+      const isConnected = !error && data?.connected === true;
+      setConnected(isConnected);
+
+      if (isConnected && !autoImportDone.current) {
+        autoImportDone.current = true;
+        try {
+          await importEvents();
+          queryClient.invalidateQueries({ queryKey: ['encontros'] });
+        } catch (e) {
+          console.error('Auto-import failed:', e);
+        }
+      }
     } catch {
       setConnected(false);
     }
     setLoading(false);
-  }, [user]);
+  }, [user, importEvents, queryClient]);
 
   useEffect(() => {
-    checkConnection();
+    checkAndAutoImport();
 
     const handler = (event: MessageEvent) => {
       if (event.data?.type === 'GOOGLE_CALENDAR_CONNECTED') {
         setConnected(true);
+        autoImportDone.current = false;
+        checkAndAutoImport();
       }
     };
     window.addEventListener('message', handler);
     return () => window.removeEventListener('message', handler);
-  }, [checkConnection]);
+  }, [checkAndAutoImport]);
 
   const connect = async () => {
-    // Open popup synchronously from user click to avoid browser blocking
     const popup = window.open('about:blank', 'google-calendar-auth', 'width=600,height=700');
 
     const showPopupMessage = (title: string, description: string) => {
@@ -77,7 +100,6 @@ export function useGoogleCalendar() {
       if (popup && !popup.closed) {
         popup.location.assign(payload.url);
       } else {
-        // Fallback for browsers that block popups
         window.location.href = payload.url;
       }
     } catch (err) {
@@ -96,13 +118,5 @@ export function useGoogleCalendar() {
     return data;
   };
 
-  const importEvents = async () => {
-    const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
-      body: { action: 'import' },
-    });
-    if (error) throw error;
-    return data;
-  };
-
-  return { connected, loading, connect, syncEvent, importEvents, checkConnection };
+  return { connected, loading, connect, syncEvent, importEvents, checkConnection: checkAndAutoImport };
 }
