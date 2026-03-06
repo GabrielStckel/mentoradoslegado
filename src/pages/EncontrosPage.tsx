@@ -37,12 +37,18 @@ export default function EncontrosPage() {
 
   const filtered = useMemo(() => {
     return encontros.filter(e => {
+      if (e.titulo === 'VAGO') return false;
       const matchSearch = !search || e.titulo.toLowerCase().includes(search.toLowerCase()) ||
         mentoradoMap[e.mentorado_id]?.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === 'all' || e.status === statusFilter;
       return matchSearch && matchStatus;
     }).sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime());
   }, [search, statusFilter, encontros, mentoradoMap]);
+
+  const handleQuickStatus = useCallback((e: React.MouseEvent, id: string, status: string) => {
+    e.stopPropagation();
+    updateStatus.mutate({ id, status });
+  }, [updateStatus]);
 
   if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
 
