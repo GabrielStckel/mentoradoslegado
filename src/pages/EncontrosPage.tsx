@@ -11,6 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import MeetingModal from '@/components/MeetingModal';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
 import QuickSessionModal from '@/components/QuickSessionModal';
+import PinModal, { usePinGate } from '@/components/PinModal';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function EncontrosPage() {
