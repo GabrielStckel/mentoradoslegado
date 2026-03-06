@@ -49,8 +49,7 @@ export default function Dashboard() {
   const proximos = useMemo(() =>
     encontrosNoRange
       .filter(e => new Date(e.inicio) >= new Date() && e.status === 'Agendado')
-      .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())
-      .slice(0, 10),
+      .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime()),
   [encontrosNoRange]);
 
   const mentoradoMap = useMemo(() => {
