@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { X, Clock, MapPin, Link2, MessageSquare, ExternalLink, Send } from 'lucide-react';
+import { Clock, MapPin, Link2, ExternalLink, Send } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { StatusBadge, TipoBadge } from '@/components/StatusBadge';
 import { Encontro, EncontroStatus, Mentorado, Mentor } from '@/types';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
+import { toast } from 'sonner';
 
 interface Props {
   encontro: Encontro | null;
@@ -23,10 +23,39 @@ interface Props {
 }
 
 export default function MeetingModal({ encontro, mentorado, mentor, open, onOpenChange, onStatusChange }: Props) {
+  const { connected, syncEvent } = useGoogleCalendar();
+  const [syncing, setSyncing] = useState(false);
+
   if (!encontro) return null;
 
   const inicio = new Date(encontro.inicio);
   const fim = new Date(encontro.fim);
+
+  const handleSyncToGoogle = async () => {
+    setSyncing(true);
+    try {
+      const action = encontro.google_event_id ? 'update' : 'create';
+      await syncEvent(action, encontro);
+      toast.success(action === 'create' ? 'Sincronizado com Google Agenda!' : 'Atualizado no Google Agenda!');
+    } catch (err) {
+      toast.error('Erro ao sincronizar com Google Agenda');
+      console.error(err);
+    }
+    setSyncing(false);
+  };
+
+  const handleRemoveFromGoogle = async () => {
+    if (!encontro.google_event_id) return;
+    setSyncing(true);
+    try {
+      await syncEvent('delete', encontro);
+      toast.success('Removido do Google Agenda!');
+    } catch (err) {
+      toast.error('Erro ao remover do Google Agenda');
+      console.error(err);
+    }
+    setSyncing(false);
+  };
 
   const buildWhatsAppLink = (template: string) => {
     if (!mentorado) return '#';
@@ -51,7 +80,6 @@ export default function MeetingModal({ encontro, mentorado, mentor, open, onOpen
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Info row */}
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="flex items-center gap-2 text-muted-foreground">
               <Clock className="h-4 w-4" />
@@ -82,7 +110,6 @@ export default function MeetingModal({ encontro, mentorado, mentor, open, onOpen
 
           <Separator />
 
-          {/* Quick status change */}
           <div className="flex items-center gap-3 flex-wrap">
             <Label className="text-sm font-medium">Status:</Label>
             {(['Agendado', 'Realizado', 'Cancelado', 'Faltou', 'Reagendado'] as EncontroStatus[]).map((s) => (
@@ -151,16 +178,21 @@ export default function MeetingModal({ encontro, mentorado, mentor, open, onOpen
                     ? '✅ Sincronizado com Google Agenda'
                     : '⏳ Não sincronizado com Google Agenda'}
                 </p>
-                <div className="flex gap-2 justify-center flex-wrap">
-                  <Button size="sm" variant={encontro.sincronizado_google ? 'outline' : 'default'}>
-                    {encontro.sincronizado_google ? 'Atualizar no Google' : 'Sincronizar agora'}
-                  </Button>
-                  {encontro.sincronizado_google && (
-                    <Button size="sm" variant="outline" className="text-destructive">
-                      Remover do Google
+                {connected && (
+                  <div className="flex gap-2 justify-center flex-wrap">
+                    <Button size="sm" variant={encontro.sincronizado_google ? 'outline' : 'default'} onClick={handleSyncToGoogle} disabled={syncing}>
+                      {syncing ? 'Sincronizando...' : encontro.sincronizado_google ? 'Atualizar no Google' : 'Sincronizar agora'}
                     </Button>
-                  )}
-                </div>
+                    {encontro.sincronizado_google && (
+                      <Button size="sm" variant="outline" className="text-destructive" onClick={handleRemoveFromGoogle} disabled={syncing}>
+                        Remover do Google
+                      </Button>
+                    )}
+                  </div>
+                )}
+                {!connected && (
+                  <p className="text-xs text-muted-foreground">Conecte o Google Calendar para sincronizar.</p>
+                )}
               </div>
             </TabsContent>
           </Tabs>
