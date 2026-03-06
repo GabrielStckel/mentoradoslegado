@@ -42,56 +42,18 @@ async function getValidAccessToken(
   return data.access_token;
 }
 
-async function importEventsForUser(
-  tokens: any,
-  supabaseAdmin: any
-) {
-  const accessToken = await getValidAccessToken(tokens, supabaseAdmin);
-  const calendarId = tokens.calendar_id || "primary";
-  const now = new Date();
-  const timeMin = new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString();
-  const timeMax = new Date(now.getFullYear(), now.getMonth() + 6, 0).toISOString();
-
-  let allEvents: any[] = [];
-  let pageToken: string | undefined;
-
-  do {
-    const params = new URLSearchParams({
-      timeMin, timeMax, singleEvents: "true", orderBy: "startTime", maxResults: "250",
-    });
-    if (pageToken) params.set("pageToken", pageToken);
-
-    const res = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params}`,
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-    );
-    const data = await res.json();
-    if (!res.ok) throw new Error(`Google API error: ${JSON.stringify(data)}`);
-    if (data.items) allEvents.push(...data.items);
-    pageToken = data.nextPageToken;
-  } while (pageToken);
-
-  // Get existing google_event_ids to avoid duplicates
-  const { data: existingEncontros } = await supabaseAdmin
-    .from("encontros")
-    .select("google_event_id")
-    .not("google_event_id", "is", null);
-
-  const existingIds = new Set((existingEncontros || []).map((e: any) => e.google_event_id));
-
-  // Get or create default mentor
+async function getOrCreateDefaults(supabaseAdmin: any, userId: string) {
   let { data: defaultMentor } = await supabaseAdmin
     .from("mentores").select("id").limit(1).single();
 
   if (!defaultMentor) {
     const { data: created } = await supabaseAdmin
       .from("mentores")
-      .insert({ nome: "Importado", email: "importado@sistema.local", user_id: tokens.user_id })
+      .insert({ nome: "Importado", email: "importado@sistema.local", user_id: userId })
       .select("id").single();
     defaultMentor = created;
   }
 
-  // Get or create placeholder mentorado
   let { data: defaultMentorado } = await supabaseAdmin
     .from("mentorados").select("id").eq("nome", "Importado do Google Calendar").single();
 
@@ -107,8 +69,52 @@ async function importEventsForUser(
     throw new Error("Could not create default mentor/mentorado for import");
   }
 
-  const newEvents = allEvents
-    .filter(evt => evt.id && !existingIds.has(evt.id) && evt.start?.dateTime)
+  return { mentorId: defaultMentor.id, mentoradoId: defaultMentorado.id };
+}
+
+async function importEventsForUser(tokens: any, supabaseAdmin: any) {
+  const accessToken = await getValidAccessToken(tokens, supabaseAdmin);
+  const calendarId = tokens.calendar_id || "primary";
+  const now = new Date();
+  const timeMin = new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString();
+  const timeMax = new Date(now.getFullYear(), now.getMonth() + 6, 0).toISOString();
+
+  // Fetch all Google events
+  let allGoogleEvents: any[] = [];
+  let pageToken: string | undefined;
+
+  do {
+    const params = new URLSearchParams({
+      timeMin, timeMax, singleEvents: "true", orderBy: "startTime", maxResults: "250",
+    });
+    if (pageToken) params.set("pageToken", pageToken);
+
+    const res = await fetch(
+      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params}`,
+      { headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    const data = await res.json();
+    if (!res.ok) throw new Error(`Google API error: ${JSON.stringify(data)}`);
+    if (data.items) allGoogleEvents.push(...data.items);
+    pageToken = data.nextPageToken;
+  } while (pageToken);
+
+  // Get all existing encontros with google_event_id
+  const { data: existingEncontros } = await supabaseAdmin
+    .from("encontros")
+    .select("id, google_event_id, titulo, inicio, fim, local, link_reuniao, notas_operacionais")
+    .not("google_event_id", "is", null);
+
+  const existingMap = new Map<string, any>();
+  (existingEncontros || []).forEach((e: any) => existingMap.set(e.google_event_id, e));
+
+  const googleEventIds = new Set(allGoogleEvents.filter(e => e.id).map(e => e.id));
+
+  const { mentorId, mentoradoId } = await getOrCreateDefaults(supabaseAdmin, tokens.user_id);
+
+  // --- 1. INSERT new events ---
+  const newEvents = allGoogleEvents
+    .filter(evt => evt.id && !existingMap.has(evt.id) && (evt.start?.dateTime || evt.start?.date))
     .map(evt => ({
       titulo: evt.summary || "Evento importado",
       inicio: evt.start.dateTime || evt.start.date,
@@ -119,8 +125,8 @@ async function importEventsForUser(
       local: evt.location || "Online",
       link_reuniao: evt.hangoutLink || "",
       notas_operacionais: evt.description || "",
-      mentor_id: defaultMentor!.id,
-      mentorado_id: defaultMentorado!.id,
+      mentor_id: mentorId,
+      mentorado_id: mentoradoId,
     }));
 
   let imported = 0;
@@ -132,7 +138,50 @@ async function importEventsForUser(
     else console.error("Batch insert error:", insertErr);
   }
 
-  return { imported, total: allEvents.length, userId: tokens.user_id };
+  // --- 2. UPDATE existing events that changed in Google ---
+  let updated = 0;
+  for (const gEvt of allGoogleEvents) {
+    if (!gEvt.id || !existingMap.has(gEvt.id)) continue;
+    const existing = existingMap.get(gEvt.id);
+    const gStart = gEvt.start?.dateTime || gEvt.start?.date || "";
+    const gEnd = gEvt.end?.dateTime || gEvt.end?.date || "";
+    const gTitle = gEvt.summary || "Evento importado";
+    const gLocation = gEvt.location || "Online";
+
+    // Compare and update if changed
+    const needsUpdate =
+      gTitle !== existing.titulo ||
+      new Date(gStart).getTime() !== new Date(existing.inicio).getTime() ||
+      new Date(gEnd).getTime() !== new Date(existing.fim).getTime() ||
+      gLocation !== existing.local;
+
+    if (needsUpdate) {
+      await supabaseAdmin.from("encontros").update({
+        titulo: gTitle,
+        inicio: gStart,
+        fim: gEnd,
+        local: gLocation,
+        link_reuniao: gEvt.hangoutLink || existing.link_reuniao,
+        notas_operacionais: gEvt.description || existing.notas_operacionais,
+      }).eq("id", existing.id);
+      updated++;
+    }
+  }
+
+  // --- 3. DELETE encontros removed from Google Calendar ---
+  let deleted = 0;
+  for (const [gEventId, encontro] of existingMap) {
+    if (!googleEventIds.has(gEventId)) {
+      // Event was deleted from Google Calendar — also check time range
+      const encontroStart = new Date(encontro.inicio);
+      if (encontroStart >= new Date(timeMin) && encontroStart <= new Date(timeMax)) {
+        await supabaseAdmin.from("encontros").delete().eq("id", encontro.id);
+        deleted++;
+      }
+    }
+  }
+
+  return { imported, updated, deleted, total: allGoogleEvents.length, userId: tokens.user_id };
 }
 
 Deno.serve(async (req) => {
@@ -148,7 +197,7 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({}));
     const { action, encontro } = body;
 
-    // ── CRON: auto-import for ALL connected users (no auth needed) ──
+    // ── CRON: auto-import for ALL connected users ──
     if (action === "cron-import") {
       const { data: allTokens, error: tokensErr } = await supabaseAdmin
         .from("google_calendar_tokens").select("*");
@@ -184,7 +233,6 @@ Deno.serve(async (req) => {
     if (authError || !userData?.user) throw new Error("Not authenticated");
     const user = { id: userData.user.id };
 
-    // Get user's Google tokens
     const { data: tokens, error: tokensError } = await supabaseAdmin
       .from("google_calendar_tokens").select("*").eq("user_id", user.id).single();
 
@@ -242,23 +290,49 @@ Deno.serve(async (req) => {
       });
     }
 
-    if (action === "update" && encontro.google_event_id) {
-      const { data: mentorado } = await supabaseAdmin
-        .from("mentorados").select("nome").eq("id", encontro.mentorado_id).single();
+    if (action === "update") {
+      if (encontro.google_event_id) {
+        // Update existing Google event
+        const { data: mentorado } = await supabaseAdmin
+          .from("mentorados").select("nome").eq("id", encontro.mentorado_id).single();
 
-      const event = {
-        summary: encontro.titulo || `Mentoria - ${mentorado?.nome || ""}`,
-        description: `Tipo: ${encontro.tipo}\nLocal: ${encontro.local}\nLink: ${encontro.link_reuniao || ""}`,
-        start: { dateTime: encontro.inicio, timeZone: "America/Sao_Paulo" },
-        end: { dateTime: encontro.fim, timeZone: "America/Sao_Paulo" },
-      };
+        const event = {
+          summary: encontro.titulo || `Mentoria - ${mentorado?.nome || ""}`,
+          description: `Tipo: ${encontro.tipo}\nLocal: ${encontro.local}\nLink: ${encontro.link_reuniao || ""}`,
+          start: { dateTime: encontro.inicio, timeZone: "America/Sao_Paulo" },
+          end: { dateTime: encontro.fim, timeZone: "America/Sao_Paulo" },
+        };
 
-      const calendarId = tokens.calendar_id || "primary";
-      const res = await fetch(
-        `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encontro.google_event_id}`,
-        { method: "PUT", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" }, body: JSON.stringify(event) }
-      );
-      if (!res.ok) { const errData = await res.json(); throw new Error(`Update failed: ${JSON.stringify(errData)}`); }
+        const calendarId = tokens.calendar_id || "primary";
+        const res = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events/${encontro.google_event_id}`,
+          { method: "PUT", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" }, body: JSON.stringify(event) }
+        );
+        if (!res.ok) { const errData = await res.json(); throw new Error(`Update failed: ${JSON.stringify(errData)}`); }
+      } else {
+        // No google_event_id — create new event in Google
+        const { data: mentorado } = await supabaseAdmin
+          .from("mentorados").select("nome").eq("id", encontro.mentorado_id).single();
+
+        const event = {
+          summary: encontro.titulo || `Mentoria - ${mentorado?.nome || ""}`,
+          description: `Tipo: ${encontro.tipo}\nLocal: ${encontro.local}\nLink: ${encontro.link_reuniao || ""}`,
+          start: { dateTime: encontro.inicio, timeZone: "America/Sao_Paulo" },
+          end: { dateTime: encontro.fim, timeZone: "America/Sao_Paulo" },
+        };
+
+        const calendarId = tokens.calendar_id || "primary";
+        const res = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events`,
+          { method: "POST", headers: { Authorization: `Bearer ${accessToken}`, "Content-Type": "application/json" }, body: JSON.stringify(event) }
+        );
+        const eventData = await res.json();
+        if (!res.ok) throw new Error(`Create failed: ${JSON.stringify(eventData)}`);
+
+        await supabaseAdmin.from("encontros")
+          .update({ google_event_id: eventData.id, sincronizado_google: true })
+          .eq("id", encontro.id);
+      }
 
       return new Response(JSON.stringify({ success: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
