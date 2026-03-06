@@ -126,6 +126,8 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+      <NovoEncontroModal open={showNovo} onOpenChange={setShowNovo} />
+      <PinModal open={pinOpen} onOpenChange={setPinOpen} onSuccess={onPinSuccess} />
     </div>
   );
 }
