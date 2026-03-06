@@ -42,26 +42,56 @@ async function getValidAccessToken(
   return data.access_token;
 }
 
+function getSyncWindow() {
+  const now = new Date();
+  return {
+    timeMin: new Date(now.getFullYear() - 2, 0, 1).toISOString(),
+    timeMax: new Date(now.getFullYear() + 1, 11, 31).toISOString(),
+  };
+}
+
+async function getUserMentorIds(supabaseAdmin: any, userId: string): Promise<string[]> {
+  const { data, error } = await supabaseAdmin
+    .from("mentores")
+    .select("id")
+    .eq("user_id", userId);
+
+  if (error) throw error;
+  return (data || []).map((m: any) => m.id).filter(Boolean);
+}
+
 async function getOrCreateDefaults(supabaseAdmin: any, userId: string) {
   let { data: defaultMentor } = await supabaseAdmin
-    .from("mentores").select("id").limit(1).single();
+    .from("mentores")
+    .select("id")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
   if (!defaultMentor) {
     const { data: created } = await supabaseAdmin
       .from("mentores")
       .insert({ nome: "Importado", email: "importado@sistema.local", user_id: userId })
-      .select("id").single();
+      .select("id")
+      .single();
     defaultMentor = created;
   }
 
   let { data: defaultMentorado } = await supabaseAdmin
-    .from("mentorados").select("id").eq("nome", "Importado do Google Calendar").single();
+    .from("mentorados")
+    .select("id")
+    .eq("nome", "Importado do Google Calendar")
+    .eq("mentor_id", defaultMentor?.id)
+    .limit(1)
+    .maybeSingle();
 
   if (!defaultMentorado) {
     const { data: created } = await supabaseAdmin
       .from("mentorados")
       .insert({ nome: "Importado do Google Calendar", mentor_id: defaultMentor?.id })
-      .select("id").single();
+      .select("id")
+      .single();
     defaultMentorado = created;
   }
 
@@ -72,65 +102,67 @@ async function getOrCreateDefaults(supabaseAdmin: any, userId: string) {
   return { mentorId: defaultMentor.id, mentoradoId: defaultMentorado.id };
 }
 
-async function importEventsForUser(tokens: any, supabaseAdmin: any) {
+async function importEventsBatchForUser(
+  tokens: any,
+  supabaseAdmin: any,
+  options?: { cursor?: string | null; batchSize?: number }
+) {
   const accessToken = await getValidAccessToken(tokens, supabaseAdmin);
   const calendarId = tokens.calendar_id || "primary";
-  const now = new Date();
-  const timeMin = new Date(now.getFullYear() - 2, 0, 1).toISOString(); // 2 years back
-  const timeMax = new Date(now.getFullYear() + 1, 11, 31).toISOString(); // 1 year ahead
+  const { timeMin, timeMax } = getSyncWindow();
+  const batchSize = Math.max(50, Math.min(options?.batchSize ?? 150, 250));
 
-  // Fetch all Google events
-  let allGoogleEvents: any[] = [];
-  let pageToken: string | undefined;
+  const params = new URLSearchParams({
+    timeMin,
+    timeMax,
+    singleEvents: "true",
+    orderBy: "startTime",
+    maxResults: String(batchSize),
+  });
 
-  do {
-    const params = new URLSearchParams({
-      timeMin, timeMax, singleEvents: "true", orderBy: "startTime", maxResults: "250",
-    });
-    if (pageToken) params.set("pageToken", pageToken);
+  if (options?.cursor) params.set("pageToken", options.cursor);
 
-    const res = await fetch(
-      `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params}`,
-      { headers: { Authorization: `Bearer ${accessToken}` } }
-    );
-    const data = await res.json();
-    if (!res.ok) throw new Error(`Google API error: ${JSON.stringify(data)}`);
-    if (data.items) allGoogleEvents.push(...data.items);
-    pageToken = data.nextPageToken;
-  } while (pageToken);
+  const res = await fetch(
+    `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params}`,
+    { headers: { Authorization: `Bearer ${accessToken}` } }
+  );
 
-  console.log(`Fetched ${allGoogleEvents.length} events from Google Calendar for user ${tokens.user_id}`);
+  const data = await res.json();
+  if (!res.ok) throw new Error(`Google API error: ${JSON.stringify(data)}`);
 
-  // Get all existing encontros with google_event_id (handle pagination for large datasets)
-  let allExisting: any[] = [];
-  let from = 0;
-  const PAGE_SIZE = 1000;
-  while (true) {
-    const { data: page } = await supabaseAdmin
+  const validEvents = (data.items || []).filter(
+    (evt: any) => evt?.id && (evt?.start?.dateTime || evt?.start?.date)
+  );
+  const batchEventIds = validEvents.map((evt: any) => evt.id);
+
+  const { mentorId, mentoradoId } = await getOrCreateDefaults(supabaseAdmin, tokens.user_id);
+  const mentorIds = await getUserMentorIds(supabaseAdmin, tokens.user_id);
+  if (!mentorIds.includes(mentorId)) mentorIds.push(mentorId);
+
+  let existingRows: any[] = [];
+  if (batchEventIds.length > 0) {
+    const { data: rows } = await supabaseAdmin
       .from("encontros")
       .select("id, google_event_id, titulo, inicio, fim, local, link_reuniao, notas_operacionais")
-      .not("google_event_id", "is", null)
-      .range(from, from + PAGE_SIZE - 1);
-    if (!page || page.length === 0) break;
-    allExisting.push(...page);
-    if (page.length < PAGE_SIZE) break;
-    from += PAGE_SIZE;
+      .in("google_event_id", batchEventIds)
+      .in("mentor_id", mentorIds);
+
+    existingRows = rows || [];
   }
 
   const existingMap = new Map<string, any>();
-  allExisting.forEach((e: any) => existingMap.set(e.google_event_id, e));
+  existingRows.forEach((e: any) => {
+    if (e?.google_event_id && !existingMap.has(e.google_event_id)) {
+      existingMap.set(e.google_event_id, e);
+    }
+  });
 
-  const googleEventIds = new Set(allGoogleEvents.filter(e => e.id).map(e => e.id));
-
-  const { mentorId, mentoradoId } = await getOrCreateDefaults(supabaseAdmin, tokens.user_id);
-
-  // --- 1. INSERT new events ---
-  const newEvents = allGoogleEvents
-    .filter(evt => evt.id && !existingMap.has(evt.id) && (evt.start?.dateTime || evt.start?.date))
-    .map(evt => ({
+  const newEvents = validEvents
+    .filter((evt: any) => !existingMap.has(evt.id))
+    .map((evt: any) => ({
       titulo: evt.summary || "Evento importado",
       inicio: evt.start.dateTime || evt.start.date,
-      fim: evt.end?.dateTime || evt.end?.date || evt.start.dateTime,
+      fim: evt.end?.dateTime || evt.end?.date || evt.start.dateTime || evt.start.date,
       google_event_id: evt.id,
       sincronizado_google: true,
       status: "Agendado",
@@ -141,28 +173,28 @@ async function importEventsForUser(tokens: any, supabaseAdmin: any) {
       mentorado_id: mentoradoId,
     }));
 
-  let imported = 0;
-  const BATCH = 50;
-  for (let i = 0; i < newEvents.length; i += BATCH) {
-    const batch = newEvents.slice(i, i + BATCH);
-    const { error: insertErr } = await supabaseAdmin.from("encontros").insert(batch);
-    if (!insertErr) imported += batch.length;
-    else console.error("Batch insert error:", JSON.stringify(insertErr));
+  let batchImported = 0;
+  const INSERT_BATCH = 50;
+  for (let i = 0; i < newEvents.length; i += INSERT_BATCH) {
+    const chunk = newEvents.slice(i, i + INSERT_BATCH);
+    const { error: insertErr } = await supabaseAdmin.from("encontros").insert(chunk);
+    if (!insertErr) {
+      batchImported += chunk.length;
+    } else {
+      console.error("Batch insert error:", JSON.stringify(insertErr));
+    }
   }
 
-  console.log(`Imported ${imported} new, ${newEvents.length} candidates from ${allGoogleEvents.length} total`);
-
-  // --- 2. UPDATE existing events that changed in Google ---
-  let updated = 0;
-  for (const gEvt of allGoogleEvents) {
-    if (!gEvt.id || !existingMap.has(gEvt.id)) continue;
+  let batchUpdated = 0;
+  for (const gEvt of validEvents) {
     const existing = existingMap.get(gEvt.id);
+    if (!existing) continue;
+
     const gStart = gEvt.start?.dateTime || gEvt.start?.date || "";
     const gEnd = gEvt.end?.dateTime || gEvt.end?.date || "";
     const gTitle = gEvt.summary || "Evento importado";
     const gLocation = gEvt.location || "Online";
 
-    // Compare and update if changed
     const needsUpdate =
       gTitle !== existing.titulo ||
       new Date(gStart).getTime() !== new Date(existing.inicio).getTime() ||
@@ -170,32 +202,107 @@ async function importEventsForUser(tokens: any, supabaseAdmin: any) {
       gLocation !== existing.local;
 
     if (needsUpdate) {
-      await supabaseAdmin.from("encontros").update({
-        titulo: gTitle,
-        inicio: gStart,
-        fim: gEnd,
-        local: gLocation,
-        link_reuniao: gEvt.hangoutLink || existing.link_reuniao,
-        notas_operacionais: gEvt.description || existing.notas_operacionais,
-      }).eq("id", existing.id);
-      updated++;
+      await supabaseAdmin
+        .from("encontros")
+        .update({
+          titulo: gTitle,
+          inicio: gStart,
+          fim: gEnd,
+          local: gLocation,
+          link_reuniao: gEvt.hangoutLink || existing.link_reuniao,
+          notas_operacionais: gEvt.description || existing.notas_operacionais,
+        })
+        .eq("id", existing.id);
+      batchUpdated++;
     }
   }
 
-  // --- 3. DELETE encontros removed from Google Calendar ---
-  let deleted = 0;
-  for (const [gEventId, encontro] of existingMap) {
-    if (!googleEventIds.has(gEventId)) {
-      // Event was deleted from Google Calendar — also check time range
+  console.log(
+    `Batch import user=${tokens.user_id} processed=${validEvents.length} imported=${batchImported} updated=${batchUpdated} next=${data.nextPageToken ? "yes" : "no"}`
+  );
+
+  return {
+    batchProcessed: validEvents.length,
+    batchImported,
+    batchUpdated,
+    batchEventIds,
+    nextPageToken: data.nextPageToken || null,
+    done: !data.nextPageToken,
+  };
+}
+
+async function finalizeImportForUser(tokens: any, supabaseAdmin: any, seenEventIds: string[]) {
+  const mentorIds = await getUserMentorIds(supabaseAdmin, tokens.user_id);
+  if (!mentorIds.length) return { deleted: 0 };
+
+  const seenSet = new Set((seenEventIds || []).filter(Boolean));
+  const { timeMin, timeMax } = getSyncWindow();
+
+  const idsToDelete: string[] = [];
+  let from = 0;
+  const PAGE_SIZE = 1000;
+
+  while (true) {
+    const { data: page } = await supabaseAdmin
+      .from("encontros")
+      .select("id, google_event_id, inicio")
+      .in("mentor_id", mentorIds)
+      .not("google_event_id", "is", null)
+      .range(from, from + PAGE_SIZE - 1);
+
+    if (!page || page.length === 0) break;
+
+    for (const encontro of page) {
+      const googleId = encontro.google_event_id;
+      if (!googleId) continue;
+
       const encontroStart = new Date(encontro.inicio);
-      if (encontroStart >= new Date(timeMin) && encontroStart <= new Date(timeMax)) {
-        await supabaseAdmin.from("encontros").delete().eq("id", encontro.id);
-        deleted++;
+      const withinWindow = encontroStart >= new Date(timeMin) && encontroStart <= new Date(timeMax);
+      if (withinWindow && !seenSet.has(googleId)) {
+        idsToDelete.push(encontro.id);
       }
     }
+
+    if (page.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
   }
 
-  return { imported, updated, deleted, total: allGoogleEvents.length, userId: tokens.user_id };
+  let deleted = 0;
+  const DELETE_BATCH = 100;
+  for (let i = 0; i < idsToDelete.length; i += DELETE_BATCH) {
+    const chunk = idsToDelete.slice(i, i + DELETE_BATCH);
+    const { error } = await supabaseAdmin.from("encontros").delete().in("id", chunk);
+    if (!error) deleted += chunk.length;
+  }
+
+  return { deleted };
+}
+
+async function importEventsForUser(tokens: any, supabaseAdmin: any) {
+  const allSeenIds: string[] = [];
+  let imported = 0;
+  let updated = 0;
+  let total = 0;
+  let cursor: string | null = null;
+
+  while (true) {
+    const batch = await importEventsBatchForUser(tokens, supabaseAdmin, { cursor, batchSize: 200 });
+    imported += batch.batchImported;
+    updated += batch.batchUpdated;
+    total += batch.batchProcessed;
+    allSeenIds.push(...batch.batchEventIds);
+
+    if (!batch.nextPageToken) break;
+    cursor = batch.nextPageToken;
+  }
+
+  const { deleted } = await finalizeImportForUser(tokens, supabaseAdmin, allSeenIds);
+
+  console.log(
+    `Imported ${imported} new, updated ${updated}, deleted ${deleted}, total processed ${total} for user ${tokens.user_id}`
+  );
+
+  return { imported, updated, deleted, total, userId: tokens.user_id };
 }
 
 Deno.serve(async (req) => {
@@ -262,14 +369,34 @@ Deno.serve(async (req) => {
       });
     }
 
-    const accessToken = await getValidAccessToken(tokens, supabaseAdmin);
-
     if (action === "import") {
       const result = await importEventsForUser(tokens, supabaseAdmin);
       return new Response(JSON.stringify({ success: true, ...result }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    if (action === "import-batch") {
+      const result = await importEventsBatchForUser(tokens, supabaseAdmin, {
+        cursor: body?.cursor ?? null,
+        batchSize: body?.batchSize,
+      });
+
+      return new Response(JSON.stringify({ success: true, ...result }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    if (action === "finalize-import") {
+      const seenEventIds = Array.isArray(body?.seenEventIds) ? body.seenEventIds : [];
+      const result = await finalizeImportForUser(tokens, supabaseAdmin, seenEventIds);
+
+      return new Response(JSON.stringify({ success: true, ...result }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
+    const accessToken = await getValidAccessToken(tokens, supabaseAdmin);
 
     if (action === "create") {
       const { data: mentorado } = await supabaseAdmin

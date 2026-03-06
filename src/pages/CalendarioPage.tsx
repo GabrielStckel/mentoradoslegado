@@ -4,8 +4,8 @@ import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 import CalendarView from '@/components/CalendarView';
 import MeetingModal from '@/components/MeetingModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
 import { CheckCircle, Link2, Download } from 'lucide-react';
@@ -15,13 +15,12 @@ export default function CalendarioPage() {
   const [mentorFilter, setMentorFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [connecting, setConnecting] = useState(false);
-  const [importing, setImporting] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: encontros = [], isLoading } = useEncontros();
   const { data: mentorados = [] } = useMentorados();
   const { data: mentores = [] } = useMentores();
-  const { connected, loading: gcLoading, connect, importEvents } = useGoogleCalendar();
+  const { connected, loading: gcLoading, connect, importEvents, importProgress, importing } = useGoogleCalendar();
 
   const filtered = encontros.filter(e => {
     const matchMentor = mentorFilter === 'all' || e.mentor_id === mentorFilter;
@@ -40,15 +39,16 @@ export default function CalendarioPage() {
   };
 
   const handleImport = async () => {
-    setImporting(true);
     try {
       const result = await importEvents();
       queryClient.invalidateQueries({ queryKey: ['encontros'] });
-      toast({ title: 'Importação concluída', description: `${result?.imported || 0} novos eventos importados de ${result?.total || 0} encontrados.` });
+      toast({
+        title: 'Importação concluída',
+        description: `${result?.imported || 0} novos, ${result?.updated || 0} atualizados e ${result?.deleted || 0} removidos.`,
+      });
     } catch (err: any) {
       toast({ title: 'Erro na importação', description: err?.message || 'Falha ao importar eventos.', variant: 'destructive' });
     }
-    setImporting(false);
   };
 
   if (isLoading) return null;
@@ -98,6 +98,22 @@ export default function CalendarioPage() {
           </Select>
         </div>
       </div>
+
+      {(importing || importProgress.done || importProgress.error) && (
+        <div className="rounded-lg border bg-card p-4 space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">{importProgress.message || 'Sincronização automática do Google Agenda'}</span>
+            <span className="font-medium">{Math.round(importProgress.percent)}%</span>
+          </div>
+          <Progress value={importProgress.percent} className="h-2" />
+          <p className="text-xs text-muted-foreground">
+            Processados: {importProgress.processed} · Novos: {importProgress.imported} · Atualizados: {importProgress.updated} · Removidos: {importProgress.deleted}
+          </p>
+          {importProgress.error && (
+            <p className="text-xs text-destructive">{importProgress.error}</p>
+          )}
+        </div>
+      )}
 
       <CalendarView encontros={filtered as any} mentores={mentores as any} onEventClick={setSelectedEncontro} />
 
