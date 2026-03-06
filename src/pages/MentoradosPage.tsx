@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
-import { Plus, Search, Phone, CalendarPlus } from 'lucide-react';
+import { Plus, Search, Phone, CalendarPlus, Pencil } from 'lucide-react';
 import { useMentorados } from '@/hooks/useSupabaseData';
 import NovoMentoradoModal from '@/components/NovoMentoradoModal';
+import EditMentoradoModal from '@/components/EditMentoradoModal';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
 import QuickSessionModal from '@/components/QuickSessionModal';
 import { StatusBadge, TagBadge } from '@/components/StatusBadge';
@@ -16,6 +17,7 @@ export default function MentoradosPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showNovo, setShowNovo] = useState(false);
+  const [editMentorado, setEditMentorado] = useState<any>(null);
   const [encontroMentoradoId, setEncontroMentoradoId] = useState<string | null>(null);
   const [selectedMentorado, setSelectedMentorado] = useState<any>(null);
   const isMobile = useIsMobile();
