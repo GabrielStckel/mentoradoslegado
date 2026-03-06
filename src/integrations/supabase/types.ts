@@ -122,6 +122,7 @@ export type Database = {
           calendar_id: string | null
           created_at: string
           id: string
+          last_synced_at: string | null
           refresh_token: string
           token_expires_at: string
           updated_at: string
@@ -132,6 +133,7 @@ export type Database = {
           calendar_id?: string | null
           created_at?: string
           id?: string
+          last_synced_at?: string | null
           refresh_token: string
           token_expires_at: string
           updated_at?: string
@@ -142,6 +144,7 @@ export type Database = {
           calendar_id?: string | null
           created_at?: string
           id?: string
+          last_synced_at?: string | null
           refresh_token?: string
           token_expires_at?: string
           updated_at?: string
