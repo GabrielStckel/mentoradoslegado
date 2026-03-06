@@ -1,6 +1,6 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { format } from 'date-fns';
-import { Plus, Search, UserCheck } from 'lucide-react';
+import { Plus, Search, UserCheck, XCircle, UserX } from 'lucide-react';
 import { useMentorados, useEncontros, useUpdateEncontroStatus } from '@/hooks/useSupabaseData';
 import { StatusBadge, TipoBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
