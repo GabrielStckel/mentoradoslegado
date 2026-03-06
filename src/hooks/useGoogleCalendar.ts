@@ -33,13 +33,19 @@ export function useGoogleCalendar() {
   }, [checkConnection]);
 
   const connect = async () => {
+    // Open popup synchronously from user click to avoid browser blocking
+    const popup = window.open('about:blank', 'google-calendar-auth', 'width=600,height=700');
     try {
       const { data, error } = await supabase.functions.invoke('google-calendar-auth');
       if (error) throw error;
-      if (data?.url) {
+      if (data?.url && popup) {
+        popup.location.href = data.url;
+      } else if (data?.url) {
+        // Fallback if popup was still blocked
         window.open(data.url, 'google-calendar-auth', 'width=600,height=700');
       }
     } catch (err) {
+      popup?.close();
       console.error('Error starting Google Calendar auth:', err);
       throw err;
     }
