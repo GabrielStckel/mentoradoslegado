@@ -44,7 +44,7 @@ export default function EncontrosPage() {
         mentoradoMap[e.mentorado_id]?.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === 'all' || e.status === statusFilter;
       return matchSearch && matchStatus;
-    }).sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime());
+    }).sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
   }, [search, statusFilter, encontros, mentoradoMap]);
 
   const handleQuickStatus = useCallback((e: React.MouseEvent, id: string, status: string) => {
