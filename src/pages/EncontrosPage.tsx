@@ -22,6 +22,7 @@ export default function EncontrosPage() {
   const [mentoradoSearch, setMentoradoSearch] = useState('');
   const [selectedMentorado, setSelectedMentorado] = useState<any>(null);
   const isMobile = useIsMobile();
+  const { pinOpen, setPinOpen, requirePin, onPinSuccess } = usePinGate();
 
   const { data: encontros = [], isLoading } = useEncontros();
   const { data: mentorados = [] } = useMentorados();
