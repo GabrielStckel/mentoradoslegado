@@ -16,13 +16,12 @@ export default function CalendarioPage() {
   const [mentorFilter, setMentorFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [connecting, setConnecting] = useState(false);
-  const [importing, setImporting] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: encontros = [], isLoading } = useEncontros();
   const { data: mentorados = [] } = useMentorados();
   const { data: mentores = [] } = useMentores();
-  const { connected, loading: gcLoading, connect, importEvents } = useGoogleCalendar();
+  const { connected, loading: gcLoading, connect, importEvents, importProgress, importing } = useGoogleCalendar();
 
   const filtered = encontros.filter(e => {
     const matchMentor = mentorFilter === 'all' || e.mentor_id === mentorFilter;
