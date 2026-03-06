@@ -4,7 +4,6 @@ import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 import CalendarView from '@/components/CalendarView';
 import MeetingModal from '@/components/MeetingModal';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { toast } from '@/hooks/use-toast';
