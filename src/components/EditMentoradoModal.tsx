@@ -70,9 +70,29 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!mentorado) throw new Error('Mentorado não encontrado');
+      const { error } = await supabase.from('mentorados').delete().eq('id', mentorado.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mentorados'] });
+      toast.success('Mentorado excluído com sucesso!');
+      onOpenChange(false);
+    },
+    onError: (err: any) => {
+      toast.error('Erro ao excluir: ' + err.message);
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     requirePin(() => mutation.mutate());
+  };
+
+  const handleDelete = () => {
+    requirePin(() => deleteMutation.mutate());
   };
 
   return (
