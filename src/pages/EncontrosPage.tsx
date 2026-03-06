@@ -191,9 +191,9 @@ export default function EncontrosPage() {
                   </TableCell>
                   <TableCell className="text-sm font-medium">{e.titulo}</TableCell>
                   <TableCell className="text-sm">{mentoradoMap[e.mentorado_id]}</TableCell>
-                  <TableCell><TipoBadge tipo={e.tipo as any} /></TableCell>
+                  <TableCell>{(!e.google_event_id || (e.tipo !== 'Sessão' && e.tipo !== '')) ? <TipoBadge tipo={e.tipo as any} /> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
                   <TableCell className="text-sm text-muted-foreground">{e.local}</TableCell>
-                  <TableCell><StatusBadge status={e.status as any} /></TableCell>
+                  <TableCell>{(!e.google_event_id || e.status !== 'Agendado') ? <StatusBadge status={e.status as any} /> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
                   <TableCell>
                     {e.status === 'Agendado' && (
                       <div className="flex gap-1">
