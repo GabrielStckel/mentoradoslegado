@@ -64,9 +64,14 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="page-title">Dashboard</h1>
-        <p className="page-subtitle">Visão geral das mentorias</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="page-title">Dashboard</h1>
+          <p className="page-subtitle">Visão geral das mentorias</p>
+        </div>
+        <Button onClick={() => requirePin(() => setShowNovo(true))}>
+          <Plus className="h-4 w-4 mr-2" /> Novo Encontro
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
