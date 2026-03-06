@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useOrigens } from '@/hooks/useSupabaseData';
 import { toast } from 'sonner';
-import { Settings } from 'lucide-react';
+import { Settings, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import OrigensManagerModal from '@/components/OrigensManagerModal';
 import PinModal, { usePinGate } from '@/components/PinModal';
 
@@ -69,9 +70,29 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
     },
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async () => {
+      if (!mentorado) throw new Error('Mentorado não encontrado');
+      const { error } = await supabase.from('mentorados').delete().eq('id', mentorado.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mentorados'] });
+      toast.success('Mentorado excluído com sucesso!');
+      onOpenChange(false);
+    },
+    onError: (err: any) => {
+      toast.error('Erro ao excluir: ' + err.message);
+    },
+  });
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     requirePin(() => mutation.mutate());
+  };
+
+  const handleDelete = () => {
+    requirePin(() => deleteMutation.mutate());
   };
 
   return (
@@ -132,11 +153,34 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
               <Label htmlFor="edit-obs">Observações</Label>
               <Textarea id="edit-obs" value={observacoes} onChange={e => setObservacoes(e.target.value)} rows={3} />
             </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-              <Button type="submit" disabled={!nome || mutation.isPending}>
-                {mutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
-              </Button>
+            <div className="flex justify-between pt-2">
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button type="button" variant="destructive" size="sm">
+                    <Trash2 className="h-4 w-4 mr-1" /> Excluir
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Excluir mentorado?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Essa ação não pode ser desfeita. O mentorado <strong>{nome}</strong> será removido permanentemente.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                      Excluir
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+              <div className="flex gap-2">
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
+                <Button type="submit" disabled={!nome || mutation.isPending}>
+                  {mutation.isPending ? 'Salvando...' : 'Salvar Alterações'}
+                </Button>
+              </div>
             </div>
           </form>
         </DialogContent>
