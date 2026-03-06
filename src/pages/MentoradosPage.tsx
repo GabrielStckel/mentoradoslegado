@@ -1,7 +1,8 @@
 import { useState, useMemo } from 'react';
-import { Plus, Search, Phone, CalendarPlus } from 'lucide-react';
+import { Plus, Search, Phone, CalendarPlus, Pencil } from 'lucide-react';
 import { useMentorados } from '@/hooks/useSupabaseData';
 import NovoMentoradoModal from '@/components/NovoMentoradoModal';
+import EditMentoradoModal from '@/components/EditMentoradoModal';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
 import QuickSessionModal from '@/components/QuickSessionModal';
 import { StatusBadge, TagBadge } from '@/components/StatusBadge';
@@ -16,6 +17,7 @@ export default function MentoradosPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showNovo, setShowNovo] = useState(false);
+  const [editMentorado, setEditMentorado] = useState<any>(null);
   const [encontroMentoradoId, setEncontroMentoradoId] = useState<string | null>(null);
   const [selectedMentorado, setSelectedMentorado] = useState<any>(null);
   const isMobile = useIsMobile();
@@ -89,6 +91,15 @@ export default function MentoradosPage() {
               <div className="flex items-center justify-between">
                 <div className="flex gap-1 flex-wrap">{(m.tags || []).slice(0, 3).map(t => <TagBadge key={t} tag={t as any} />)}</div>
                 <div className="flex items-center gap-1">
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-9 w-9"
+                    title="Editar"
+                    onClick={(e) => { e.stopPropagation(); setEditMentorado(m); }}
+                  >
+                    <Pencil className="h-4 w-4" />
+                  </Button>
                   <a
                     href={`https://wa.me/${m.telefone_whatsapp}`}
                     target="_blank"
@@ -126,8 +137,8 @@ export default function MentoradosPage() {
                 <TableHead className="table-header">Origem</TableHead>
                 <TableHead className="table-header">Tags</TableHead>
                 <TableHead className="table-header">Status</TableHead>
-                <TableHead className="table-header">Contato</TableHead>
-                <TableHead className="table-header w-[50px]"></TableHead>
+                 <TableHead className="table-header">Contato</TableHead>
+                 <TableHead className="table-header w-[90px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -157,15 +168,26 @@ export default function MentoradosPage() {
                     </a>
                   </TableCell>
                   <TableCell>
-                    <Button
-                      size="icon"
-                      variant="ghost"
-                      className="h-8 w-8"
-                      title="Agendar encontro"
-                      onClick={(e) => { e.stopPropagation(); setEncontroMentoradoId(m.id); }}
-                    >
-                      <CalendarPlus className="h-4 w-4" />
-                    </Button>
+                    <div className="flex gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        title="Editar"
+                        onClick={(e) => { e.stopPropagation(); setEditMentorado(m); }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        title="Agendar encontro"
+                        onClick={(e) => { e.stopPropagation(); setEncontroMentoradoId(m.id); }}
+                      >
+                        <CalendarPlus className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
@@ -189,6 +211,12 @@ export default function MentoradosPage() {
           onOpenChange={(o) => !o && setEncontroMentoradoId(null)}
         />
       )}
+
+      <EditMentoradoModal
+        mentorado={editMentorado}
+        open={!!editMentorado}
+        onOpenChange={(o) => !o && setEditMentorado(null)}
+      />
     </div>
   );
 }
