@@ -40,15 +40,16 @@ export default function CalendarioPage() {
   };
 
   const handleImport = async () => {
-    setImporting(true);
     try {
       const result = await importEvents();
       queryClient.invalidateQueries({ queryKey: ['encontros'] });
-      toast({ title: 'Importação concluída', description: `${result?.imported || 0} novos eventos importados de ${result?.total || 0} encontrados.` });
+      toast({
+        title: 'Importação concluída',
+        description: `${result?.imported || 0} novos, ${result?.updated || 0} atualizados e ${result?.deleted || 0} removidos.`,
+      });
     } catch (err: any) {
       toast({ title: 'Erro na importação', description: err?.message || 'Falha ao importar eventos.', variant: 'destructive' });
     }
-    setImporting(false);
   };
 
   if (isLoading) return null;
