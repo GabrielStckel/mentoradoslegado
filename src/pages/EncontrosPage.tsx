@@ -49,8 +49,8 @@ export default function EncontrosPage() {
 
   const handleQuickStatus = useCallback((e: React.MouseEvent, id: string, status: string) => {
     e.stopPropagation();
-    updateStatus.mutate({ id, status });
-  }, [updateStatus]);
+    requirePin(() => updateStatus.mutate({ id, status }));
+  }, [updateStatus, requirePin]);
 
   if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
 
