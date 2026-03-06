@@ -221,7 +221,7 @@ export default function EncontrosPage() {
         mentorado={selectedEncontro ? mentorados.find(m => m.id === selectedEncontro.mentorado_id) as any : undefined}
         open={!!selectedEncontro}
         onOpenChange={(o) => !o && setSelectedEncontro(null)}
-        onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
+        onStatusChange={(id, status) => requirePin(() => updateStatus.mutate({ id, status }))}
       />
 
       <QuickSessionModal
