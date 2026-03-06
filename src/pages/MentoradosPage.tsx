@@ -97,6 +97,15 @@ export default function MentoradosPage() {
                     size="icon"
                     variant="ghost"
                     className="h-9 w-9"
+                    title="Ver detalhes"
+                    onClick={(e) => { e.stopPropagation(); navigate(`/mentorados/${m.id}`); }}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-9 w-9"
                     title="Editar"
                     onClick={(e) => { e.stopPropagation(); setEditMentorado(m); }}
                   >
@@ -119,6 +128,7 @@ export default function MentoradosPage() {
                     onClick={(e) => { e.stopPropagation(); setEncontroMentoradoId(m.id); }}
                   >
                     <CalendarPlus className="h-4 w-4" />
+                  </Button>
                   </Button>
                 </div>
               </div>
