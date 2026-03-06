@@ -65,14 +65,14 @@ export default function Dashboard() {
         <p className="page-subtitle">Visão geral das mentorias</p>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
         {statCards.map((s) => (
-          <div key={s.label} className="stat-card">
-            <div className="flex items-center justify-between mb-3">
-              <s.icon className={`h-5 w-5 ${s.color}`} />
+          <div key={s.label} className="stat-card p-3 md:p-5">
+            <div className="flex items-center justify-between mb-2 md:mb-3">
+              <s.icon className={`h-4 w-4 md:h-5 md:w-5 ${s.color}`} />
             </div>
-            <p className="text-2xl font-bold">{s.value}</p>
-            <p className="text-xs text-muted-foreground mt-1">{s.label}</p>
+            <p className="text-xl md:text-2xl font-bold">{s.value}</p>
+            <p className="text-[11px] md:text-xs text-muted-foreground mt-1">{s.label}</p>
           </div>
         ))}
       </div>
@@ -97,20 +97,19 @@ export default function Dashboard() {
                 className="flex items-center justify-between p-3 rounded-lg border bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer"
                 onClick={() => navigate('/encontros')}
               >
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="text-center flex-shrink-0 w-12">
-                    <p className="text-xs text-muted-foreground">{format(new Date(e.inicio), 'dd/MM')}</p>
-                    <p className="text-sm font-semibold">{format(new Date(e.inicio), 'HH:mm')}</p>
+              <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                  <div className="text-center flex-shrink-0 w-10 md:w-12">
+                    <p className="text-[10px] md:text-xs text-muted-foreground">{format(new Date(e.inicio), 'dd/MM')}</p>
+                    <p className="text-xs md:text-sm font-semibold">{format(new Date(e.inicio), 'HH:mm')}</p>
                   </div>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{e.titulo}</p>
-                    <p className="text-xs text-muted-foreground truncate">
+                    <p className="text-xs md:text-sm font-medium truncate">{e.titulo}</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground truncate">
                       {mentoradoMap[e.mentorado_id]}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <TipoBadge tipo={e.tipo as any} />
+                <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
                   <StatusBadge status={e.status as any} />
                 </div>
               </div>
