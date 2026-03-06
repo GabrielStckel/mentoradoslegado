@@ -7,18 +7,21 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { CheckCircle, Link2 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
+import { CheckCircle, Link2, Download } from 'lucide-react';
 
 export default function CalendarioPage() {
   const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
   const [mentorFilter, setMentorFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [connecting, setConnecting] = useState(false);
+  const [importing, setImporting] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: encontros = [], isLoading } = useEncontros();
   const { data: mentorados = [] } = useMentorados();
   const { data: mentores = [] } = useMentores();
-  const { connected, loading: gcLoading, connect } = useGoogleCalendar();
+  const { connected, loading: gcLoading, connect, importEvents } = useGoogleCalendar();
 
   const filtered = encontros.filter(e => {
     const matchMentor = mentorFilter === 'all' || e.mentor_id === mentorFilter;
@@ -36,6 +39,18 @@ export default function CalendarioPage() {
     setConnecting(false);
   };
 
+  const handleImport = async () => {
+    setImporting(true);
+    try {
+      const result = await importEvents();
+      queryClient.invalidateQueries({ queryKey: ['encontros'] });
+      toast({ title: 'Importação concluída', description: `${result?.imported || 0} novos eventos importados de ${result?.total || 0} encontrados.` });
+    } catch (err: any) {
+      toast({ title: 'Erro na importação', description: err?.message || 'Falha ao importar eventos.', variant: 'destructive' });
+    }
+    setImporting(false);
+  };
+
   if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-96 w-full" /></div>;
 
   return (
@@ -48,9 +63,15 @@ export default function CalendarioPage() {
         <div className="flex gap-2 items-center">
           {!gcLoading && (
             connected ? (
-              <div className="flex items-center gap-1.5 text-sm text-success px-3 py-1.5 rounded-md bg-success/10">
-                <CheckCircle className="h-4 w-4" />
-                Google Calendar conectado
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 text-sm text-success px-3 py-1.5 rounded-md bg-success/10">
+                  <CheckCircle className="h-4 w-4" />
+                  Google Calendar conectado
+                </div>
+                <Button variant="outline" size="sm" onClick={handleImport} disabled={importing}>
+                  <Download className="h-4 w-4 mr-1.5" />
+                  {importing ? 'Importando...' : 'Importar eventos'}
+                </Button>
               </div>
             ) : (
               <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting}>

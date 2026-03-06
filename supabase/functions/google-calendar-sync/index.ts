@@ -185,6 +185,88 @@ Deno.serve(async (req) => {
       });
     }
 
+    if (action === "import") {
+      const calendarId = tokens.calendar_id || "primary";
+      const now = new Date();
+      const timeMin = new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString();
+      const timeMax = new Date(now.getFullYear(), now.getMonth() + 6, 0).toISOString();
+
+      let allEvents: any[] = [];
+      let pageToken: string | undefined;
+
+      do {
+        const params = new URLSearchParams({
+          timeMin,
+          timeMax,
+          singleEvents: "true",
+          orderBy: "startTime",
+          maxResults: "250",
+        });
+        if (pageToken) params.set("pageToken", pageToken);
+
+        const res = await fetch(
+          `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/events?${params}`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        );
+        const data = await res.json();
+        if (!res.ok) throw new Error(`Google API error: ${JSON.stringify(data)}`);
+        if (data.items) allEvents.push(...data.items);
+        pageToken = data.nextPageToken;
+      } while (pageToken);
+
+      // Get existing google_event_ids to avoid duplicates
+      const { data: existingEncontros } = await supabaseAdmin
+        .from("encontros")
+        .select("google_event_id")
+        .not("google_event_id", "is", null);
+
+      const existingIds = new Set((existingEncontros || []).map((e: any) => e.google_event_id));
+
+      // We need a default mentor_id for imported events
+      const { data: defaultMentor } = await supabaseAdmin
+        .from("mentores")
+        .select("id")
+        .limit(1)
+        .single();
+
+      // We need a default mentorado_id for imported events
+      const { data: defaultMentorado } = await supabaseAdmin
+        .from("mentorados")
+        .select("id")
+        .limit(1)
+        .single();
+
+      const newEvents = allEvents
+        .filter(evt => evt.id && !existingIds.has(evt.id) && evt.start?.dateTime)
+        .map(evt => ({
+          titulo: evt.summary || "Evento importado",
+          inicio: evt.start.dateTime || evt.start.date,
+          fim: evt.end?.dateTime || evt.end?.date || evt.start.dateTime,
+          google_event_id: evt.id,
+          sincronizado_google: true,
+          status: "Agendado",
+          local: evt.location || "Online",
+          link_reuniao: evt.hangoutLink || "",
+          notas_operacionais: evt.description || "",
+          mentor_id: defaultMentor?.id || user.id,
+          mentorado_id: defaultMentorado?.id || user.id,
+        }));
+
+      // Batch insert
+      let imported = 0;
+      const BATCH = 100;
+      for (let i = 0; i < newEvents.length; i += BATCH) {
+        const batch = newEvents.slice(i, i + BATCH);
+        const { error: insertErr } = await supabaseAdmin.from("encontros").insert(batch);
+        if (!insertErr) imported += batch.length;
+        else console.error("Batch insert error:", insertErr);
+      }
+
+      return new Response(JSON.stringify({ success: true, imported, total: allEvents.length }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     if (action === "check") {
       return new Response(JSON.stringify({ connected: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
