@@ -75,9 +75,24 @@ export default function EncontrosPage() {
           <h1 className="page-title">Encontros</h1>
           <p className="page-subtitle">{filtered.length} encontros</p>
         </div>
-        <Button onClick={() => setShowNovo(true)} size={isMobile ? 'sm' : 'default'}>
-          <Plus className="h-4 w-4 mr-2" /> Novo
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border bg-secondary/30 p-0.5">
+            {(['dia', 'semana', 'mes'] as TimeRange[]).map(r => (
+              <button
+                key={r}
+                onClick={() => setTimeRange(r)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  timeRange === r ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {r === 'dia' ? 'Dia' : r === 'semana' ? 'Semana' : 'Mês'}
+              </button>
+            ))}
+          </div>
+          <Button onClick={() => setShowNovo(true)} size={isMobile ? 'sm' : 'default'}>
+            <Plus className="h-4 w-4 mr-2" /> Novo
+          </Button>
+        </div>
       </div>
       <NovoEncontroModal open={showNovo} onOpenChange={setShowNovo} />
 
