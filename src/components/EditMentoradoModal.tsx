@@ -9,7 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useOrigens } from '@/hooks/useSupabaseData';
 import { toast } from 'sonner';
-import { Settings } from 'lucide-react';
+import { Settings, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import OrigensManagerModal from '@/components/OrigensManagerModal';
 import PinModal, { usePinGate } from '@/components/PinModal';
 
