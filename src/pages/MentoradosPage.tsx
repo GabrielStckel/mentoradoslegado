@@ -128,8 +128,7 @@ export default function MentoradosPage() {
                     onClick={(e) => { e.stopPropagation(); setEncontroMentoradoId(m.id); }}
                   >
                     <CalendarPlus className="h-4 w-4" />
-                  </Button>
-                  </Button>
+                   </Button>
                 </div>
               </div>
             </div>
