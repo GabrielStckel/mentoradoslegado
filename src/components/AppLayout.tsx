@@ -135,8 +135,15 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             )}
           </div>
           <button
-            onClick={signOut}
+            onClick={() => setChangePinOpen(true)}
             className={cn('sidebar-item sidebar-item-inactive w-full mt-2', collapsed && 'justify-center px-2')}
+          >
+            <KeyRound className="h-4 w-4 flex-shrink-0" />
+            {!collapsed && <span className="text-sm">Alterar PIN</span>}
+          </button>
+          <button
+            onClick={signOut}
+            className={cn('sidebar-item sidebar-item-inactive w-full mt-1', collapsed && 'justify-center px-2')}
           >
             <LogOut className="h-4 w-4 flex-shrink-0" />
             {!collapsed && <span className="text-sm">Sair</span>}
