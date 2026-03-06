@@ -40,6 +40,7 @@ export default function EncontrosPage() {
   const filtered = useMemo(() => {
     return encontros.filter(e => {
       if (e.titulo === 'VAGO') return false;
+      if (new Date(e.fim) < new Date()) return false;
       const matchSearch = !search || e.titulo.toLowerCase().includes(search.toLowerCase()) ||
         mentoradoMap[e.mentorado_id]?.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === 'all' || e.status === statusFilter;
