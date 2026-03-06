@@ -76,8 +76,8 @@ async function importEventsForUser(tokens: any, supabaseAdmin: any) {
   const accessToken = await getValidAccessToken(tokens, supabaseAdmin);
   const calendarId = tokens.calendar_id || "primary";
   const now = new Date();
-  const timeMin = new Date(now.getFullYear(), now.getMonth() - 3, 1).toISOString();
-  const timeMax = new Date(now.getFullYear(), now.getMonth() + 6, 0).toISOString();
+  const timeMin = new Date(now.getFullYear() - 2, 0, 1).toISOString(); // 2 years back
+  const timeMax = new Date(now.getFullYear() + 1, 11, 31).toISOString(); // 1 year ahead
 
   // Fetch all Google events
   let allGoogleEvents: any[] = [];
@@ -99,14 +99,26 @@ async function importEventsForUser(tokens: any, supabaseAdmin: any) {
     pageToken = data.nextPageToken;
   } while (pageToken);
 
-  // Get all existing encontros with google_event_id
-  const { data: existingEncontros } = await supabaseAdmin
-    .from("encontros")
-    .select("id, google_event_id, titulo, inicio, fim, local, link_reuniao, notas_operacionais")
-    .not("google_event_id", "is", null);
+  console.log(`Fetched ${allGoogleEvents.length} events from Google Calendar for user ${tokens.user_id}`);
+
+  // Get all existing encontros with google_event_id (handle pagination for large datasets)
+  let allExisting: any[] = [];
+  let from = 0;
+  const PAGE_SIZE = 1000;
+  while (true) {
+    const { data: page } = await supabaseAdmin
+      .from("encontros")
+      .select("id, google_event_id, titulo, inicio, fim, local, link_reuniao, notas_operacionais")
+      .not("google_event_id", "is", null)
+      .range(from, from + PAGE_SIZE - 1);
+    if (!page || page.length === 0) break;
+    allExisting.push(...page);
+    if (page.length < PAGE_SIZE) break;
+    from += PAGE_SIZE;
+  }
 
   const existingMap = new Map<string, any>();
-  (existingEncontros || []).forEach((e: any) => existingMap.set(e.google_event_id, e));
+  allExisting.forEach((e: any) => existingMap.set(e.google_event_id, e));
 
   const googleEventIds = new Set(allGoogleEvents.filter(e => e.id).map(e => e.id));
 
@@ -130,13 +142,15 @@ async function importEventsForUser(tokens: any, supabaseAdmin: any) {
     }));
 
   let imported = 0;
-  const BATCH = 100;
+  const BATCH = 50;
   for (let i = 0; i < newEvents.length; i += BATCH) {
     const batch = newEvents.slice(i, i + BATCH);
     const { error: insertErr } = await supabaseAdmin.from("encontros").insert(batch);
     if (!insertErr) imported += batch.length;
-    else console.error("Batch insert error:", insertErr);
+    else console.error("Batch insert error:", JSON.stringify(insertErr));
   }
+
+  console.log(`Imported ${imported} new, ${newEvents.length} candidates from ${allGoogleEvents.length} total`);
 
   // --- 2. UPDATE existing events that changed in Google ---
   let updated = 0;
