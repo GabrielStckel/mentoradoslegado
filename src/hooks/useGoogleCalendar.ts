@@ -152,6 +152,21 @@ export function useGoogleCalendar() {
     return sharedImportPromise;
   }, [queryClient]);
 
+  const quickSync = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke('google-calendar-sync', {
+        body: { action: 'quick-sync' },
+      });
+      if (error) throw error;
+      if (data && (data.imported > 0 || data.updated > 0 || data.deleted > 0)) {
+        queryClient.invalidateQueries({ queryKey: ['encontros'] });
+        console.log(`Quick-sync: ${data.imported} novos, ${data.updated} atualizados, ${data.deleted} removidos`);
+      }
+    } catch (e) {
+      console.error('Quick-sync failed:', e);
+    }
+  }, [queryClient]);
+
   const checkAndAutoImport = useCallback(async () => {
     if (!user) {
       setConnected(false);
@@ -166,12 +181,17 @@ export function useGoogleCalendar() {
 
       const isConnected = !error && data?.connected === true;
       setConnected(isConnected);
+
+      if (isConnected) {
+        // Fire and forget - lightweight sync in background
+        quickSync();
+      }
     } catch {
       setConnected(false);
     }
 
     setLoading(false);
-  }, [user]);
+  }, [user, quickSync]);
 
   useEffect(() => {
     checkAndAutoImport();
