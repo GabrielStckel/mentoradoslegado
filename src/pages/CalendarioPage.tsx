@@ -99,6 +99,22 @@ export default function CalendarioPage() {
         </div>
       </div>
 
+      {(importing || importProgress.done || importProgress.error) && (
+        <div className="rounded-lg border bg-card p-4 space-y-2">
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-muted-foreground">{importProgress.message || 'Sincronização automática do Google Agenda'}</span>
+            <span className="font-medium">{Math.round(importProgress.percent)}%</span>
+          </div>
+          <Progress value={importProgress.percent} className="h-2" />
+          <p className="text-xs text-muted-foreground">
+            Processados: {importProgress.processed} · Novos: {importProgress.imported} · Atualizados: {importProgress.updated} · Removidos: {importProgress.deleted}
+          </p>
+          {importProgress.error && (
+            <p className="text-xs text-destructive">{importProgress.error}</p>
+          )}
+        </div>
+      )}
+
       <CalendarView encontros={filtered as any} mentores={mentores as any} onEventClick={setSelectedEncontro} />
 
       <MeetingModal
