@@ -158,6 +158,128 @@ export default function PinModal({ open, onOpenChange, onSuccess }: PinModalProp
   );
 }
 
+export function ChangePinModal({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
+  const hasPin = !!getStoredPin();
+  const [currentPin, setCurrentPin] = useState(['', '', '', '']);
+  const [newPin, setNewPin] = useState(['', '', '', '']);
+  const [confirmPin, setConfirmPin] = useState(['', '', '', '']);
+  const [step, setStep] = useState<'current' | 'new' | 'confirm'>('current');
+  const [error, setError] = useState('');
+  const currentRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const newRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const confirmRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  useEffect(() => {
+    if (open) {
+      setCurrentPin(['', '', '', '']);
+      setNewPin(['', '', '', '']);
+      setConfirmPin(['', '', '', '']);
+      setStep(hasPin ? 'current' : 'new');
+      setError('');
+      const refs = hasPin ? currentRefs : newRefs;
+      setTimeout(() => refs.current[0]?.focus(), 100);
+    }
+  }, [open, hasPin]);
+
+  const handleChange = (index: number, value: string, which: 'current' | 'new' | 'confirm') => {
+    if (!/^\d?$/.test(value)) return;
+    const setters = { current: setCurrentPin, new: setNewPin, confirm: setConfirmPin };
+    const allRefs = { current: currentRefs, new: newRefs, confirm: confirmRefs };
+    setters[which](prev => { const n = [...prev]; n[index] = value; return n; });
+    setError('');
+    if (value && index < 3) allRefs[which].current[index + 1]?.focus();
+  };
+
+  const handleKey = (index: number, e: React.KeyboardEvent, which: 'current' | 'new' | 'confirm') => {
+    const values = { current: currentPin, new: newPin, confirm: confirmPin };
+    const allRefs = { current: currentRefs, new: newRefs, confirm: confirmRefs };
+    if (e.key === 'Backspace' && !values[which][index] && index > 0) {
+      allRefs[which].current[index - 1]?.focus();
+    }
+  };
+
+  const renderGroup = (values: string[], refs: React.MutableRefObject<(HTMLInputElement | null)[]>, which: 'current' | 'new' | 'confirm') => (
+    <div className="flex justify-center gap-3">
+      {values.map((d, i) => (
+        <Input
+          key={i}
+          ref={el => { refs.current[i] = el; }}
+          type="password"
+          inputMode="numeric"
+          maxLength={1}
+          value={d}
+          onChange={e => handleChange(i, e.target.value, which)}
+          onKeyDown={e => handleKey(i, e, which)}
+          className="w-14 h-14 text-center text-2xl font-bold"
+          autoComplete="off"
+        />
+      ))}
+    </div>
+  );
+
+  const handleSubmit = () => {
+    if (step === 'current') {
+      if (currentPin.join('').length < 4) { setError('Digite os 4 dígitos'); return; }
+      if (currentPin.join('') !== getStoredPin()) {
+        setError('PIN atual incorreto');
+        setCurrentPin(['', '', '', '']);
+        setTimeout(() => currentRefs.current[0]?.focus(), 100);
+        return;
+      }
+      setStep('new');
+      setTimeout(() => newRefs.current[0]?.focus(), 100);
+    } else if (step === 'new') {
+      if (newPin.join('').length < 4) { setError('Digite os 4 dígitos'); return; }
+      setStep('confirm');
+      setTimeout(() => confirmRefs.current[0]?.focus(), 100);
+    } else {
+      if (confirmPin.join('').length < 4) { setError('Confirme os 4 dígitos'); return; }
+      if (newPin.join('') !== confirmPin.join('')) {
+        setError('Os PINs não coincidem');
+        setConfirmPin(['', '', '', '']);
+        setTimeout(() => confirmRefs.current[0]?.focus(), 100);
+        return;
+      }
+      setStoredPin(newPin.join(''));
+      toast.success('PIN alterado com sucesso!');
+      onOpenChange(false);
+    }
+  };
+
+  const labels: Record<string, string> = {
+    current: 'Digite seu PIN atual',
+    new: 'Digite o novo PIN de 4 dígitos',
+    confirm: 'Confirme o novo PIN',
+  };
+
+  const buttonLabels: Record<string, string> = {
+    current: 'Próximo',
+    new: 'Próximo',
+    confirm: 'Alterar PIN',
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-sm">
+        <DialogHeader className="items-center">
+          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+            <ShieldCheck className="h-6 w-6 text-primary" />
+          </div>
+          <DialogTitle>Alterar PIN</DialogTitle>
+          <DialogDescription>{labels[step]}</DialogDescription>
+        </DialogHeader>
+        <div className="space-y-4 py-2">
+          {step === 'current' && renderGroup(currentPin, currentRefs, 'current')}
+          {step === 'new' && renderGroup(newPin, newRefs, 'new')}
+          {step === 'confirm' && renderGroup(confirmPin, confirmRefs, 'confirm')}
+          {error && <p className="text-sm text-destructive text-center">{error}</p>}
+          <Button onClick={handleSubmit} className="w-full" size="lg">{buttonLabels[step]}</Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 export function usePinGate() {
   const [pinOpen, setPinOpen] = useState(false);
   const pendingAction = useRef<(() => void) | null>(null);
