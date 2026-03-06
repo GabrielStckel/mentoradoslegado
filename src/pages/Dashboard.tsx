@@ -15,7 +15,8 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { data: mentorados = [], isLoading: loadingM } = useMentorados();
   const { data: encontros = [], isLoading: loadingE } = useEncontros();
-  
+  const [showNovo, setShowNovo] = useState(false);
+  const { pinOpen, setPinOpen, requirePin, onPinSuccess } = usePinGate();
 
   const loading = loadingM || loadingE;
 
