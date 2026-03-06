@@ -69,7 +69,7 @@ export default function Dashboard() {
           <h1 className="page-title">Dashboard</h1>
           <p className="page-subtitle">Visão geral das mentorias</p>
         </div>
-        <Button onClick={() => requirePin(() => setShowNovo(true))}>
+        <Button onClick={() => setShowNovo(true)}>
           <Plus className="h-4 w-4 mr-2" /> Novo Encontro
         </Button>
       </div>
