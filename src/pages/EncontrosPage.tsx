@@ -57,7 +57,7 @@ export default function EncontrosPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="page-title">Encontros</h1>
-          <p className="page-subtitle">{encontros.length} encontros registrados</p>
+          <p className="page-subtitle">{filtered.length} encontros</p>
         </div>
         <Button onClick={() => setShowNovo(true)} size={isMobile ? 'sm' : 'default'}>
           <Plus className="h-4 w-4 mr-2" /> Novo
@@ -207,7 +207,7 @@ export default function EncontrosPage() {
                 </TableRow>
               ))}
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum encontro encontrado.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhum encontro encontrado.</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
