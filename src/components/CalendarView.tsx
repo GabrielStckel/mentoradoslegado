@@ -94,7 +94,7 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                 <div
                   key={di}
                   className={cn(
-                    'min-h-[110px] p-1 border-r last:border-r-0 transition-colors cursor-pointer hover:bg-accent/20',
+                    'min-h-[110px] p-1 border-r last:border-r-0 cursor-pointer hover:bg-accent/20',
                     !isCurrentMonth && 'bg-muted/20',
                   )}
                   onClick={() => { setCurrentDate(d); setView('day'); }}
@@ -254,7 +254,7 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                       <button
                         key={evt.id}
                         onClick={() => onEventClick(evt)}
-                        className="absolute left-0.5 right-1 rounded-md px-2 py-1 text-left overflow-hidden hover:opacity-90 transition-opacity shadow-sm"
+                        className="absolute left-0.5 right-1 rounded-md px-2 py-1 text-left overflow-hidden hover:opacity-90 shadow-sm"
                         style={{
                           top,
                           height: Math.max(height, 22),
@@ -329,7 +329,7 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
               key={v}
               onClick={() => setView(v)}
               className={cn(
-                'px-3 py-1.5 text-sm font-medium transition-colors',
+                'px-3 py-1.5 text-sm font-medium',
                 view === v
                   ? 'bg-primary text-primary-foreground'
                   : 'text-muted-foreground hover:text-foreground hover:bg-secondary/60',

@@ -51,7 +51,7 @@ export default function CalendarioPage() {
     setImporting(false);
   };
 
-  if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-96 w-full" /></div>;
+  if (isLoading) return null;
 
   return (
     <div className="space-y-6">
