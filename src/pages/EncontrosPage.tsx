@@ -61,7 +61,7 @@ export default function EncontrosPage() {
           <h1 className="page-title">Encontros</h1>
           <p className="page-subtitle">{filtered.length} encontros</p>
         </div>
-        <Button onClick={() => setShowNovo(true)} size={isMobile ? 'sm' : 'default'}>
+        <Button onClick={() => requirePin(() => setShowNovo(true))} size={isMobile ? 'sm' : 'default'}>
           <Plus className="h-4 w-4 mr-2" /> Novo
         </Button>
       </div>
