@@ -1,5 +1,5 @@
 import { useState, useMemo, useCallback } from 'react';
-import { format } from 'date-fns';
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { Plus, Search, UserCheck, XCircle, UserX } from 'lucide-react';
 import { useMentorados, useEncontros, useUpdateEncontroStatus } from '@/hooks/useSupabaseData';
 import { StatusBadge, TipoBadge } from '@/components/StatusBadge';
@@ -14,9 +14,12 @@ import QuickSessionModal from '@/components/QuickSessionModal';
 import PinModal, { usePinGate } from '@/components/PinModal';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+type TimeRange = 'dia' | 'semana' | 'mes';
+
 export default function EncontrosPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [timeRange, setTimeRange] = useState<TimeRange>('semana');
   const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
   const [showNovo, setShowNovo] = useState(false);
   const [mentoradoSearch, setMentoradoSearch] = useState('');
@@ -37,16 +40,26 @@ export default function EncontrosPage() {
     );
   }, [mentoradoSearch, mentorados]);
 
+  const now = new Date();
+  const rangeEnd = useMemo(() => {
+    if (timeRange === 'dia') return endOfDay(now);
+    if (timeRange === 'semana') return endOfWeek(now, { weekStartsOn: 0 });
+    return endOfMonth(now);
+  }, [timeRange]);
+
   const filtered = useMemo(() => {
+    const todayStart = startOfDay(new Date());
     return encontros.filter(e => {
       if (e.titulo === 'VAGO') return false;
-      if (new Date(e.fim) < new Date()) return false;
+      const d = new Date(e.inicio);
+      if (d < todayStart) return false;
+      if (d > rangeEnd) return false;
       const matchSearch = !search || e.titulo.toLowerCase().includes(search.toLowerCase()) ||
         mentoradoMap[e.mentorado_id]?.toLowerCase().includes(search.toLowerCase());
       const matchStatus = statusFilter === 'all' || e.status === statusFilter;
       return matchSearch && matchStatus;
     }).sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
-  }, [search, statusFilter, encontros, mentoradoMap]);
+  }, [search, statusFilter, encontros, mentoradoMap, rangeEnd]);
 
   const handleQuickStatus = useCallback((e: React.MouseEvent, id: string, status: string) => {
     e.stopPropagation();
