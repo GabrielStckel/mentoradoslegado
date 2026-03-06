@@ -47,11 +47,11 @@ export default function Dashboard() {
   }, [mentorados, encontrosNoRange]);
 
   const proximos = useMemo(() =>
-    encontros
+    encontrosNoRange
       .filter(e => new Date(e.inicio) >= new Date() && e.status === 'Agendado')
       .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())
-      .slice(0, 6),
-  [encontros]);
+      .slice(0, 10),
+  [encontrosNoRange]);
 
   const mentoradoMap = useMemo(() => {
     const m: Record<string, string> = {};
