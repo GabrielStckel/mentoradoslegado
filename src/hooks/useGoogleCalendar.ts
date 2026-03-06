@@ -156,7 +156,6 @@ export function useGoogleCalendar() {
     if (!user) {
       setConnected(false);
       setLoading(false);
-      autoImportedUserId = null;
       return;
     }
 
@@ -167,22 +166,12 @@ export function useGoogleCalendar() {
 
       const isConnected = !error && data?.connected === true;
       setConnected(isConnected);
-
-      if (isConnected && autoImportedUserId !== user.id) {
-        autoImportedUserId = user.id;
-        try {
-          await importEvents();
-        } catch (e) {
-          autoImportedUserId = null;
-          console.error('Auto-import failed:', e);
-        }
-      }
     } catch {
       setConnected(false);
     }
 
     setLoading(false);
-  }, [user, importEvents]);
+  }, [user]);
 
   useEffect(() => {
     checkAndAutoImport();
@@ -190,7 +179,6 @@ export function useGoogleCalendar() {
     const handler = (event: MessageEvent) => {
       if (event.data?.type === 'GOOGLE_CALENDAR_CONNECTED') {
         setConnected(true);
-        if (user) autoImportedUserId = null;
         checkAndAutoImport();
       }
     };
