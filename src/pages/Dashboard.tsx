@@ -1,18 +1,22 @@
-import { useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { format, isToday, isThisWeek } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock } from 'lucide-react';
+import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus } from 'lucide-react';
 import { useMentorados, useEncontros } from '@/hooks/useSupabaseData';
 import { StatusBadge, TipoBadge } from '@/components/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
+import NovoEncontroModal from '@/components/NovoEncontroModal';
+import PinModal, { usePinGate } from '@/components/PinModal';
 
 export default function Dashboard() {
   const navigate = useNavigate();
   const { data: mentorados = [], isLoading: loadingM } = useMentorados();
   const { data: encontros = [], isLoading: loadingE } = useEncontros();
-  
+  const [showNovo, setShowNovo] = useState(false);
+  const { pinOpen, setPinOpen, requirePin, onPinSuccess } = usePinGate();
 
   const loading = loadingM || loadingE;
 
@@ -60,9 +64,14 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="page-title">Dashboard</h1>
-        <p className="page-subtitle">Visão geral das mentorias</p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="page-title">Dashboard</h1>
+          <p className="page-subtitle">Visão geral das mentorias</p>
+        </div>
+        <Button onClick={() => requirePin(() => setShowNovo(true))}>
+          <Plus className="h-4 w-4 mr-2" /> Novo Encontro
+        </Button>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
@@ -117,6 +126,8 @@ export default function Dashboard() {
           </div>
         </CardContent>
       </Card>
+      <NovoEncontroModal open={showNovo} onOpenChange={setShowNovo} />
+      <PinModal open={pinOpen} onOpenChange={setPinOpen} onSuccess={onPinSuccess} />
     </div>
   );
 }
