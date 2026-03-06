@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { format, isToday, isThisWeek } from 'date-fns';
+import { format, isToday, isThisWeek, isThisMonth, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus } from 'lucide-react';
 import { useMentorados, useEncontros } from '@/hooks/useSupabaseData';
@@ -11,23 +11,40 @@ import { Skeleton } from '@/components/ui/skeleton';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
 import PinModal, { usePinGate } from '@/components/PinModal';
 
+type TimeRange = 'dia' | 'semana' | 'mes';
+
 export default function Dashboard() {
   const navigate = useNavigate();
   const { data: mentorados = [], isLoading: loadingM } = useMentorados();
   const { data: encontros = [], isLoading: loadingE } = useEncontros();
   const [showNovo, setShowNovo] = useState(false);
   const { pinOpen, setPinOpen, requirePin, onPinSuccess } = usePinGate();
+  const [timeRange, setTimeRange] = useState<TimeRange>('semana');
 
   const loading = loadingM || loadingE;
 
+  const now = new Date();
+  const rangeFilter = useMemo(() => {
+    if (timeRange === 'dia') return { start: startOfDay(now), end: endOfDay(now) };
+    if (timeRange === 'semana') return { start: startOfWeek(now, { weekStartsOn: 0 }), end: endOfWeek(now, { weekStartsOn: 0 }) };
+    return { start: startOfMonth(now), end: endOfMonth(now) };
+  }, [timeRange]);
+
+  const encontrosNoRange = useMemo(() =>
+    encontros.filter(e => {
+      const d = new Date(e.inicio);
+      return d >= rangeFilter.start && d <= rangeFilter.end;
+    }),
+  [encontros, rangeFilter]);
+
   const stats = useMemo(() => {
     const ativos = mentorados.filter(m => m.status === 'Ativo').length;
-    const hoje = encontros.filter(e => isToday(new Date(e.inicio))).length;
-    const semana = encontros.filter(e => isThisWeek(new Date(e.inicio), { weekStartsOn: 0 })).length;
-    const cancelados = encontros.filter(e => e.status === 'Cancelado').length;
-    const faltas = encontros.filter(e => e.status === 'Faltou').length;
-    return { ativos, hoje, semana, cancelados, faltas };
-  }, [mentorados, encontros]);
+    const total = encontrosNoRange.length;
+    const agendados = encontrosNoRange.filter(e => e.status === 'Agendado').length;
+    const cancelados = encontrosNoRange.filter(e => e.status === 'Cancelado').length;
+    const faltas = encontrosNoRange.filter(e => e.status === 'Faltou').length;
+    return { ativos, total, agendados, cancelados, faltas };
+  }, [mentorados, encontrosNoRange]);
 
   const proximos = useMemo(() =>
     encontros
@@ -36,17 +53,18 @@ export default function Dashboard() {
       .slice(0, 6),
   [encontros]);
 
-
   const mentoradoMap = useMemo(() => {
     const m: Record<string, string> = {};
     mentorados.forEach(mt => { m[mt.id] = mt.nome; });
     return m;
   }, [mentorados]);
 
+  const rangeLabel = timeRange === 'dia' ? 'Hoje' : timeRange === 'semana' ? 'Esta Semana' : 'Este Mês';
+
   const statCards = [
     { label: 'Mentorados Ativos', value: stats.ativos, icon: Users, color: 'text-primary' },
-    { label: 'Encontros Hoje', value: stats.hoje, icon: CalendarDays, color: 'text-info' },
-    { label: 'Encontros Semana', value: stats.semana, icon: CalendarCheck, color: 'text-success' },
+    { label: `Encontros (${rangeLabel})`, value: stats.total, icon: CalendarDays, color: 'text-info' },
+    { label: 'Agendados', value: stats.agendados, icon: CalendarCheck, color: 'text-success' },
     { label: 'Cancelados', value: stats.cancelados, icon: XCircle, color: 'text-destructive' },
     { label: 'Faltas', value: stats.faltas, icon: AlertTriangle, color: 'text-warning' },
   ];
@@ -64,14 +82,29 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="page-title">Dashboard</h1>
           <p className="page-subtitle">Visão geral das mentorias</p>
         </div>
-        <Button onClick={() => setShowNovo(true)}>
-          <Plus className="h-4 w-4 mr-2" /> Novo Encontro
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="flex rounded-lg border bg-secondary/30 p-0.5">
+            {(['dia', 'semana', 'mes'] as TimeRange[]).map(r => (
+              <button
+                key={r}
+                onClick={() => setTimeRange(r)}
+                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
+                  timeRange === r ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                {r === 'dia' ? 'Dia' : r === 'semana' ? 'Semana' : 'Mês'}
+              </button>
+            ))}
+          </div>
+          <Button onClick={() => setShowNovo(true)}>
+            <Plus className="h-4 w-4 mr-2" /> Novo Encontro
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
