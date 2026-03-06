@@ -137,8 +137,8 @@ export default function MentoradosPage() {
                 <TableHead className="table-header">Origem</TableHead>
                 <TableHead className="table-header">Tags</TableHead>
                 <TableHead className="table-header">Status</TableHead>
-                <TableHead className="table-header">Contato</TableHead>
-                <TableHead className="table-header w-[50px]"></TableHead>
+                 <TableHead className="table-header">Contato</TableHead>
+                 <TableHead className="table-header w-[90px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
