@@ -229,6 +229,8 @@ export default function EncontrosPage() {
         open={!!selectedMentorado}
         onOpenChange={(o) => !o && setSelectedMentorado(null)}
       />
+
+      <PinModal open={pinOpen} onOpenChange={setPinOpen} onSuccess={onPinSuccess} />
     </div>
   );
 }
