@@ -176,6 +176,8 @@ export default function EncontrosPage() {
                 <TableHead className="table-header">Local</TableHead>
                 <TableHead className="table-header">Status</TableHead>
                 <TableHead className="table-header w-[80px]">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
             <TableBody>
               {filtered.map(e => (
                 <TableRow key={e.id} className="cursor-pointer hover:bg-secondary/20" onClick={() => setSelectedEncontro(e)}>
