@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
-import { Plus, Search, Phone, CalendarPlus, Pencil } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Search, Phone, CalendarPlus, Pencil, Eye } from 'lucide-react';
 import { useMentorados } from '@/hooks/useSupabaseData';
 import NovoMentoradoModal from '@/components/NovoMentoradoModal';
 import EditMentoradoModal from '@/components/EditMentoradoModal';
@@ -14,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 export default function MentoradosPage() {
+  const navigate = useNavigate();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showNovo, setShowNovo] = useState(false);
@@ -95,6 +97,15 @@ export default function MentoradosPage() {
                     size="icon"
                     variant="ghost"
                     className="h-9 w-9"
+                    title="Ver detalhes"
+                    onClick={(e) => { e.stopPropagation(); navigate(`/mentorados/${m.id}`); }}
+                  >
+                    <Eye className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="icon"
+                    variant="ghost"
+                    className="h-9 w-9"
                     title="Editar"
                     onClick={(e) => { e.stopPropagation(); setEditMentorado(m); }}
                   >
@@ -117,7 +128,7 @@ export default function MentoradosPage() {
                     onClick={(e) => { e.stopPropagation(); setEncontroMentoradoId(m.id); }}
                   >
                     <CalendarPlus className="h-4 w-4" />
-                  </Button>
+                   </Button>
                 </div>
               </div>
             </div>
@@ -169,6 +180,15 @@ export default function MentoradosPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-8 w-8"
+                        title="Ver detalhes"
+                        onClick={(e) => { e.stopPropagation(); navigate(`/mentorados/${m.id}`); }}
+                      >
+                        <Eye className="h-4 w-4" />
+                      </Button>
                       <Button
                         size="icon"
                         variant="ghost"
