@@ -98,6 +98,7 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                     'p-0.5 md:p-1 border-r last:border-r-0 cursor-pointer hover:bg-accent/20',
                     isMobile ? 'min-h-[60px]' : 'min-h-[110px]',
                     !isCurrentMonth && 'bg-muted/20',
+                    isToday && 'bg-primary/8 ring-1 ring-inset ring-primary/30',
                   )}
                   onClick={() => { setCurrentDate(d); setView('day'); }}
                 >
