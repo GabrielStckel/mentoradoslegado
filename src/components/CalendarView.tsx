@@ -28,7 +28,7 @@ const DAY_NAMES_TINY = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 export default function CalendarView({ encontros, mentores, onEventClick }: Props) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<ViewMode>('month');
-  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  
   const scrollRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
@@ -103,9 +103,9 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                     !isCurrentMonth && 'bg-muted/20',
                     isToday && 'bg-primary/8 ring-1 ring-inset ring-primary/30',
                     holiday && 'bg-destructive/5',
-                    selectedDay && isSameDay(d, selectedDay) && 'ring-2 ring-inset ring-primary',
+                    
                   )}
-                  onClick={() => setSelectedDay(d)}
+                  onClick={() => { setCurrentDate(d); setView('day'); }}
                 >
                   <div className={cn(
                     'text-xs font-medium mb-0.5 flex items-center justify-center rounded-full mx-auto',
@@ -142,16 +142,15 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                           const mentor = mentorMap[evt.mentor_id];
                           const color = mentor?.cor_calendario || '#0d9488';
                           return (
-                            <button
+                            <div
                               key={evt.id}
-                              onClick={(e) => { e.stopPropagation(); onEventClick(evt); }}
-                              className="w-full text-left px-1.5 py-0.5 rounded text-[11px] font-medium truncate hover:opacity-80 flex items-center gap-1"
+                              className="w-full text-left px-1.5 py-0.5 rounded text-[11px] font-medium truncate flex items-center gap-1"
                             >
                               <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                               <span className="truncate">
                                 {format(parseISO(evt.inicio), 'H:mm')} {evt.titulo}
                               </span>
-                            </button>
+                            </div>
                           );
                         })}
                         {events.length > 3 && (
@@ -349,56 +348,7 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
         </div>
       </div>
 
-      {view === 'month' && (
-        <>
-          {renderMonth()}
-          {selectedDay && (() => {
-            const dayEvents = encontros.filter(e => isSameDay(parseISO(e.inicio), selectedDay));
-            const holiday = isHoliday(selectedDay);
-            return (
-              <div className="rounded-xl border bg-card p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-semibold text-sm capitalize">
-                    {format(selectedDay, "EEEE, d 'de' MMMM", { locale: ptBR })}
-                  </h3>
-                  <Button variant="ghost" size="sm" className="text-xs" onClick={() => setSelectedDay(null)}>
-                    Fechar
-                  </Button>
-                </div>
-                {holiday && (
-                  <p className="text-xs font-medium text-destructive">🔴 {holiday.name}</p>
-                )}
-                {dayEvents.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">Nenhum compromisso neste dia.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {dayEvents.map(evt => {
-                      const mentor = mentorMap[evt.mentor_id];
-                      const color = mentor?.cor_calendario || '#0d9488';
-                      return (
-                        <button
-                          key={evt.id}
-                          onClick={() => onEventClick(evt)}
-                          className="w-full text-left flex items-center gap-3 p-2.5 rounded-lg border hover:bg-accent/30 transition-colors"
-                        >
-                          <div className="w-1 h-10 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
-                          <div className="min-w-0 flex-1">
-                            <p className="text-sm font-medium truncate">{evt.titulo}</p>
-                            <p className="text-xs text-muted-foreground">
-                              {format(parseISO(evt.inicio), 'HH:mm')} – {format(parseISO(evt.fim), 'HH:mm')}
-                              {evt.local && evt.local !== 'Online' ? ` · ${evt.local}` : ''}
-                            </p>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-            );
-          })()}
-        </>
-      )}
+      {view === 'month' && renderMonth()}
       {view === 'week' && renderWeek()}
       {view === 'day' && renderDay()}
     </div>
