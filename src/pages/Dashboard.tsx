@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus, Eye, Target, TrendingUp, Search } from 'lucide-react';
+import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus, Eye, Target, TrendingUp, Search, ChevronDown } from 'lucide-react';
 import { useMentorados, useEncontros, useUpdateEncontroStatus, useDeleteEncontro, useRevertToVago } from '@/hooks/useSupabaseData';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
