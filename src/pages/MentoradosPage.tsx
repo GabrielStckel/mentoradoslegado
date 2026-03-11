@@ -177,10 +177,15 @@ export default function MentoradosPage() {
                       <p className="text-xs text-muted-foreground">{m.email}</p>
                     </button>
                   </TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{m.cidade}</TableCell>
-                  <TableCell className="text-sm text-muted-foreground">{m.origem}</TableCell>
                   <TableCell>
-                    <div className="flex gap-1 flex-wrap">{(m.tags || []).map(t => <TagBadge key={t} tag={t as any} />)}</div>
+                    {m.total_encontros > 0 ? (
+                      <div className="space-y-1 min-w-[100px]">
+                        <span className="text-xs font-medium">{encontrosCount[m.id] || 0}/{m.total_encontros}</span>
+                        <Progress value={((encontrosCount[m.id] || 0) / m.total_encontros) * 100} className="h-1.5" />
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell><StatusBadge status={m.status as any} /></TableCell>
                   <TableCell>
