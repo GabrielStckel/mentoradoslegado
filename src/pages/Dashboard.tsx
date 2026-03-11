@@ -106,7 +106,11 @@ export default function Dashboard() {
     return ids.size;
   }, [encontrosNoRange]);
 
-  const rangeLabel = timeRange === 'dia' ? 'Hoje' : timeRange === 'semana' ? 'Esta Semana' : 'Este Mês';
+  const rangeLabelMap: Record<TimeRange, string> = {
+    dia: 'Hoje', semana: 'Esta Semana', mes: 'Este Mês',
+    '3meses': '3 Meses', '6meses': '6 Meses', '9meses': '9 Meses', '1ano': '1 Ano',
+  };
+  const rangeLabel = rangeLabelMap[timeRange];
 
   const statCards = [
     { label: 'Mentorados Ativos', value: stats.ativos, icon: Users, color: 'text-primary' },
