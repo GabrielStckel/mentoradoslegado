@@ -112,12 +112,15 @@ export default function MentoradoDetail() {
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-warning/10 flex items-center justify-center">
-              <AlertTriangle className="h-5 w-5 text-warning" />
+            <div className="h-10 w-10 rounded-lg bg-accent/50 flex items-center justify-center">
+              <Target className="h-5 w-5 text-primary" />
             </div>
-            <div>
-              <p className="text-2xl font-bold">{metrics.taxaPresenca}%</p>
-              <p className="text-xs text-muted-foreground">Taxa presença</p>
+            <div className="flex-1">
+              <p className="text-2xl font-bold">{metrics.realizados}/{mentorado.total_encontros || '∞'}</p>
+              <p className="text-xs text-muted-foreground">Progresso</p>
+              {mentorado.total_encontros > 0 && (
+                <Progress value={(metrics.realizados / mentorado.total_encontros) * 100} className="h-1.5 mt-1" />
+              )}
             </div>
           </CardContent>
         </Card>
