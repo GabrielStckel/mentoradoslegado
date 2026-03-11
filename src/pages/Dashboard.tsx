@@ -22,6 +22,9 @@ export default function Dashboard() {
   const [showNovo, setShowNovo] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('semana');
   const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const updateStatus = useUpdateEncontroStatus();
+  const deleteEncontro = useDeleteEncontro();
 
   const loading = loadingM || loadingE;
 
