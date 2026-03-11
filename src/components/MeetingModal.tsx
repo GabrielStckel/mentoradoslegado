@@ -66,7 +66,7 @@ export default function MeetingModal({ encontro, mentorado, mentor, open, onOpen
         .replace('{data}', format(inicio, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }))
         .replace('{link}', encontro.link_reuniao || 'a definir')
     );
-    return `https://wa.me/${mentorado.telefone_whatsapp}?text=${msg}`;
+    return whatsappLink(mentorado.telefone_whatsapp, decodeURIComponent(msg));
   };
 
   return (
