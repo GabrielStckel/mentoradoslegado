@@ -69,7 +69,7 @@ export default function CalendarioPage() {
         {!gcLoading && (
           <div className="flex flex-wrap gap-2">
             {connected ? (
-              <>
+              <div className="flex items-center gap-2">
                 <div className="flex items-center gap-1.5 text-xs text-success px-2.5 py-1.5 rounded-md bg-success/10">
                   <CheckCircle className="h-3.5 w-3.5" />
                   <span className={isMobile ? 'sr-only' : ''}>Google Calendar conectado</span>
@@ -79,7 +79,7 @@ export default function CalendarioPage() {
                   <Download className="h-3.5 w-3.5 mr-1" />
                   {importing ? 'Importando...' : 'Importar'}
                 </Button>
-              </>
+              </div>
             ) : (
               <Button variant="outline" size="sm" onClick={handleConnect} disabled={connecting} className="text-xs">
                 <Link2 className="h-3.5 w-3.5 mr-1" />

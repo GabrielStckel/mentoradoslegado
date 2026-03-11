@@ -172,7 +172,7 @@ export default function MentoradosPage() {
                 <TableRow key={m.id} className="hover:bg-secondary/20">
                   <TableCell>
                     <button className="text-left hover:underline" onClick={() => setSelectedMentorado(m)}>
-                      <p className="font-medium text-sm text-primary">{m.nome}</p>
+                      <p className="font-semibold text-base text-primary">{m.nome}</p>
                       <p className="text-xs text-muted-foreground">{m.email}</p>
                     </button>
                   </TableCell>
