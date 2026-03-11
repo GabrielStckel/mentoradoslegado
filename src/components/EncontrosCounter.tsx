@@ -61,15 +61,30 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
         throw new Error('Não foi possível identificar o mentor para salvar o histórico desta sessão.');
       }
 
-      const { error: logError } = await supabase.from('historicos').insert({
-        mentorado_id: mentoradoId,
-        mentor_id: logMentorId,
-        tipo: 'Sessão Realizada',
-        conteudo: action === 'add'
-          ? `Encontro realizado #${newRealizados}${obs ? ` — ${obs}` : ''}`
-          : `Encontros realizados alterados: ${realizados} → ${newRealizados} (-1)`,
-        visibilidade: 'Admin',
-      });
+        // Insert session log
+        const { error: logError } = await supabase.from('historicos').insert({
+          mentorado_id: mentoradoId,
+          mentor_id: logMentorId,
+          tipo: 'Sessão Realizada',
+          conteudo: action === 'add'
+            ? `Sessão #${newRealizados}`
+            : `Sessões realizadas alteradas: ${realizados} → ${newRealizados} (-1)`,
+          visibilidade: 'Admin',
+        });
+
+        if (logError) throw logError;
+
+        // If there's an observation, insert it as a separate entry linked to the session
+        if (action === 'add' && obs) {
+          const { error: obsError } = await supabase.from('historicos').insert({
+            mentorado_id: mentoradoId,
+            mentor_id: logMentorId,
+            tipo: 'Observação',
+            conteudo: `[Sessão #${newRealizados}] ${obs}`,
+            visibilidade: 'Admin',
+          });
+          if (obsError) throw obsError;
+        }
 
       if (logError) throw logError;
     },
