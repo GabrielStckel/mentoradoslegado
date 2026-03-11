@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge, TagBadge } from '@/components/StatusBadge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -52,9 +53,18 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
       .sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime());
   }, [mentorado, encontros]);
 
-  // Historicos sorted by date desc
-  const sortedHistoricos = useMemo(() => {
-    return [...historicos].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  // Sessões marcadas via histórico (tipo 'Sessão Realizada')
+  const sessoesRealizadas = useMemo(() => {
+    return historicos
+      .filter(h => h.tipo === 'Sessão Realizada')
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  }, [historicos]);
+
+  // Observações only
+  const observacoes = useMemo(() => {
+    return historicos
+      .filter(h => h.tipo !== 'Sessão Realizada')
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [historicos]);
 
   const addObsMutation = useMutation({
@@ -188,112 +198,130 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
 
           <Separator />
 
-          {/* Encontros Realizados History */}
-          {encontrosRealizados.length > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <CalendarDays className="h-4 w-4 text-primary" />
-                <Label className="text-sm font-semibold">Encontros Realizados</Label>
+          {/* Tabs for Observações and Encontros */}
+          <Tabs defaultValue="observacoes" className="w-full">
+            <TabsList className="w-full">
+              <TabsTrigger value="observacoes" className="flex-1 text-xs">
+                <Pencil className="h-3.5 w-3.5 mr-1.5" />
+                Observações ({observacoes.length})
+              </TabsTrigger>
+              <TabsTrigger value="encontros" className="flex-1 text-xs">
+                <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
+                Sessões Realizadas ({sessoesRealizadas.length + encontrosRealizados.length})
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Observações Tab */}
+            <TabsContent value="observacoes" className="space-y-3">
+              <div className="flex gap-2">
+                <Textarea
+                  value={novaObs}
+                  onChange={e => setNovaObs(e.target.value)}
+                  rows={2}
+                  placeholder="Nova observação..."
+                  className="text-sm flex-1"
+                />
+                <Button
+                  size="sm"
+                  onClick={() => addObsMutation.mutate()}
+                  disabled={!novaObs.trim() || addObsMutation.isPending}
+                  className="self-end"
+                >
+                  <Plus className="h-3.5 w-3.5" />
+                </Button>
               </div>
-              <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
+              <div className="space-y-2 max-h-[250px] overflow-y-auto">
+                {observacoes.map(h => (
+                  <div key={h.id} className="p-3 rounded-lg border bg-secondary/20 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary/10 text-primary">{h.tipo}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(h.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </span>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { setEditingId(h.id); setEditText(h.conteudo); }}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:text-destructive" onClick={() => deleteObsMutation.mutate(h.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    {editingId === h.id ? (
+                      <div className="flex gap-2">
+                        <Textarea value={editText} onChange={e => setEditText(e.target.value)} rows={2} className="text-sm flex-1" autoFocus />
+                        <div className="flex flex-col gap-1">
+                          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => updateObsMutation.mutate({ id: h.id, conteudo: editText })}><Check className="h-3 w-3" /></Button>
+                          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditingId(null)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{h.conteudo}</p>
+                    )}
+                  </div>
+                ))}
+                {observacoes.length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-3">Nenhuma observação registrada.</p>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Sessões Realizadas Tab */}
+            <TabsContent value="encontros" className="space-y-2">
+              <div className="space-y-2 max-h-[300px] overflow-y-auto">
+                {/* Sessões marcadas manualmente (via +) */}
+                {sessoesRealizadas.map(h => (
+                  <div key={h.id} className="p-3 rounded-lg border bg-secondary/20 space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-accent text-accent-foreground">Sessão Manual</span>
+                        <span className="text-xs text-muted-foreground">
+                          {format(new Date(h.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                        </span>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { setEditingId(h.id); setEditText(h.conteudo); }}>
+                          <Pencil className="h-3 w-3" />
+                        </Button>
+                        <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:text-destructive" onClick={() => deleteObsMutation.mutate(h.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                    {editingId === h.id ? (
+                      <div className="flex gap-2">
+                        <Textarea value={editText} onChange={e => setEditText(e.target.value)} rows={2} className="text-sm flex-1" autoFocus />
+                        <div className="flex flex-col gap-1">
+                          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => updateObsMutation.mutate({ id: h.id, conteudo: editText })}><Check className="h-3 w-3" /></Button>
+                          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditingId(null)}><X className="h-3 w-3" /></Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">{h.conteudo}</p>
+                    )}
+                  </div>
+                ))}
+
+                {/* Encontros do calendário com status Realizado */}
                 {encontrosRealizados.map(e => (
-                  <div key={e.id} className="flex items-center gap-2 text-sm p-2 rounded-lg bg-secondary/30">
+                  <div key={e.id} className="flex items-center gap-2 text-sm p-2.5 rounded-lg bg-secondary/30 border">
                     <Clock className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
                     <span className="text-xs text-muted-foreground w-20 flex-shrink-0">
                       {format(new Date(e.inicio), 'dd/MM/yyyy')}
                     </span>
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary/10 text-primary flex-shrink-0">Agenda</span>
                     <span className="text-xs font-medium truncate">{e.titulo}</span>
                   </div>
                 ))}
+
+                {sessoesRealizadas.length === 0 && encontrosRealizados.length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-3">Nenhuma sessão realizada registrada.</p>
+                )}
               </div>
-              <Separator />
-            </div>
-          )}
-
-          {/* Observações / Histórico */}
-          <div className="space-y-3">
-            <div className="flex items-center gap-2">
-              <Pencil className="h-4 w-4 text-primary" />
-              <Label className="text-sm font-semibold">Observações</Label>
-            </div>
-
-            {/* Add new observation */}
-            <div className="flex gap-2">
-              <Textarea
-                value={novaObs}
-                onChange={e => setNovaObs(e.target.value)}
-                rows={2}
-                placeholder="Nova observação..."
-                className="text-sm flex-1"
-              />
-              <Button
-                size="sm"
-                onClick={() => addObsMutation.mutate()}
-                disabled={!novaObs.trim() || addObsMutation.isPending}
-                className="self-end"
-              >
-                <Plus className="h-3.5 w-3.5" />
-              </Button>
-            </div>
-
-            {/* Observations list */}
-            <div className="space-y-2 max-h-[250px] overflow-y-auto">
-              {sortedHistoricos.map(h => (
-                <div key={h.id} className="p-3 rounded-lg border bg-secondary/20 space-y-1.5">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary/10 text-primary">{h.tipo}</span>
-                      <span className="text-xs text-muted-foreground">
-                        {format(new Date(h.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                      </span>
-                    </div>
-                    <div className="flex gap-1">
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6"
-                        onClick={() => { setEditingId(h.id); setEditText(h.conteudo); }}
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="h-6 w-6 text-destructive hover:text-destructive"
-                        onClick={() => deleteObsMutation.mutate(h.id)}
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </div>
-                  {editingId === h.id ? (
-                    <div className="flex gap-2">
-                      <Textarea
-                        value={editText}
-                        onChange={e => setEditText(e.target.value)}
-                        rows={2}
-                        className="text-sm flex-1"
-                        autoFocus
-                      />
-                      <div className="flex flex-col gap-1">
-                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => updateObsMutation.mutate({ id: h.id, conteudo: editText })}>
-                          <Check className="h-3 w-3" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditingId(null)}>
-                          <X className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">{h.conteudo}</p>
-                  )}
-                </div>
-              ))}
-              {sortedHistoricos.length === 0 && (
-                <p className="text-xs text-muted-foreground text-center py-3">Nenhuma observação registrada.</p>
-              )}
-            </div>
-          </div>
+            </TabsContent>
+          </Tabs>
         </div>
       </DialogContent>
     </Dialog>
