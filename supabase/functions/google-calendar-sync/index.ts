@@ -44,12 +44,29 @@ async function getValidAccessToken(
 }
 
 function getSyncWindow() {
-  const now = new Date();
-  const future = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
-  return {
-    timeMin: now.toISOString(),
-    timeMax: future.toISOString(),
-  };
+  // Use São Paulo timezone to get correct local date
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'America/Sao_Paulo',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const parts = formatter.formatToParts(new Date());
+  const year = parts.find(p => p.type === 'year')!.value;
+  const month = parts.find(p => p.type === 'month')!.value;
+
+  // Start from the 1st of the current month (São Paulo time)
+  const timeMin = `${year}-${month}-01T00:00:00-03:00`;
+
+  // End 180 days from today
+  const future = new Date(Date.now() + 180 * 24 * 60 * 60 * 1000);
+  const fParts = formatter.formatToParts(future);
+  const fYear = fParts.find(p => p.type === 'year')!.value;
+  const fMonth = fParts.find(p => p.type === 'month')!.value;
+  const fDay = fParts.find(p => p.type === 'day')!.value;
+  const timeMax = `${fYear}-${fMonth}-${fDay}T23:59:59-03:00`;
+
+  return { timeMin, timeMax };
 }
 
 async function getUserMentorIds(supabaseAdmin: any, userId: string): Promise<string[]> {
