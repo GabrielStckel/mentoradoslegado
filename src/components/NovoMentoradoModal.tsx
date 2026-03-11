@@ -33,7 +33,7 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
 
   const reset = () => {
     setNome(''); setEmail(''); setTelefone(''); setCidade('');
-    setOrigem('Outro'); setObservacoes(''); setShowMore(false);
+    setOrigem('Outro'); setObservacoes(''); setShowMore(false); setTotalEncontros('12');
   };
 
   const mutation = useMutation({
