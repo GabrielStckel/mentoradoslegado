@@ -28,6 +28,7 @@ export default function EncontrosPage() {
   const { data: encontros = [], isLoading } = useEncontros();
   const { data: mentorados = [] } = useMentorados();
   const updateStatus = useUpdateEncontroStatus();
+  const deleteEncontro = useDeleteEncontro();
   const mentoradoMap = useMemo(() => { const m: Record<string, string> = {}; mentorados.forEach(mt => { m[mt.id] = mt.nome; }); return m; }, [mentorados]);
 
   const filteredMentorados = useMemo(() => {
