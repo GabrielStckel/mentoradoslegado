@@ -1,0 +1,1 @@
+ALTER TABLE public.mentorados DROP CONSTRAINT mentorados_status_check;
