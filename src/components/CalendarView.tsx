@@ -142,16 +142,15 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                           const mentor = mentorMap[evt.mentor_id];
                           const color = mentor?.cor_calendario || '#0d9488';
                           return (
-                            <button
+                            <div
                               key={evt.id}
-                              onClick={(e) => { e.stopPropagation(); onEventClick(evt); }}
-                              className="w-full text-left px-1.5 py-0.5 rounded text-[11px] font-medium truncate hover:opacity-80 flex items-center gap-1"
+                              className="w-full text-left px-1.5 py-0.5 rounded text-[11px] font-medium truncate flex items-center gap-1"
                             >
                               <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
                               <span className="truncate">
                                 {format(parseISO(evt.inicio), 'H:mm')} {evt.titulo}
                               </span>
-                            </button>
+                            </div>
                           );
                         })}
                         {events.length > 3 && (
