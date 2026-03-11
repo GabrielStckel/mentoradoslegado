@@ -13,6 +13,7 @@ import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Mail, Phone, MapPin, User, Plus, Pencil, Trash2, X, Check, Clock, CalendarDays } from 'lucide-react';
 import { whatsappLink } from '@/lib/phone';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
   mentorado: {
@@ -38,6 +39,7 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
   const queryClient = useQueryClient();
   const { data: historicos = [] } = useHistoricos(mentorado?.id);
   const { data: encontros = [] } = useEncontros();
+  const { user } = useAuth();
   const [novaObs, setNovaObs] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
@@ -58,10 +60,26 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
   const addObsMutation = useMutation({
     mutationFn: async () => {
       if (!mentorado || !novaObs.trim()) return;
-      const mentorId = mentorado.mentor_id || mentorado.id;
+
+      let resolvedMentorId = mentorado.mentor_id?.trim() || null;
+
+      if (!resolvedMentorId && user?.id) {
+        const { data, error } = await supabase
+          .from('mentores')
+          .select('id')
+          .eq('user_id', user.id)
+          .maybeSingle();
+        if (error) throw error;
+        resolvedMentorId = data?.id ?? null;
+      }
+
+      if (!resolvedMentorId) {
+        throw new Error('Não foi possível identificar o mentor para salvar a observação.');
+      }
+
       const { error } = await supabase.from('historicos').insert({
         mentorado_id: mentorado.id,
-        mentor_id: mentorId,
+        mentor_id: resolvedMentorId,
         tipo: 'Observação',
         conteudo: novaObs.trim(),
         visibilidade: 'Admin',

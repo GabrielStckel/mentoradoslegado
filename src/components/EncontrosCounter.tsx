@@ -5,7 +5,7 @@ import { usePinSettings } from '@/hooks/usePinSettings';
 import { PinVerifyModal } from '@/components/PinModal';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
@@ -32,6 +32,20 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
 
   const pinEnabled = !!(pinSettings?.pin && pinSettings.enabled);
 
+  const resolveMentorId = async () => {
+    if (mentorId?.trim()) return mentorId;
+    if (!user?.id) return null;
+
+    const { data, error } = await supabase
+      .from('mentores')
+      .select('id')
+      .eq('user_id', user.id)
+      .maybeSingle();
+
+    if (error) throw error;
+    return data?.id ?? null;
+  };
+
   const mutation = useMutation({
     mutationFn: async ({ action, obs }: { action: 'add' | 'remove'; obs?: string }) => {
       const newRealizados = action === 'add' ? realizados + 1 : Math.max(0, realizados - 1);
@@ -42,9 +56,11 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
         .eq('id', mentoradoId);
       if (updateError) throw updateError;
 
-      const logMentorId = mentorId || user?.id || mentoradoId;
+      const logMentorId = await resolveMentorId();
+      if (!logMentorId) {
+        throw new Error('Não foi possível identificar o mentor para salvar o histórico desta sessão.');
+      }
 
-      // Log the counter change
       const { error: logError } = await supabase.from('historicos').insert({
         mentorado_id: mentoradoId,
         mentor_id: logMentorId,
@@ -54,7 +70,8 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
           : `Encontros realizados alterados: ${realizados} → ${newRealizados} (-1)`,
         visibilidade: 'Admin',
       });
-      if (logError) console.error('Log error:', logError);
+
+      if (logError) throw logError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mentorados'] });
