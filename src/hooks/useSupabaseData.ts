@@ -5,7 +5,7 @@ export function useOrigens() {
   return useQuery({
     queryKey: ['origens'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('origens').select('*').order('nome');
+      const { data, error } = await supabase.from('origens').select('*').order('ordem');
       if (error) throw error;
       return data;
     },
