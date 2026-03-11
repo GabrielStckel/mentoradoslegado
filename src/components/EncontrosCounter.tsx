@@ -133,8 +133,8 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
   };
 
   const confirmMessage = pendingAction === 'add'
-    ? `Marcar mais 1 encontro realizado para ${mentoradoNome}? (${realizados} → ${realizados + 1})`
-    : `Remover 1 encontro realizado de ${mentoradoNome}? (${realizados} → ${Math.max(0, realizados - 1)})`;
+    ? `Marcar mais 1 sessão realizada para ${mentoradoNome}? (${realizados} → ${realizados + 1})`
+    : `Remover 1 sessão realizada de ${mentoradoNome}? (${realizados} → ${Math.max(0, realizados - 1)})`;
 
   return (
     <>
