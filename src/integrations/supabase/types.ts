@@ -203,6 +203,7 @@ export type Database = {
           created_at: string
           data_inicio: string
           email: string
+          encontros_realizados: number
           id: string
           mentor_id: string | null
           nome: string
@@ -219,6 +220,7 @@ export type Database = {
           created_at?: string
           data_inicio?: string
           email?: string
+          encontros_realizados?: number
           id?: string
           mentor_id?: string | null
           nome: string
@@ -235,6 +237,7 @@ export type Database = {
           created_at?: string
           data_inicio?: string
           email?: string
+          encontros_realizados?: number
           id?: string
           mentor_id?: string | null
           nome?: string
