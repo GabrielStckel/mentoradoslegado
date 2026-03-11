@@ -187,11 +187,11 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
               <p className="font-medium">{format(new Date(mentorado.data_inicio), 'dd/MM/yyyy')}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Encontros contratados</p>
+              <p className="text-xs text-muted-foreground">Sessões contratadas</p>
               <p className="font-medium">{mentorado.total_encontros}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Realizados</p>
+              <p className="text-xs text-muted-foreground">Realizadas</p>
               <p className="font-medium">{mentorado.encontros_realizados || 0}</p>
             </div>
           </div>
