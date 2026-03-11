@@ -468,25 +468,27 @@ Deno.serve(async (req) => {
       let imported = 0;
       let updated = 0;
 
-      const newEvents = activeEvents.filter((e: any) => !existingMap.has(e.id)).map((evt: any) => ({
-        titulo: evt.summary || "Evento importado",
-        inicio: evt.start.dateTime || evt.start.date,
-        fim: evt.end?.dateTime || evt.end?.date || evt.start.dateTime || evt.start.date,
-        google_event_id: evt.id,
-        sincronizado_google: true,
-        status: "Agendado",
-        local: evt.location || "Online",
-        link_reuniao: evt.hangoutLink || "",
-        notas_operacionais: evt.description || "",
-        mentor_id: mentorId,
-        mentorado_id: mentoradoId,
-      }));
+      if (!skipNewImports) {
+        const newEvents = activeEvents.filter((e: any) => !existingMap.has(e.id)).map((evt: any) => ({
+          titulo: evt.summary || "Evento importado",
+          inicio: evt.start.dateTime || evt.start.date,
+          fim: evt.end?.dateTime || evt.end?.date || evt.start.dateTime || evt.start.date,
+          google_event_id: evt.id,
+          sincronizado_google: true,
+          status: "Agendado",
+          local: evt.location || "Online",
+          link_reuniao: evt.hangoutLink || "",
+          notas_operacionais: evt.description || "",
+          mentor_id: mentorId,
+          mentorado_id: mentoradoId,
+        }));
 
-      if (newEvents.length > 0) {
-        for (let i = 0; i < newEvents.length; i += 50) {
-          const chunk = newEvents.slice(i, i + 50);
-          const { data: ins } = await supabaseAdmin.from("encontros").upsert(chunk, { onConflict: "google_event_id", ignoreDuplicates: false }).select("id");
-          imported += ins?.length || chunk.length;
+        if (newEvents.length > 0) {
+          for (let i = 0; i < newEvents.length; i += 50) {
+            const chunk = newEvents.slice(i, i + 50);
+            const { data: ins } = await supabaseAdmin.from("encontros").upsert(chunk, { onConflict: "google_event_id", ignoreDuplicates: false }).select("id");
+            imported += ins?.length || chunk.length;
+          }
         }
       }
 
