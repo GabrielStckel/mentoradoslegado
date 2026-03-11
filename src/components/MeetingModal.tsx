@@ -22,6 +22,7 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onStatusChange?: (id: string, status: EncontroStatus) => void;
   onDelete?: (encontro: Encontro) => void;
+  onRevertToVago?: (encontro: Encontro) => void;
 }
 
 export default function MeetingModal({ encontro, mentorado, mentor, open, onOpenChange, onStatusChange, onDelete }: Props) {
