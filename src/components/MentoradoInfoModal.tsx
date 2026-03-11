@@ -276,7 +276,7 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
                   <div key={h.id} className="p-3 rounded-lg border bg-secondary/20 space-y-1.5">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-emerald-500/10 text-emerald-600">Sessão Manual</span>
+                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-accent text-accent-foreground">Sessão Manual</span>
                         <span className="text-xs text-muted-foreground">
                           {format(new Date(h.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                         </span>
