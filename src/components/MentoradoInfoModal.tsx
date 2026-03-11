@@ -90,7 +90,7 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
       const { error } = await supabase.from('historicos').insert({
         mentorado_id: mentorado.id,
         mentor_id: resolvedMentorId,
-        tipo: 'Observação',
+        tipo: 'Observação do Mentorado',
         conteudo: novaObs.trim(),
         visibilidade: 'Admin',
       });
