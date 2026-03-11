@@ -174,8 +174,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon" onClick={() => setShowPinSettings(true)} title="Configurar PIN">
-              <ShieldCheck className="h-5 w-5" />
+            <Button variant="ghost" size="sm" onClick={() => setShowPinSettings(true)} title="Configurar PIN" className="gap-1.5">
+              <ShieldCheck className="h-4 w-4" />
+              <span className="hidden sm:inline text-xs">Configurar PIN</span>
             </Button>
             <Button variant="ghost" size="icon" onClick={toggleTheme} title={theme === 'light' ? 'Modo escuro' : 'Modo claro'}>
               {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
