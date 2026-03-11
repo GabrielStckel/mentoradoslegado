@@ -265,6 +265,7 @@ export default function MentoradosPage() {
         open={!!editMentorado}
         onOpenChange={(o) => !o && setEditMentorado(null)}
       />
+      <StatusManagerModal open={showStatusManager} onOpenChange={setShowStatusManager} />
     </div>
   );
 }
