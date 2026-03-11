@@ -1,0 +1,1 @@
+ALTER TABLE public.mentorados ADD COLUMN IF NOT EXISTS encontros_realizados integer NOT NULL DEFAULT 0;

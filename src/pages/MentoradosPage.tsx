@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Phone, CalendarPlus, Pencil, Eye } from 'lucide-react';
 import EncontrosCounter from '@/components/EncontrosCounter';
-import { useMentorados, useEncontros } from '@/hooks/useSupabaseData';
+import { useMentorados } from '@/hooks/useSupabaseData';
 import NovoMentoradoModal from '@/components/NovoMentoradoModal';
 import EditMentoradoModal from '@/components/EditMentoradoModal';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
@@ -31,18 +31,8 @@ export default function MentoradosPage() {
   const isMobile = useIsMobile();
 
   const { data: mentorados = [], isLoading } = useMentorados();
-  const { data: encontros = [] } = useEncontros();
 
-  // Count realizados per mentorado
-  const encontrosCount = useMemo(() => {
-    const map: Record<string, number> = {};
-    encontros.forEach(e => {
-      if (e.status === 'Realizado') {
-        map[e.mentorado_id] = (map[e.mentorado_id] || 0) + 1;
-      }
-    });
-    return map;
-  }, [encontros]);
+  // No longer counting realizados from encontros - using encontros_realizados column directly
 
   const filtered = useMemo(() => {
     return mentorados.filter(m => {
@@ -105,17 +95,11 @@ export default function MentoradosPage() {
                 <StatusBadge status={m.status as any} />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Contratados</span>
-                <EncontrosCounter mentoradoId={m.id} mentoradoNome={m.nome} mentorId={m.mentor_id || ''} currentTotal={m.total_encontros} />
+                <span className="text-xs text-muted-foreground">Realizados</span>
+                <EncontrosCounter mentoradoId={m.id} mentoradoNome={m.nome} mentorId={m.mentor_id || ''} totalContratados={m.total_encontros} realizados={(m as any).encontros_realizados || 0} />
               </div>
               {m.total_encontros > 0 && (
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Realizados</span>
-                    <span className="font-medium">{encontrosCount[m.id] || 0}/{m.total_encontros}</span>
-                  </div>
-                  <Progress value={((encontrosCount[m.id] || 0) / m.total_encontros) * 100} className="h-1.5" />
-                </div>
+                <Progress value={(((m as any).encontros_realizados || 0) / m.total_encontros) * 100} className="h-1.5" />
               )}
               <div className="flex items-center justify-between">
                 <div className="flex gap-1 flex-wrap">{(m.tags || []).slice(0, 3).map(t => <TagBadge key={t} tag={t as any} />)}</div>
@@ -189,20 +173,16 @@ export default function MentoradosPage() {
                       <p className="text-xs text-muted-foreground">{m.email}</p>
                     </button>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex justify-center">
-                      <EncontrosCounter mentoradoId={m.id} mentoradoNome={m.nome} mentorId={m.mentor_id || ''} currentTotal={m.total_encontros} />
-                    </div>
-                  </TableCell>
                   <TableCell className="text-center">
-                    {m.total_encontros > 0 ? (
-                      <div className="space-y-1 min-w-[80px]">
-                        <span className="text-xs font-medium">{encontrosCount[m.id] || 0}/{m.total_encontros}</span>
-                        <Progress value={((encontrosCount[m.id] || 0) / m.total_encontros) * 100} className="h-1.5" />
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
+                    <span className="text-sm font-semibold">{m.total_encontros}</span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col items-center gap-1">
+                      <EncontrosCounter mentoradoId={m.id} mentoradoNome={m.nome} mentorId={m.mentor_id || ''} totalContratados={m.total_encontros} realizados={(m as any).encontros_realizados || 0} />
+                      {m.total_encontros > 0 && (
+                        <Progress value={(((m as any).encontros_realizados || 0) / m.total_encontros) * 100} className="h-1.5 w-full" />
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell><StatusBadge status={m.status as any} /></TableCell>
                   <TableCell>
