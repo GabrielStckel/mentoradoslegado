@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { NavLink as RouterNavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, CalendarDays, CalendarClock,
-  Menu, Search, Bell, ChevronLeft, LogOut, ShieldCheck
+  Menu, Search, ChevronLeft, LogOut, Sun, Moon, ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -95,38 +95,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </nav>
 
         <div className={cn('border-t border-sidebar-border p-3', collapsed && 'px-2')}>
-          <div className={cn('flex items-center gap-3 py-2', collapsed ? 'justify-center' : 'px-3')}>
-            {!collapsed && <span className="text-xs text-sidebar-foreground">{theme === 'light' ? '☀️' : '🌙'}</span>}
-            <button
-              onClick={toggleTheme}
-              className={cn(
-                'relative inline-flex h-6 w-11 items-center rounded-full transition-colors flex-shrink-0',
-                theme === 'dark' ? 'bg-sidebar-primary' : 'bg-sidebar-accent'
-              )}
-              aria-label="Alternar tema"
-            >
-              <span
-                className={cn(
-                  'inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform',
-                  theme === 'dark' ? 'translate-x-6' : 'translate-x-1'
-                )}
-              />
-            </button>
-            {!collapsed && <span className="text-xs text-sidebar-muted">{theme === 'light' ? 'Claro' : 'Escuro'}</span>}
-          </div>
-
-          {/* PIN Settings */}
-          <button
-            onClick={() => setShowPinSettings(true)}
-            className={cn('sidebar-item sidebar-item-inactive w-full', collapsed && 'justify-center px-2')}
-          >
-            <ShieldCheck className="h-5 w-5 flex-shrink-0" />
-            {!collapsed && <span>Configurar PIN</span>}
-          </button>
-
           <button
             onClick={() => setCollapsed(!collapsed)}
-            className="hidden md:flex sidebar-item sidebar-item-inactive w-full justify-center"
+            className={cn('hidden md:flex sidebar-item sidebar-item-inactive w-full', collapsed ? 'justify-center px-2' : '')}
           >
             <ChevronLeft className={cn('h-5 w-5 transition-transform', collapsed && 'rotate-180')} />
             {!collapsed && <span>Recolher</span>}
@@ -202,10 +173,12 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" className="relative">
-              <Bell className="h-5 w-5" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-destructive" />
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon" onClick={() => setShowPinSettings(true)} title="Configurar PIN">
+              <ShieldCheck className="h-5 w-5" />
+            </Button>
+            <Button variant="ghost" size="icon" onClick={toggleTheme} title={theme === 'light' ? 'Modo escuro' : 'Modo claro'}>
+              {theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
             </Button>
           </div>
         </header>

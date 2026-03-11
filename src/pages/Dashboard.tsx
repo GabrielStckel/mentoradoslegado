@@ -7,9 +7,10 @@ import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
+import MeetingModal from '@/components/MeetingModal';
 
 type TimeRange = 'dia' | 'semana' | 'mes';
 
@@ -19,6 +20,7 @@ export default function Dashboard() {
   const { data: encontros = [], isLoading: loadingE } = useEncontros();
   const [showNovo, setShowNovo] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('semana');
+  const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
 
   const loading = loadingM || loadingE;
 
@@ -57,7 +59,6 @@ export default function Dashboard() {
     return m;
   }, [mentorados]);
 
-  // Count realizados per mentorado
   const encontrosCount = useMemo(() => {
     const map: Record<string, number> = {};
     encontros.forEach(e => {
@@ -68,7 +69,6 @@ export default function Dashboard() {
     return map;
   }, [encontros]);
 
-  // Active mentorados sorted by progress
   const mentoradosAtivos = useMemo(() =>
     mentorados
       .filter(m => m.status === 'Ativo' || m.status === 'Novo')
@@ -79,7 +79,6 @@ export default function Dashboard() {
       }),
   [mentorados, encontrosCount]);
 
-  // Mentorados with upcoming meetings this range
   const mentoradosComEncontros = useMemo(() => {
     const ids = new Set(encontrosNoRange.map(e => e.mentorado_id));
     return ids.size;
@@ -145,51 +144,9 @@ export default function Dashboard() {
         ))}
       </div>
 
-      {/* Two columns: Agenda + Mentorados */}
+      {/* Two columns: Mentorados (left) + Próximos Encontros (right) */}
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Próximos Encontros */}
-        <Card>
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <Clock className="h-4 w-4 text-primary" /> Próximos Encontros
-              </CardTitle>
-              <button onClick={() => navigate('/encontros')} className="text-xs text-primary hover:underline font-medium">
-                Ver todos →
-              </button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-              {proximos.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">Nenhum encontro agendado.</p>}
-              {proximos.map((e) => (
-                <div
-                  key={e.id}
-                  className="flex items-center justify-between p-3 rounded-lg border bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer"
-                  onClick={() => navigate('/encontros')}
-                >
-                  <div className="flex items-center gap-2 md:gap-3 min-w-0">
-                    <div className="text-center flex-shrink-0 w-10 md:w-12">
-                      <p className="text-[10px] md:text-xs text-muted-foreground">{format(new Date(e.inicio), 'dd/MM')}</p>
-                      <p className="text-xs md:text-sm font-semibold">{format(new Date(e.inicio), 'HH:mm')}</p>
-                    </div>
-                    <div className="min-w-0">
-                      <p className="text-xs md:text-sm font-medium truncate">{e.titulo}</p>
-                      <p className="text-[10px] md:text-xs text-muted-foreground truncate">
-                        {mentoradoMap[e.mentorado_id]}
-                      </p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-                    <StatusBadge status={e.status as any} />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Mentorados Overview */}
+        {/* Mentorados Overview - LEFT */}
         <Card>
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
@@ -223,7 +180,7 @@ export default function Dashboard() {
                   <div
                     key={m.id}
                     className="flex items-center justify-between p-3 rounded-lg border bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer"
-                    onClick={() => navigate(`/mentorados/${m.id}`)}
+                    onClick={() => navigate(`/mentorados/${m.id}?from=dashboard`)}
                   >
                     <div className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs flex-shrink-0">
@@ -252,7 +209,7 @@ export default function Dashboard() {
                         size="icon"
                         variant="ghost"
                         className="h-7 w-7"
-                        onClick={(e) => { e.stopPropagation(); navigate(`/mentorados/${m.id}`); }}
+                        onClick={(e) => { e.stopPropagation(); navigate(`/mentorados/${m.id}?from=dashboard`); }}
                       >
                         <Eye className="h-3.5 w-3.5" />
                       </Button>
@@ -263,9 +220,58 @@ export default function Dashboard() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Próximos Encontros - RIGHT */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <Clock className="h-4 w-4 text-primary" /> Próximos Encontros
+              </CardTitle>
+              <button onClick={() => navigate('/encontros')} className="text-xs text-primary hover:underline font-medium">
+                Ver todos →
+              </button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+              {proximos.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">Nenhum encontro agendado.</p>}
+              {proximos.map((e) => (
+                <div
+                  key={e.id}
+                  className="flex items-center justify-between p-3 rounded-lg border bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer"
+                  onClick={() => setSelectedEncontro(e)}
+                >
+                  <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                    <div className="text-center flex-shrink-0 w-10 md:w-12">
+                      <p className="text-[10px] md:text-xs text-muted-foreground">{format(new Date(e.inicio), 'dd/MM')}</p>
+                      <p className="text-xs md:text-sm font-semibold">{format(new Date(e.inicio), 'HH:mm')}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs md:text-sm font-medium truncate">{e.titulo}</p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground truncate">
+                        {mentoradoMap[e.mentorado_id]}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+                    <StatusBadge status={e.status as any} />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       <NovoEncontroModal open={showNovo} onOpenChange={setShowNovo} />
+      {selectedEncontro && (
+        <MeetingModal
+          open={!!selectedEncontro}
+          onOpenChange={(open) => { if (!open) setSelectedEncontro(null); }}
+          encontro={selectedEncontro}
+        />
+      )}
     </div>
   );
 }
