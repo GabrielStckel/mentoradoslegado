@@ -95,17 +95,11 @@ export default function MentoradosPage() {
                 <StatusBadge status={m.status as any} />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">Contratados</span>
-                <EncontrosCounter mentoradoId={m.id} mentoradoNome={m.nome} mentorId={m.mentor_id || ''} currentTotal={m.total_encontros} />
+                <span className="text-xs text-muted-foreground">Realizados</span>
+                <EncontrosCounter mentoradoId={m.id} mentoradoNome={m.nome} mentorId={m.mentor_id || ''} totalContratados={m.total_encontros} realizados={(m as any).encontros_realizados || 0} />
               </div>
               {m.total_encontros > 0 && (
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">Realizados</span>
-                    <span className="font-medium">{encontrosCount[m.id] || 0}/{m.total_encontros}</span>
-                  </div>
-                  <Progress value={((encontrosCount[m.id] || 0) / m.total_encontros) * 100} className="h-1.5" />
-                </div>
+                <Progress value={(((m as any).encontros_realizados || 0) / m.total_encontros) * 100} className="h-1.5" />
               )}
               <div className="flex items-center justify-between">
                 <div className="flex gap-1 flex-wrap">{(m.tags || []).slice(0, 3).map(t => <TagBadge key={t} tag={t as any} />)}</div>
