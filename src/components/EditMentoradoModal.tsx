@@ -28,6 +28,7 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
   const { data: origens = [] } = useOrigens();
   const { data: statusListData = [] } = useStatusMentorado();
   const [showOrigens, setShowOrigens] = useState(false);
+  const [showStatusManager, setShowStatusManager] = useState(false);
 
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
