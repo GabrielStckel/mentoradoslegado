@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus, Eye, Target, TrendingUp } from 'lucide-react';
-import { useMentorados, useEncontros } from '@/hooks/useSupabaseData';
+import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus, Eye, Target, TrendingUp, Search } from 'lucide-react';
+import { useMentorados, useEncontros, useUpdateEncontroStatus, useDeleteEncontro } from '@/hooks/useSupabaseData';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
