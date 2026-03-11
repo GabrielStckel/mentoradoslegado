@@ -38,7 +38,7 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
   const queryClient = useQueryClient();
   const { data: historicos = [] } = useHistoricos(mentorado?.id);
   const { data: encontros = [] } = useEncontros();
-  const [novaObs, setNovaObs] = useState('');
+  const { user } = useAuth();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
 
