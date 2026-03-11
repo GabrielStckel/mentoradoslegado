@@ -30,6 +30,7 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
   const { data: mentorados = [] } = useMentorados();
   const { data: mentores = [] } = useMentores();
   const { data: locais = [] } = useLocais();
+  const { data: encontros = [] } = useEncontros();
   const { connected, syncEvent } = useGoogleCalendar();
 
   const [titulo, setTitulo] = useState('');
