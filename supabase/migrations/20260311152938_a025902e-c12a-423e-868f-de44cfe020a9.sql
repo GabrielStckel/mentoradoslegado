@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX IF NOT EXISTS encontros_google_event_id_unique ON public.encontros (google_event_id) WHERE google_event_id IS NOT NULL;
