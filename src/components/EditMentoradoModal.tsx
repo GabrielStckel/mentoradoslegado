@@ -197,6 +197,7 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
         </DialogContent>
       </Dialog>
       <OrigensManagerModal open={showOrigens} onOpenChange={setShowOrigens} />
+      <StatusManagerModal open={showStatusManager} onOpenChange={setShowStatusManager} />
     </>
   );
 }
