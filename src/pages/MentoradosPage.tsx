@@ -1,12 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Phone, CalendarPlus, Pencil, Eye } from 'lucide-react';
+import { Plus, Search, Phone, CalendarPlus, Pencil, Eye, Settings } from 'lucide-react';
 import EncontrosCounter from '@/components/EncontrosCounter';
-import { useMentorados } from '@/hooks/useSupabaseData';
+import { useMentorados, useStatusMentorado } from '@/hooks/useSupabaseData';
 import NovoMentoradoModal from '@/components/NovoMentoradoModal';
 import EditMentoradoModal from '@/components/EditMentoradoModal';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
 import QuickSessionModal from '@/components/QuickSessionModal';
+import StatusManagerModal from '@/components/StatusManagerModal';
 import { StatusBadge, TagBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
