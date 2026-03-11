@@ -429,6 +429,9 @@ Deno.serve(async (req) => {
       const mentorIds = await getUserMentorIds(supabaseAdmin, user.id);
       if (!mentorIds.includes(mentorId)) mentorIds.push(mentorId);
 
+      // Skip new event import if no mentorado exists
+      const skipNewImports = !mentoradoId;
+
       // Separate cancelled/deleted events from active ones
       const cancelledIds = allChangedEvents.filter(e => e.status === "cancelled").map(e => e.id).filter(Boolean);
       const activeEvents = allChangedEvents.filter(e => e.status !== "cancelled" && e.id && (e.start?.dateTime || e.start?.date));
