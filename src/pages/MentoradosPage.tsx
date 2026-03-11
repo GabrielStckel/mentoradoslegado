@@ -173,20 +173,16 @@ export default function MentoradosPage() {
                       <p className="text-xs text-muted-foreground">{m.email}</p>
                     </button>
                   </TableCell>
-                  <TableCell>
-                    <div className="flex justify-center">
-                      <EncontrosCounter mentoradoId={m.id} mentoradoNome={m.nome} mentorId={m.mentor_id || ''} currentTotal={m.total_encontros} />
-                    </div>
-                  </TableCell>
                   <TableCell className="text-center">
-                    {m.total_encontros > 0 ? (
-                      <div className="space-y-1 min-w-[80px]">
-                        <span className="text-xs font-medium">{encontrosCount[m.id] || 0}/{m.total_encontros}</span>
-                        <Progress value={((encontrosCount[m.id] || 0) / m.total_encontros) * 100} className="h-1.5" />
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground">—</span>
-                    )}
+                    <span className="text-sm font-semibold">{m.total_encontros}</span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex flex-col items-center gap-1">
+                      <EncontrosCounter mentoradoId={m.id} mentoradoNome={m.nome} mentorId={m.mentor_id || ''} totalContratados={m.total_encontros} realizados={(m as any).encontros_realizados || 0} />
+                      {m.total_encontros > 0 && (
+                        <Progress value={(((m as any).encontros_realizados || 0) / m.total_encontros) * 100} className="h-1.5 w-full" />
+                      )}
+                    </div>
                   </TableCell>
                   <TableCell><StatusBadge status={m.status as any} /></TableCell>
                   <TableCell>

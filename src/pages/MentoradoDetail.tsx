@@ -122,19 +122,20 @@ export default function MentoradoDetail() {
               <Target className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
+              <p className="text-sm text-muted-foreground mb-1">Contratados: <span className="font-semibold text-foreground">{mentorado.total_encontros}</span></p>
               <div className="flex items-center gap-3">
-                <p className="text-sm text-muted-foreground">Contratados</p>
+                <p className="text-sm text-muted-foreground">Realizados</p>
                 <EncontrosCounter
                   mentoradoId={mentorado.id}
                   mentoradoNome={mentorado.nome}
                   mentorId={mentorId}
-                  currentTotal={mentorado.total_encontros}
+                  totalContratados={mentorado.total_encontros}
+                  realizados={(mentorado as any).encontros_realizados || 0}
                 />
               </div>
               {mentorado.total_encontros > 0 && (
                 <div className="mt-1">
-                  <p className="text-xs text-muted-foreground mb-0.5">{metrics.realizados}/{mentorado.total_encontros} realizados</p>
-                  <Progress value={(metrics.realizados / mentorado.total_encontros) * 100} className="h-1.5" />
+                  <Progress value={(((mentorado as any).encontros_realizados || 0) / mentorado.total_encontros) * 100} className="h-1.5" />
                 </div>
               )}
             </div>
