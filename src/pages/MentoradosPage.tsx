@@ -65,7 +65,6 @@ export default function MentoradosPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar por nome, email ou telefone..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <div className="flex gap-2">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
@@ -75,10 +74,6 @@ export default function MentoradosPage() {
               ))}
             </SelectContent>
           </Select>
-          <Button variant="outline" size="icon" onClick={() => setShowStatusManager(true)} title="Gerenciar Status">
-            <Settings className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
 
       {/* Mobile: Card layout */}
