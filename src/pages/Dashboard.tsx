@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
-import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus, Eye, Target, TrendingUp, Search } from 'lucide-react';
+import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus, Eye, Target, TrendingUp, Search, ChevronDown } from 'lucide-react';
 import { useMentorados, useEncontros, useUpdateEncontroStatus, useDeleteEncontro, useRevertToVago } from '@/hooks/useSupabaseData';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,11 +9,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
 import MeetingModal from '@/components/MeetingModal';
 
-type TimeRange = 'dia' | 'semana' | 'mes';
+type TimeRange = 'dia' | 'semana' | 'mes' | '3meses' | '6meses' | '9meses' | '1ano';
 
 export default function Dashboard() {
   const navigate = useNavigate();
@@ -31,9 +32,14 @@ export default function Dashboard() {
 
   const now = new Date();
   const rangeFilter = useMemo(() => {
-    if (timeRange === 'dia') return { start: startOfDay(now), end: endOfDay(now) };
-    if (timeRange === 'semana') return { start: startOfWeek(now, { weekStartsOn: 0 }), end: endOfWeek(now, { weekStartsOn: 0 }) };
-    return { start: startOfMonth(now), end: endOfMonth(now) };
+    const n = new Date();
+    if (timeRange === 'dia') return { start: startOfDay(n), end: endOfDay(n) };
+    if (timeRange === 'semana') return { start: startOfWeek(n, { weekStartsOn: 0 }), end: endOfWeek(n, { weekStartsOn: 0 }) };
+    if (timeRange === 'mes') return { start: startOfMonth(n), end: endOfMonth(n) };
+    if (timeRange === '3meses') return { start: startOfMonth(n), end: endOfDay(addMonths(n, 3)) };
+    if (timeRange === '6meses') return { start: startOfMonth(n), end: endOfDay(addMonths(n, 6)) };
+    if (timeRange === '9meses') return { start: startOfMonth(n), end: endOfDay(addMonths(n, 9)) };
+    return { start: startOfMonth(n), end: endOfDay(addMonths(n, 12)) };
   }, [timeRange]);
 
   const encontrosNoRange = useMemo(() =>
@@ -100,7 +106,11 @@ export default function Dashboard() {
     return ids.size;
   }, [encontrosNoRange]);
 
-  const rangeLabel = timeRange === 'dia' ? 'Hoje' : timeRange === 'semana' ? 'Esta Semana' : 'Este Mês';
+  const rangeLabelMap: Record<TimeRange, string> = {
+    dia: 'Hoje', semana: 'Esta Semana', mes: 'Este Mês',
+    '3meses': '3 Meses', '6meses': '6 Meses', '9meses': '9 Meses', '1ano': '1 Ano',
+  };
+  const rangeLabel = rangeLabelMap[timeRange];
 
   const statCards = [
     { label: 'Mentorados Ativos', value: stats.ativos, icon: Users, color: 'text-primary' },
@@ -129,7 +139,7 @@ export default function Dashboard() {
           <p className="page-subtitle">Visão geral das mentorias</p>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex rounded-lg border bg-secondary/30 p-0.5">
+          <div className="flex items-center rounded-lg border bg-secondary/30 p-0.5">
             {(['dia', 'semana', 'mes'] as TimeRange[]).map(r => (
               <button
                 key={r}
@@ -141,6 +151,31 @@ export default function Dashboard() {
                 {r === 'dia' ? 'Dia' : r === 'semana' ? 'Semana' : 'Mês'}
               </button>
             ))}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1 ${
+                    ['3meses', '6meses', '9meses', '1ano'].includes(timeRange)
+                      ? 'bg-primary text-primary-foreground shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {['3meses', '6meses', '9meses', '1ano'].includes(timeRange) ? rangeLabelMap[timeRange] : 'Mais'}
+                  <ChevronDown className="h-3 w-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {([['3meses', '3 Meses'], ['6meses', '6 Meses'], ['9meses', '9 Meses'], ['1ano', '1 Ano']] as [TimeRange, string][]).map(([value, label]) => (
+                  <DropdownMenuItem
+                    key={value}
+                    onClick={() => setTimeRange(value)}
+                    className={timeRange === value ? 'bg-accent font-medium' : ''}
+                  >
+                    {label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
           <Button onClick={() => setShowNovo(true)}>
             <Plus className="h-4 w-4 mr-2" /> Novo Encontro
