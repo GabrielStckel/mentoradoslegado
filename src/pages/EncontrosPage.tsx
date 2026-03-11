@@ -212,8 +212,10 @@ export default function EncontrosPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filtered.map(e => (
-                <TableRow key={e.id} className="cursor-pointer hover:bg-secondary/20" onClick={() => setSelectedEncontro(e)}>
+              {filtered.map(e => {
+                const isPast = new Date(e.fim) < new Date();
+                return (
+                <TableRow key={e.id} className={`cursor-pointer ${isPast ? 'opacity-50 bg-muted/30' : 'hover:bg-secondary/20'}`} onClick={() => setSelectedEncontro(e)}>
                   <TableCell>
                     <div>
                       <p className="text-sm font-medium">{format(new Date(e.inicio), 'dd/MM/yyyy')}</p>
