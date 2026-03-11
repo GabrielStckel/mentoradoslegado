@@ -204,7 +204,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
-      <ChangePinModal open={changePinOpen} onOpenChange={setChangePinOpen} />
     </div>
   );
 }
