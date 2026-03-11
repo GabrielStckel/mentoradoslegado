@@ -59,11 +59,15 @@ export default function Dashboard() {
 
   const proximos = useMemo(() => {
     const q = searchQuery.toLowerCase();
+    const todayStart = startOfDay(new Date());
+    const todayEnd = endOfDay(new Date());
     return encontrosNoRange
       .filter(e => {
         if (e.titulo === 'VAGO') return false;
-        if (new Date(e.inicio) < new Date()) return false;
         if (e.status !== 'Agendado') return false;
+        // Show all of today's events (even past ones), plus future ones
+        const d = new Date(e.inicio);
+        if (d < todayStart) return false;
         if (q && !e.titulo.toLowerCase().includes(q) && !(mentoradoMap[e.mentorado_id] || '').toLowerCase().includes(q)) return false;
         return true;
       })
@@ -244,10 +248,12 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
               {proximos.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">Nenhum encontro agendado.</p>}
-              {proximos.map((e) => (
+              {proximos.map((e) => {
+                const isPast = new Date(e.fim) < new Date();
+                return (
                 <div
                   key={e.id}
-                  className="flex items-center justify-between p-3 rounded-lg border bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer"
+                  className={`flex items-center justify-between p-3 rounded-lg border transition-colors cursor-pointer ${isPast ? 'bg-muted/40 opacity-50' : 'bg-secondary/20 hover:bg-secondary/40'}`}
                   onClick={() => setSelectedEncontro(e)}
                 >
                   <div className="flex items-center gap-2 md:gap-3 min-w-0">
@@ -266,7 +272,8 @@ export default function Dashboard() {
                     <StatusBadge status={e.status as any} />
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
