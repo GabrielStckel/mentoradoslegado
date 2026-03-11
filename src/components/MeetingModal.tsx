@@ -25,10 +25,11 @@ interface Props {
   onRevertToVago?: (encontro: Encontro) => void;
 }
 
-export default function MeetingModal({ encontro, mentorado, mentor, open, onOpenChange, onStatusChange, onDelete }: Props) {
+export default function MeetingModal({ encontro, mentorado, mentor, open, onOpenChange, onStatusChange, onDelete, onRevertToVago }: Props) {
   const { connected, syncEvent } = useGoogleCalendar();
   const [syncing, setSyncing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmRevert, setConfirmRevert] = useState(false);
 
   if (!encontro) return null;
 
