@@ -88,7 +88,7 @@ export default function EncontrosPage() {
             ))}
           </div>
           <Button onClick={() => setShowNovo(true)} size={isMobile ? 'sm' : 'default'}>
-            <Plus className="h-4 w-4 mr-2" /> Novo
+            <Plus className="h-4 w-4 mr-2" /> Novo Encontro
           </Button>
         </div>
       </div>
