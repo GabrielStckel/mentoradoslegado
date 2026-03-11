@@ -85,29 +85,58 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
       const mentorId = selectedMentorado?.mentor_id || mentores[0]?.id;
       if (!mentorId) throw new Error('Nenhum mentor disponível');
 
-      const { data: inserted, error } = await supabase.from('encontros').insert({
-        titulo,
-        mentorado_id: mentoradoId,
-        mentor_id: mentorId,
-        tipo: 'Sessão',
-        local,
-        inicio,
-        fim,
-        notas_operacionais: observacao,
-      }).select().single();
-      if (error) throw error;
+      let inserted: any;
 
-      if (connected && inserted) {
-        try {
-          await syncEvent('create', inserted);
-        } catch (syncErr) {
-          console.error('Google Calendar sync failed:', syncErr);
+      if (replacingVagoId) {
+        // Replace VAGO: update the existing record
+        const { data, error } = await supabase.from('encontros').update({
+          titulo,
+          mentorado_id: mentoradoId,
+          mentor_id: mentorId,
+          tipo: 'Sessão',
+          local,
+          inicio,
+          fim,
+          notas_operacionais: observacao,
+        }).eq('id', replacingVagoId).select().single();
+        if (error) throw error;
+        inserted = data;
+
+        // Sync update to Google Calendar
+        if (connected && inserted) {
+          try {
+            await syncEvent('update', inserted);
+          } catch (syncErr) {
+            console.error('Google Calendar sync (update VAGO) failed:', syncErr);
+          }
+        }
+      } else {
+        // Normal: insert new record
+        const { data, error } = await supabase.from('encontros').insert({
+          titulo,
+          mentorado_id: mentoradoId,
+          mentor_id: mentorId,
+          tipo: 'Sessão',
+          local,
+          inicio,
+          fim,
+          notas_operacionais: observacao,
+        }).select().single();
+        if (error) throw error;
+        inserted = data;
+
+        if (connected && inserted) {
+          try {
+            await syncEvent('create', inserted);
+          } catch (syncErr) {
+            console.error('Google Calendar sync failed:', syncErr);
+          }
         }
       }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['encontros'] });
-      toast.success('Encontro criado com sucesso!');
+      toast.success(replacingVagoId ? 'Horário VAGO substituído com sucesso!' : 'Encontro criado com sucesso!');
       reset();
       onOpenChange(false);
     },
