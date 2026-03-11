@@ -278,6 +278,9 @@ export default function Dashboard() {
           open={!!selectedEncontro}
           onOpenChange={(open) => { if (!open) setSelectedEncontro(null); }}
           encontro={selectedEncontro}
+          mentorado={mentorados.find(m => m.id === selectedEncontro.mentorado_id) as any}
+          onStatusChange={(id, status) => { updateStatus.mutate({ id, status }); setSelectedEncontro(null); }}
+          onDelete={(e) => { deleteEncontro.mutate({ id: e.id, google_event_id: e.google_event_id }); setSelectedEncontro(null); }}
         />
       )}
     </div>
