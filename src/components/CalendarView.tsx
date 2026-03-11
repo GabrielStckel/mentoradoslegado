@@ -349,7 +349,56 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
         </div>
       </div>
 
-      {view === 'month' && renderMonth()}
+      {view === 'month' && (
+        <>
+          {renderMonth()}
+          {selectedDay && (() => {
+            const dayEvents = encontros.filter(e => isSameDay(parseISO(e.inicio), selectedDay));
+            const holiday = isHoliday(selectedDay);
+            return (
+              <div className="rounded-xl border bg-card p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-sm capitalize">
+                    {format(selectedDay, "EEEE, d 'de' MMMM", { locale: ptBR })}
+                  </h3>
+                  <Button variant="ghost" size="sm" className="text-xs" onClick={() => setSelectedDay(null)}>
+                    Fechar
+                  </Button>
+                </div>
+                {holiday && (
+                  <p className="text-xs font-medium text-destructive">🔴 {holiday.name}</p>
+                )}
+                {dayEvents.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Nenhum compromisso neste dia.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {dayEvents.map(evt => {
+                      const mentor = mentorMap[evt.mentor_id];
+                      const color = mentor?.cor_calendario || '#0d9488';
+                      return (
+                        <button
+                          key={evt.id}
+                          onClick={() => onEventClick(evt)}
+                          className="w-full text-left flex items-center gap-3 p-2.5 rounded-lg border hover:bg-accent/30 transition-colors"
+                        >
+                          <div className="w-1 h-10 rounded-full flex-shrink-0" style={{ backgroundColor: color }} />
+                          <div className="min-w-0 flex-1">
+                            <p className="text-sm font-medium truncate">{evt.titulo}</p>
+                            <p className="text-xs text-muted-foreground">
+                              {format(parseISO(evt.inicio), 'HH:mm')} – {format(parseISO(evt.fim), 'HH:mm')}
+                              {evt.local && evt.local !== 'Online' ? ` · ${evt.local}` : ''}
+                            </p>
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
+        </>
+      )}
       {view === 'week' && renderWeek()}
       {view === 'day' && renderDay()}
     </div>
