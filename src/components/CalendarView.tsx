@@ -92,6 +92,7 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
               const events = getEventsForDay(d);
               const isToday = isSameDay(d, today);
               const isCurrentMonth = isSameMonth(d, monthStart);
+              const holiday = isHoliday(d);
               return (
                 <div
                   key={di}
@@ -100,6 +101,7 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                     isMobile ? 'min-h-[60px]' : 'min-h-[110px]',
                     !isCurrentMonth && 'bg-muted/20',
                     isToday && 'bg-primary/8 ring-1 ring-inset ring-primary/30',
+                    holiday && 'bg-destructive/5',
                   )}
                   onClick={() => { setCurrentDate(d); setView('day'); }}
                 >
