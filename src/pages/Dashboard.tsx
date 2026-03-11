@@ -162,8 +162,8 @@ export default function Dashboard() {
             <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
               {(() => {
                 const mentoradoIds = new Set(mentorados.map(m => m.id));
-                const proximosMentorados = encontros
-                  .filter(e => new Date(e.inicio) >= new Date() && e.status === 'Agendado' && mentoradoIds.has(e.mentorado_id) && mentoradoMap[e.mentorado_id])
+                const proximosMentorados = encontrosNoRange
+                  .filter(e => e.status === 'Agendado' && mentoradoIds.has(e.mentorado_id) && mentoradoMap[e.mentorado_id])
                   .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())
                   .reduce((acc, e) => {
                     if (!acc.find(x => x.mentorado_id === e.mentorado_id)) acc.push(e);
