@@ -152,6 +152,10 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
               </Select>
             </div>
             <div className="space-y-2">
+              <Label htmlFor="edit-total">Nº encontros contratados</Label>
+              <Input id="edit-total" type="number" min="0" value={totalEncontros} onChange={e => setTotalEncontros(e.target.value)} />
+            </div>
+            <div className="space-y-2">
               <Label htmlFor="edit-obs">Observações</Label>
               <Textarea id="edit-obs" value={observacoes} onChange={e => setObservacoes(e.target.value)} rows={3} />
             </div>

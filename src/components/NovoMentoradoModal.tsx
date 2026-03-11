@@ -76,6 +76,10 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
             <Label htmlFor="telefone">WhatsApp</Label>
             <Input id="telefone" value={telefone} onChange={e => setTelefone(e.target.value)} placeholder="(00) 00000-0000" />
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="totalEncontros">Nº de encontros contratados</Label>
+            <Input id="totalEncontros" type="number" min="1" value={totalEncontros} onChange={e => setTotalEncontros(e.target.value)} placeholder="12" />
+          </div>
 
           <Collapsible open={showMore} onOpenChange={setShowMore}>
             <CollapsibleTrigger asChild>
