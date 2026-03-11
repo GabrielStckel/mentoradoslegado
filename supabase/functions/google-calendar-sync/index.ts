@@ -78,28 +78,19 @@ async function getOrCreateDefaults(supabaseAdmin: any, userId: string) {
     defaultMentor = created;
   }
 
+  // Try to find an existing mentorado linked to this mentor, but DO NOT create a placeholder
   let { data: defaultMentorado } = await supabaseAdmin
     .from("mentorados")
     .select("id")
-    .eq("nome", "Importado do Google Calendar")
     .eq("mentor_id", defaultMentor?.id)
     .limit(1)
     .maybeSingle();
 
-  if (!defaultMentorado) {
-    const { data: created } = await supabaseAdmin
-      .from("mentorados")
-      .insert({ nome: "Importado do Google Calendar", mentor_id: defaultMentor?.id })
-      .select("id")
-      .single();
-    defaultMentorado = created;
+  if (!defaultMentor?.id) {
+    throw new Error("Could not create default mentor for import");
   }
 
-  if (!defaultMentor?.id || !defaultMentorado?.id) {
-    throw new Error("Could not create default mentor/mentorado for import");
-  }
-
-  return { mentorId: defaultMentor.id, mentoradoId: defaultMentorado.id };
+  return { mentorId: defaultMentor.id, mentoradoId: defaultMentorado?.id || null };
 }
 
 async function importEventsBatchForUser(
@@ -136,6 +127,20 @@ async function importEventsBatchForUser(
   const batchEventIds = validEvents.map((evt: any) => evt.id);
 
   const { mentorId, mentoradoId } = await getOrCreateDefaults(supabaseAdmin, tokens.user_id);
+  
+  // Skip import if no mentorado exists to assign events to
+  if (!mentoradoId) {
+    console.log(`Skipping import for user=${tokens.user_id}: no mentorado found`);
+    return {
+      batchProcessed: validEvents.length,
+      batchImported: 0,
+      batchUpdated: 0,
+      batchEventIds: batchEventIds,
+      nextPageToken: data.nextPageToken || null,
+      done: !data.nextPageToken,
+    };
+  }
+
   const mentorIds = await getUserMentorIds(supabaseAdmin, tokens.user_id);
   if (!mentorIds.includes(mentorId)) mentorIds.push(mentorId);
 
@@ -424,6 +429,9 @@ Deno.serve(async (req) => {
       const mentorIds = await getUserMentorIds(supabaseAdmin, user.id);
       if (!mentorIds.includes(mentorId)) mentorIds.push(mentorId);
 
+      // Skip new event import if no mentorado exists
+      const skipNewImports = !mentoradoId;
+
       // Separate cancelled/deleted events from active ones
       const cancelledIds = allChangedEvents.filter(e => e.status === "cancelled").map(e => e.id).filter(Boolean);
       const activeEvents = allChangedEvents.filter(e => e.status !== "cancelled" && e.id && (e.start?.dateTime || e.start?.date));
@@ -460,25 +468,27 @@ Deno.serve(async (req) => {
       let imported = 0;
       let updated = 0;
 
-      const newEvents = activeEvents.filter((e: any) => !existingMap.has(e.id)).map((evt: any) => ({
-        titulo: evt.summary || "Evento importado",
-        inicio: evt.start.dateTime || evt.start.date,
-        fim: evt.end?.dateTime || evt.end?.date || evt.start.dateTime || evt.start.date,
-        google_event_id: evt.id,
-        sincronizado_google: true,
-        status: "Agendado",
-        local: evt.location || "Online",
-        link_reuniao: evt.hangoutLink || "",
-        notas_operacionais: evt.description || "",
-        mentor_id: mentorId,
-        mentorado_id: mentoradoId,
-      }));
+      if (!skipNewImports) {
+        const newEvents = activeEvents.filter((e: any) => !existingMap.has(e.id)).map((evt: any) => ({
+          titulo: evt.summary || "Evento importado",
+          inicio: evt.start.dateTime || evt.start.date,
+          fim: evt.end?.dateTime || evt.end?.date || evt.start.dateTime || evt.start.date,
+          google_event_id: evt.id,
+          sincronizado_google: true,
+          status: "Agendado",
+          local: evt.location || "Online",
+          link_reuniao: evt.hangoutLink || "",
+          notas_operacionais: evt.description || "",
+          mentor_id: mentorId,
+          mentorado_id: mentoradoId,
+        }));
 
-      if (newEvents.length > 0) {
-        for (let i = 0; i < newEvents.length; i += 50) {
-          const chunk = newEvents.slice(i, i + 50);
-          const { data: ins } = await supabaseAdmin.from("encontros").upsert(chunk, { onConflict: "google_event_id", ignoreDuplicates: false }).select("id");
-          imported += ins?.length || chunk.length;
+        if (newEvents.length > 0) {
+          for (let i = 0; i < newEvents.length; i += 50) {
+            const chunk = newEvents.slice(i, i + 50);
+            const { data: ins } = await supabaseAdmin.from("encontros").upsert(chunk, { onConflict: "google_event_id", ignoreDuplicates: false }).select("id");
+            imported += ins?.length || chunk.length;
+          }
         }
       }
 
