@@ -183,9 +183,16 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
               {(() => {
+                const q = searchQuery.toLowerCase();
                 const mentoradoIds = new Set(mentorados.map(m => m.id));
                 const proximosMentorados = encontrosNoRange
-                  .filter(e => e.status === 'Agendado' && mentoradoIds.has(e.mentorado_id) && mentoradoMap[e.mentorado_id])
+                  .filter(e => {
+                    if (e.titulo === 'VAGO') return false;
+                    if (e.status !== 'Agendado') return false;
+                    if (!mentoradoIds.has(e.mentorado_id) || !mentoradoMap[e.mentorado_id]) return false;
+                    if (q && !e.titulo.toLowerCase().includes(q) && !(mentoradoMap[e.mentorado_id] || '').toLowerCase().includes(q)) return false;
+                    return true;
+                  })
                   .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())
                   .reduce((acc, e) => {
                     if (!acc.find(x => x.mentorado_id === e.mentorado_id)) acc.push(e);
