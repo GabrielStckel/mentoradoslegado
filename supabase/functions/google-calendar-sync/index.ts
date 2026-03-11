@@ -78,28 +78,19 @@ async function getOrCreateDefaults(supabaseAdmin: any, userId: string) {
     defaultMentor = created;
   }
 
+  // Try to find an existing mentorado linked to this mentor, but DO NOT create a placeholder
   let { data: defaultMentorado } = await supabaseAdmin
     .from("mentorados")
     .select("id")
-    .eq("nome", "Importado do Google Calendar")
     .eq("mentor_id", defaultMentor?.id)
     .limit(1)
     .maybeSingle();
 
-  if (!defaultMentorado) {
-    const { data: created } = await supabaseAdmin
-      .from("mentorados")
-      .insert({ nome: "Importado do Google Calendar", mentor_id: defaultMentor?.id })
-      .select("id")
-      .single();
-    defaultMentorado = created;
+  if (!defaultMentor?.id) {
+    throw new Error("Could not create default mentor for import");
   }
 
-  if (!defaultMentor?.id || !defaultMentorado?.id) {
-    throw new Error("Could not create default mentor/mentorado for import");
-  }
-
-  return { mentorId: defaultMentor.id, mentoradoId: defaultMentorado.id };
+  return { mentorId: defaultMentor.id, mentoradoId: defaultMentorado?.id || null };
 }
 
 async function importEventsBatchForUser(

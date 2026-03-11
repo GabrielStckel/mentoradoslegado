@@ -16,6 +16,10 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { useIsMobile } from '@/hooks/use-mobile';
 
+function cleanPhone(phone: string): string {
+  return phone.replace(/\D/g, '').slice(0, 13);
+}
+
 export default function MentoradosPage() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
@@ -90,7 +94,7 @@ export default function MentoradosPage() {
           {filtered.map(m => (
             <div
               key={m.id}
-              className="rounded-xl border bg-card p-4 space-y-2 active:bg-secondary/40"
+              className="rounded-xl border bg-card p-4 space-y-3 active:bg-secondary/40"
               onClick={() => setSelectedMentorado(m)}
             >
               <div className="flex items-start justify-between gap-2">
@@ -100,18 +104,19 @@ export default function MentoradosPage() {
                 </div>
                 <StatusBadge status={m.status as any} />
               </div>
-              <div className="space-y-1">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground">Contratados</span>
-                  <EncontrosCounter mentoradoId={m.id} mentoradoNome={m.nome} mentorId={m.mentor_id || ''} currentTotal={m.total_encontros} />
-                </div>
-                {m.total_encontros > 0 && (
-                  <div className="flex items-center gap-2 text-xs">
-                    <span className="text-muted-foreground">Realizados: {encontrosCount[m.id] || 0}/{m.total_encontros}</span>
-                    <Progress value={((encontrosCount[m.id] || 0) / m.total_encontros) * 100} className="h-1.5 flex-1" />
-                  </div>
-                )}
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Contratados</span>
+                <EncontrosCounter mentoradoId={m.id} mentoradoNome={m.nome} mentorId={m.mentor_id || ''} currentTotal={m.total_encontros} />
               </div>
+              {m.total_encontros > 0 && (
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground">Realizados</span>
+                    <span className="font-medium">{encontrosCount[m.id] || 0}/{m.total_encontros}</span>
+                  </div>
+                  <Progress value={((encontrosCount[m.id] || 0) / m.total_encontros) * 100} className="h-1.5" />
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <div className="flex gap-1 flex-wrap">{(m.tags || []).slice(0, 3).map(t => <TagBadge key={t} tag={t as any} />)}</div>
                 <div className="flex items-center gap-1">
@@ -133,15 +138,17 @@ export default function MentoradosPage() {
                   >
                     <Pencil className="h-4 w-4" />
                   </Button>
-                  <a
-                    href={`https://wa.me/${m.telefone_whatsapp}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    onClick={e => e.stopPropagation()}
-                    className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-primary/10 text-primary"
-                  >
-                    <Phone className="h-4 w-4" />
-                  </a>
+                  {m.telefone_whatsapp && (
+                    <a
+                      href={`https://wa.me/${cleanPhone(m.telefone_whatsapp)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      className="inline-flex items-center justify-center h-9 w-9 rounded-lg bg-primary/10 text-primary"
+                    >
+                      <Phone className="h-4 w-4" />
+                    </a>
+                  )}
                   <Button
                     size="icon"
                     variant="ghost"
@@ -166,7 +173,8 @@ export default function MentoradosPage() {
             <TableHeader>
               <TableRow className="bg-secondary/30 hover:bg-secondary/30">
                 <TableHead className="table-header">Nome</TableHead>
-                <TableHead className="table-header">Encontros</TableHead>
+                <TableHead className="table-header text-center">Contratados</TableHead>
+                <TableHead className="table-header text-center">Realizados</TableHead>
                 <TableHead className="table-header">Status</TableHead>
                 <TableHead className="table-header">Contato</TableHead>
                 <TableHead className="table-header w-[90px]">Ações</TableHead>
@@ -182,27 +190,35 @@ export default function MentoradosPage() {
                     </button>
                   </TableCell>
                   <TableCell>
-                    <div className="space-y-1 min-w-[140px]">
+                    <div className="flex justify-center">
                       <EncontrosCounter mentoradoId={m.id} mentoradoNome={m.nome} mentorId={m.mentor_id || ''} currentTotal={m.total_encontros} />
-                      {m.total_encontros > 0 && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">{encontrosCount[m.id] || 0}/{m.total_encontros} realizados</span>
-                          <Progress value={((encontrosCount[m.id] || 0) / m.total_encontros) * 100} className="h-1.5 flex-1" />
-                        </div>
-                      )}
                     </div>
+                  </TableCell>
+                  <TableCell className="text-center">
+                    {m.total_encontros > 0 ? (
+                      <div className="space-y-1 min-w-[80px]">
+                        <span className="text-xs font-medium">{encontrosCount[m.id] || 0}/{m.total_encontros}</span>
+                        <Progress value={((encontrosCount[m.id] || 0) / m.total_encontros) * 100} className="h-1.5" />
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell><StatusBadge status={m.status as any} /></TableCell>
                   <TableCell>
-                    <a
-                      href={`https://wa.me/${m.telefone_whatsapp}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      onClick={e => e.stopPropagation()}
-                      className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                    >
-                      <Phone className="h-3.5 w-3.5" /> WhatsApp
-                    </a>
+                    {m.telefone_whatsapp ? (
+                      <a
+                        href={`https://wa.me/${cleanPhone(m.telefone_whatsapp)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        onClick={e => e.stopPropagation()}
+                        className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
+                      >
+                        <Phone className="h-3.5 w-3.5" /> WhatsApp
+                      </a>
+                    ) : (
+                      <span className="text-xs text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1">
@@ -238,7 +254,7 @@ export default function MentoradosPage() {
                 </TableRow>
               ))}
               {filtered.length === 0 && (
-                <TableRow><TableCell colSpan={5} className="text-center py-8 text-muted-foreground">Nenhum mentorado encontrado.</TableCell></TableRow>
+                <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum mentorado encontrado.</TableCell></TableRow>
               )}
             </TableBody>
           </Table>
