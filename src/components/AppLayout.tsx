@@ -11,7 +11,6 @@ import { useMentorados, useMentores } from '@/hooks/useSupabaseData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ChangePinModal } from '@/components/PinModal';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },

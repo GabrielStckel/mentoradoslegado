@@ -11,7 +11,6 @@ import { Skeleton } from '@/components/ui/skeleton';
 import MeetingModal from '@/components/MeetingModal';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
 import QuickSessionModal from '@/components/QuickSessionModal';
-import PinModal, { usePinGate } from '@/components/PinModal';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 type TimeRange = 'dia' | 'semana' | 'mes';
@@ -25,7 +24,6 @@ export default function EncontrosPage() {
   const [mentoradoSearch, setMentoradoSearch] = useState('');
   const [selectedMentorado, setSelectedMentorado] = useState<any>(null);
   const isMobile = useIsMobile();
-  const { pinOpen, setPinOpen, requirePin, onPinSuccess } = usePinGate();
 
   const { data: encontros = [], isLoading } = useEncontros();
   const { data: mentorados = [] } = useMentorados();
@@ -63,8 +61,8 @@ export default function EncontrosPage() {
 
   const handleQuickStatus = useCallback((e: React.MouseEvent, id: string, status: string) => {
     e.stopPropagation();
-    requirePin(() => updateStatus.mutate({ id, status }));
-  }, [updateStatus, requirePin]);
+    updateStatus.mutate({ id, status });
+  }, [updateStatus]);
 
   if (isLoading) return <div className="space-y-6"><Skeleton className="h-8 w-48" /><Skeleton className="h-64 w-full" /></div>;
 
@@ -250,7 +248,7 @@ export default function EncontrosPage() {
         mentorado={selectedEncontro ? mentorados.find(m => m.id === selectedEncontro.mentorado_id) as any : undefined}
         open={!!selectedEncontro}
         onOpenChange={(o) => !o && setSelectedEncontro(null)}
-        onStatusChange={(id, status) => requirePin(() => updateStatus.mutate({ id, status }))}
+        onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
       />
 
       <QuickSessionModal
@@ -258,8 +256,6 @@ export default function EncontrosPage() {
         open={!!selectedMentorado}
         onOpenChange={(o) => !o && setSelectedMentorado(null)}
       />
-
-      <PinModal open={pinOpen} onOpenChange={setPinOpen} onSuccess={onPinSuccess} />
     </div>
   );
 }

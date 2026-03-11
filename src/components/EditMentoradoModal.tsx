@@ -12,7 +12,9 @@ import { toast } from 'sonner';
 import { Settings, Trash2 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import OrigensManagerModal from '@/components/OrigensManagerModal';
-import PinModal, { usePinGate } from '@/components/PinModal';
+import { PhoneInput } from '@/components/PhoneInput';
+import EmailInput from '@/components/EmailInput';
+import CityInput from '@/components/CityInput';
 
 interface Props {
   mentorado: any | null;
@@ -24,7 +26,6 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
   const queryClient = useQueryClient();
   const { data: origens = [] } = useOrigens();
   const [showOrigens, setShowOrigens] = useState(false);
-  const { pinOpen, setPinOpen, requirePin, onPinSuccess } = usePinGate();
 
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -34,11 +35,12 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
   const [status, setStatus] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [totalEncontros, setTotalEncontros] = useState('0');
+
   useEffect(() => {
     if (mentorado && open) {
       setNome(mentorado.nome || '');
       setEmail(mentorado.email || '');
-      setTelefone(mentorado.telefone_whatsapp || '');
+      setTelefone(mentorado.telefone_whatsapp?.replace(/\D/g, '') || '');
       setCidade(mentorado.cidade || '');
       setOrigem(mentorado.origem || 'Outro');
       setStatus(mentorado.status || 'Novo');
@@ -90,11 +92,7 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    requirePin(() => mutation.mutate());
-  };
-
-  const handleDelete = () => {
-    requirePin(() => deleteMutation.mutate());
+    mutation.mutate();
   };
 
   return (
@@ -112,17 +110,17 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="edit-email">Email</Label>
-                <Input id="edit-email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+                <EmailInput value={email} onValueChange={setEmail} />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="edit-telefone">WhatsApp</Label>
-                <Input id="edit-telefone" value={telefone} onChange={e => setTelefone(e.target.value)} />
+                <PhoneInput value={telefone} onValueChange={setTelefone} />
               </div>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">
                 <Label htmlFor="edit-cidade">Cidade</Label>
-                <Input id="edit-cidade" value={cidade} onChange={e => setCidade(e.target.value)} />
+                <CityInput value={cidade} onValueChange={setCidade} />
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
@@ -175,7 +173,7 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
                   </AlertDialogHeader>
                   <AlertDialogFooter>
                     <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
                       Excluir
                     </AlertDialogAction>
                   </AlertDialogFooter>
@@ -191,7 +189,6 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
           </form>
         </DialogContent>
       </Dialog>
-      <PinModal open={pinOpen} onOpenChange={setPinOpen} onSuccess={onPinSuccess} />
       <OrigensManagerModal open={showOrigens} onOpenChange={setShowOrigens} />
     </>
   );

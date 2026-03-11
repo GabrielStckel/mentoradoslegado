@@ -12,6 +12,9 @@ import { useOrigens } from '@/hooks/useSupabaseData';
 import { toast } from 'sonner';
 import { Settings, ChevronDown } from 'lucide-react';
 import OrigensManagerModal from '@/components/OrigensManagerModal';
+import { PhoneInput } from '@/components/PhoneInput';
+import EmailInput from '@/components/EmailInput';
+import CityInput from '@/components/CityInput';
 
 interface Props {
   open: boolean;
@@ -74,7 +77,7 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
           </div>
           <div className="space-y-2">
             <Label htmlFor="telefone">WhatsApp</Label>
-            <Input id="telefone" value={telefone} onChange={e => setTelefone(e.target.value)} placeholder="(00) 00000-0000" />
+            <PhoneInput value={telefone} onValueChange={setTelefone} />
           </div>
           <div className="space-y-2">
             <Label htmlFor="totalEncontros">Nº de encontros contratados</Label>
@@ -91,12 +94,12 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
             <CollapsibleContent className="space-y-4 pt-2">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
-                <Input id="email" type="email" value={email} onChange={e => setEmail(e.target.value)} />
+                <EmailInput value={email} onValueChange={setEmail} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="cidade">Cidade</Label>
-                  <Input id="cidade" value={cidade} onChange={e => setCidade(e.target.value)} />
+                  <CityInput value={cidade} onValueChange={setCidade} />
                 </div>
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
