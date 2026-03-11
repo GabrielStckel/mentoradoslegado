@@ -139,6 +139,7 @@ export default function CalendarioPage() {
         onOpenChange={(o) => !o && setSelectedEncontro(null)}
         onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
         onDelete={(e) => { deleteEncontro.mutate({ id: e.id, google_event_id: e.google_event_id }); setSelectedEncontro(null); }}
+        onRevertToVago={(e) => { revertToVago.mutate({ id: e.id, mentor_id: e.mentor_id, google_event_id: e.google_event_id }); setSelectedEncontro(null); }}
       />
     </div>
   );
