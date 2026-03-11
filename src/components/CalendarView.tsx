@@ -104,7 +104,7 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                     isToday && 'bg-primary/8 ring-1 ring-inset ring-primary/30',
                     holiday && 'bg-destructive/5',
                   )}
-                  onClick={() => { setCurrentDate(d); setView('day'); }}
+                  onClick={() => setSelectedDay(d)}
                 >
                   <div className={cn(
                     'text-xs font-medium mb-0.5 flex items-center justify-center rounded-full mx-auto',
