@@ -127,6 +127,20 @@ async function importEventsBatchForUser(
   const batchEventIds = validEvents.map((evt: any) => evt.id);
 
   const { mentorId, mentoradoId } = await getOrCreateDefaults(supabaseAdmin, tokens.user_id);
+  
+  // Skip import if no mentorado exists to assign events to
+  if (!mentoradoId) {
+    console.log(`Skipping import for user=${tokens.user_id}: no mentorado found`);
+    return {
+      batchProcessed: validEvents.length,
+      batchImported: 0,
+      batchUpdated: 0,
+      batchEventIds: batchEventIds,
+      nextPageToken: data.nextPageToken || null,
+      done: !data.nextPageToken,
+    };
+  }
+
   const mentorIds = await getUserMentorIds(supabaseAdmin, tokens.user_id);
   if (!mentorIds.includes(mentorId)) mentorIds.push(mentorId);
 
