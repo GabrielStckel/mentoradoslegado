@@ -25,6 +25,7 @@ interface Props {
 export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Props) {
   const queryClient = useQueryClient();
   const { data: origens = [] } = useOrigens();
+  const { data: statusListData = [] } = useStatusMentorado();
   const [showOrigens, setShowOrigens] = useState(false);
 
   const [nome, setNome] = useState('');
