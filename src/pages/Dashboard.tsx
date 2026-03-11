@@ -272,7 +272,8 @@ export default function Dashboard() {
                     <StatusBadge status={e.status as any} />
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </CardContent>
         </Card>
