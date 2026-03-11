@@ -33,7 +33,7 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
   const [origem, setOrigem] = useState('');
   const [status, setStatus] = useState('');
   const [observacoes, setObservacoes] = useState('');
-
+  const [totalEncontros, setTotalEncontros] = useState('0');
   useEffect(() => {
     if (mentorado && open) {
       setNome(mentorado.nome || '');
