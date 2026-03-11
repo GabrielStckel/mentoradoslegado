@@ -33,7 +33,7 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
   const [origem, setOrigem] = useState('');
   const [status, setStatus] = useState('');
   const [observacoes, setObservacoes] = useState('');
-
+  const [totalEncontros, setTotalEncontros] = useState('0');
   useEffect(() => {
     if (mentorado && open) {
       setNome(mentorado.nome || '');
@@ -43,6 +43,7 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
       setOrigem(mentorado.origem || 'Outro');
       setStatus(mentorado.status || 'Novo');
       setObservacoes(mentorado.observacoes_gerais || '');
+      setTotalEncontros(String(mentorado.total_encontros || 0));
     }
   }, [mentorado, open]);
 
@@ -57,6 +58,7 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
         origem,
         status,
         observacoes_gerais: observacoes,
+        total_encontros: parseInt(totalEncontros) || 0,
       }).eq('id', mentorado.id);
       if (error) throw error;
     },
@@ -148,6 +150,10 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
                   <SelectItem value="Finalizado">Finalizado</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="edit-total">Nº encontros contratados</Label>
+              <Input id="edit-total" type="number" min="0" value={totalEncontros} onChange={e => setTotalEncontros(e.target.value)} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="edit-obs">Observações</Label>

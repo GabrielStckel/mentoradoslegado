@@ -29,10 +29,11 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
   const [cidade, setCidade] = useState('');
   const [origem, setOrigem] = useState('Outro');
   const [observacoes, setObservacoes] = useState('');
+  const [totalEncontros, setTotalEncontros] = useState('12');
 
   const reset = () => {
     setNome(''); setEmail(''); setTelefone(''); setCidade('');
-    setOrigem('Outro'); setObservacoes(''); setShowMore(false);
+    setOrigem('Outro'); setObservacoes(''); setShowMore(false); setTotalEncontros('12');
   };
 
   const mutation = useMutation({
@@ -44,6 +45,7 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
         cidade,
         origem,
         observacoes_gerais: observacoes,
+        total_encontros: parseInt(totalEncontros) || 0,
       });
       if (error) throw error;
     },
@@ -73,6 +75,10 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
           <div className="space-y-2">
             <Label htmlFor="telefone">WhatsApp</Label>
             <Input id="telefone" value={telefone} onChange={e => setTelefone(e.target.value)} placeholder="(00) 00000-0000" />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="totalEncontros">Nº de encontros contratados</Label>
+            <Input id="totalEncontros" type="number" min="1" value={totalEncontros} onChange={e => setTotalEncontros(e.target.value)} placeholder="12" />
           </div>
 
           <Collapsible open={showMore} onOpenChange={setShowMore}>
