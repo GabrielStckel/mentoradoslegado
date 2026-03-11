@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from 'react';
 import { Input } from '@/components/ui/input';
-import { useMentorados } from '@/hooks/useSupabaseData';
+import { BRAZILIAN_CITIES } from '@/data/brazilianCities';
 
 interface CityInputProps extends Omit<React.ComponentProps<'input'>, 'onChange' | 'value'> {
   value: string;
@@ -10,19 +10,12 @@ interface CityInputProps extends Omit<React.ComponentProps<'input'>, 'onChange' 
 export default function CityInput({ value, onValueChange, ...props }: CityInputProps) {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const { data: mentorados = [] } = useMentorados();
-
-  const cities = useMemo(() => {
-    const set = new Set<string>();
-    mentorados.forEach(m => { if (m.cidade?.trim()) set.add(m.cidade.trim()); });
-    return Array.from(set).sort();
-  }, [mentorados]);
 
   const filtered = useMemo(() => {
-    if (!value.trim()) return cities.slice(0, 8);
+    if (!value.trim()) return BRAZILIAN_CITIES.slice(0, 10);
     const q = value.toLowerCase();
-    return cities.filter(c => c.toLowerCase().includes(q)).slice(0, 8);
-  }, [value, cities]);
+    return BRAZILIAN_CITIES.filter(c => c.toLowerCase().includes(q)).slice(0, 10);
+  }, [value]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
