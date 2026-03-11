@@ -248,10 +248,12 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
               {proximos.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">Nenhum encontro agendado.</p>}
-              {proximos.map((e) => (
+              {proximos.map((e) => {
+                const isPast = new Date(e.fim) < new Date();
+                return (
                 <div
                   key={e.id}
-                  className="flex items-center justify-between p-3 rounded-lg border bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer"
+                  className={`flex items-center justify-between p-3 rounded-lg border transition-colors cursor-pointer ${isPast ? 'bg-muted/40 opacity-50' : 'bg-secondary/20 hover:bg-secondary/40'}`}
                   onClick={() => setSelectedEncontro(e)}
                 >
                   <div className="flex items-center gap-2 md:gap-3 min-w-0">
