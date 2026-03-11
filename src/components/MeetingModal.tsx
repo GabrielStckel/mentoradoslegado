@@ -24,9 +24,10 @@ interface Props {
   onDelete?: (encontro: Encontro) => void;
 }
 
-export default function MeetingModal({ encontro, mentorado, mentor, open, onOpenChange, onStatusChange }: Props) {
+export default function MeetingModal({ encontro, mentorado, mentor, open, onOpenChange, onStatusChange, onDelete }: Props) {
   const { connected, syncEvent } = useGoogleCalendar();
   const [syncing, setSyncing] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
 
   if (!encontro) return null;
 
