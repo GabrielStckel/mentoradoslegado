@@ -79,7 +79,7 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
           const { error: obsError } = await supabase.from('historicos').insert({
             mentorado_id: mentoradoId,
             mentor_id: logMentorId,
-            tipo: 'Observação',
+           tipo: 'Observação da Sessão',
             conteudo: `[Sessão #${newRealizados}] ${obs}`,
             visibilidade: 'Admin',
           });
