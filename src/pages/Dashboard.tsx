@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus, Eye, Target, TrendingUp } from 'lucide-react';
-import { useMentorados, useEncontros } from '@/hooks/useSupabaseData';
+import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus, Eye, Target, TrendingUp, Search } from 'lucide-react';
+import { useMentorados, useEncontros, useUpdateEncontroStatus, useDeleteEncontro } from '@/hooks/useSupabaseData';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Progress } from '@/components/ui/progress';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -21,6 +22,9 @@ export default function Dashboard() {
   const [showNovo, setShowNovo] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('semana');
   const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const updateStatus = useUpdateEncontroStatus();
+  const deleteEncontro = useDeleteEncontro();
 
   const loading = loadingM || loadingE;
 
@@ -38,6 +42,12 @@ export default function Dashboard() {
     }),
   [encontros, rangeFilter]);
 
+  const mentoradoMap = useMemo(() => {
+    const m: Record<string, string> = {};
+    mentorados.forEach(mt => { m[mt.id] = mt.nome; });
+    return m;
+  }, [mentorados]);
+
   const stats = useMemo(() => {
     const ativos = mentorados.filter(m => m.status === 'Ativo').length;
     const total = encontrosNoRange.length;
@@ -47,17 +57,18 @@ export default function Dashboard() {
     return { ativos, total, agendados, cancelados, faltas };
   }, [mentorados, encontrosNoRange]);
 
-  const proximos = useMemo(() =>
-    encontrosNoRange
-      .filter(e => new Date(e.inicio) >= new Date() && e.status === 'Agendado')
-      .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime()),
-  [encontrosNoRange]);
-
-  const mentoradoMap = useMemo(() => {
-    const m: Record<string, string> = {};
-    mentorados.forEach(mt => { m[mt.id] = mt.nome; });
-    return m;
-  }, [mentorados]);
+  const proximos = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return encontrosNoRange
+      .filter(e => {
+        if (e.titulo === 'VAGO') return false;
+        if (new Date(e.inicio) < new Date()) return false;
+        if (e.status !== 'Agendado') return false;
+        if (q && !e.titulo.toLowerCase().includes(q) && !(mentoradoMap[e.mentorado_id] || '').toLowerCase().includes(q)) return false;
+        return true;
+      })
+      .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
+  }, [encontrosNoRange, searchQuery, mentoradoMap]);
 
   const encontrosCount = useMemo(() => {
     const map: Record<string, number> = {};
@@ -144,6 +155,17 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar por título ou mentorado..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       {/* Two columns: Mentorados (left) + Próximos Encontros (right) */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Próximos Encontros de Mentorados - LEFT */}
@@ -161,9 +183,16 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
               {(() => {
+                const q = searchQuery.toLowerCase();
                 const mentoradoIds = new Set(mentorados.map(m => m.id));
                 const proximosMentorados = encontrosNoRange
-                  .filter(e => e.status === 'Agendado' && mentoradoIds.has(e.mentorado_id) && mentoradoMap[e.mentorado_id])
+                  .filter(e => {
+                    if (e.titulo === 'VAGO') return false;
+                    if (e.status !== 'Agendado') return false;
+                    if (!mentoradoIds.has(e.mentorado_id) || !mentoradoMap[e.mentorado_id]) return false;
+                    if (q && !e.titulo.toLowerCase().includes(q) && !(mentoradoMap[e.mentorado_id] || '').toLowerCase().includes(q)) return false;
+                    return true;
+                  })
                   .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())
                   .reduce((acc, e) => {
                     if (!acc.find(x => x.mentorado_id === e.mentorado_id)) acc.push(e);
@@ -249,6 +278,9 @@ export default function Dashboard() {
           open={!!selectedEncontro}
           onOpenChange={(open) => { if (!open) setSelectedEncontro(null); }}
           encontro={selectedEncontro}
+          mentorado={mentorados.find(m => m.id === selectedEncontro.mentorado_id) as any}
+          onStatusChange={(id, status) => { updateStatus.mutate({ id, status }); setSelectedEncontro(null); }}
+          onDelete={(e) => { deleteEncontro.mutate({ id: e.id, google_event_id: e.google_event_id }); setSelectedEncontro(null); }}
         />
       )}
     </div>
