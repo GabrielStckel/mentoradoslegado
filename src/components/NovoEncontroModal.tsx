@@ -218,6 +218,53 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
               </Popover>
             </div>
 
+            {dataSelecionada && (() => {
+              const encontrosDoDia = encontros
+                .filter(e => isSameDay(new Date(e.inicio), dataSelecionada) && e.status !== 'Cancelado' && e.titulo !== 'VAGO')
+                .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
+
+              // Check for time conflict
+              const hasConflict = horaInicio && horaFim && dataSelecionada && encontrosDoDia.some(e => {
+                const dateStr = format(dataSelecionada, 'yyyy-MM-dd');
+                const newStart = new Date(`${dateStr}T${horaInicio}`).getTime();
+                const newEnd = new Date(`${dateStr}T${horaFim}`).getTime();
+                const eStart = new Date(e.inicio).getTime();
+                const eFim = new Date(e.fim).getTime();
+                return newStart < eFim && newEnd > eStart;
+              });
+
+              return (
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5 text-primary" />
+                    Agenda do dia — {format(dataSelecionada, "dd/MM (EEEE)", { locale: ptBR })}
+                  </Label>
+                  {encontrosDoDia.length === 0 ? (
+                    <p className="text-xs text-muted-foreground bg-secondary/30 rounded-lg px-3 py-2">
+                      ✅ Dia livre — nenhum compromisso agendado.
+                    </p>
+                  ) : (
+                    <div className="space-y-1 max-h-32 overflow-y-auto">
+                      {encontrosDoDia.map(e => (
+                        <div key={e.id} className="flex items-center gap-2 text-xs bg-secondary/30 rounded-md px-3 py-1.5">
+                          <span className="font-semibold text-foreground flex-shrink-0">
+                            {format(new Date(e.inicio), 'HH:mm')} - {format(new Date(e.fim), 'HH:mm')}
+                          </span>
+                          <span className="text-muted-foreground truncate">{e.titulo}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {hasConflict && (
+                    <div className="flex items-center gap-1.5 text-xs text-destructive bg-destructive/10 rounded-md px-3 py-1.5">
+                      <AlertTriangle className="h-3.5 w-3.5 flex-shrink-0" />
+                      <span>Conflito de horário com um compromisso existente!</span>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label className="text-base font-semibold">🕐 Início *</Label>
