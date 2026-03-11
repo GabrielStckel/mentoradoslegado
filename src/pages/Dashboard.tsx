@@ -14,7 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
 import MeetingModal from '@/components/MeetingModal';
 
-type TimeRange = 'dia' | 'semana' | 'mes';
+type TimeRange = 'dia' | 'semana' | 'mes' | '3meses' | '6meses' | '9meses' | '1ano';
 
 export default function Dashboard() {
   const navigate = useNavigate();
