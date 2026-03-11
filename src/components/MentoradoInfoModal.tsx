@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Mail, Phone, MapPin, User, Plus, Pencil, Trash2, X, Check, Clock, CalendarDays } from 'lucide-react';
+import { whatsappLink } from '@/lib/phone';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
