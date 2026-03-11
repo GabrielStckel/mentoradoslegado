@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Clock, MapPin, Link2, ExternalLink, Send, Trash2 } from 'lucide-react';
+import { Clock, MapPin, Link2, ExternalLink, Send, Trash2, UserMinus } from 'lucide-react';
 import { whatsappLink } from '@/lib/phone';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
