@@ -58,6 +58,7 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
         origem,
         status,
         observacoes_gerais: observacoes,
+        total_encontros: parseInt(totalEncontros) || 0,
       }).eq('id', mentorado.id);
       if (error) throw error;
     },
