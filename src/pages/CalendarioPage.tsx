@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useEncontros, useMentorados, useMentores, useUpdateEncontroStatus, useDeleteEncontro } from '@/hooks/useSupabaseData';
+import { useEncontros, useMentorados, useMentores, useUpdateEncontroStatus, useDeleteEncontro, useRevertToVago } from '@/hooks/useSupabaseData';
 import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 import CalendarView from '@/components/CalendarView';
 import MeetingModal from '@/components/MeetingModal';
