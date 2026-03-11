@@ -42,6 +42,7 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
   const [dataPopoverOpen, setDataPopoverOpen] = useState(false);
   const [horaInicio, setHoraInicio] = useState('');
   const [horaFim, setHoraFim] = useState('');
+  const [replacingVagoId, setReplacingVagoId] = useState<string | null>(null);
 
   // Auto-calculate end time (1h30min after start)
   const handleHoraInicioChange = (value: string) => {
@@ -62,7 +63,16 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
     setTitulo(''); setMentoradoId('');
     setLocal('Online'); setDataSelecionada(undefined); setDataPopoverOpen(false);
     setHoraInicio(''); setHoraFim('');
-    setObservacao('');
+    setObservacao(''); setReplacingVagoId(null);
+  };
+
+  const handleSelectVago = (encontro: any) => {
+    const inicio = new Date(encontro.inicio);
+    const fim = new Date(encontro.fim);
+    setHoraInicio(format(inicio, 'HH:mm'));
+    setHoraFim(format(fim, 'HH:mm'));
+    setReplacingVagoId(encontro.id);
+    toast.info('Horário VAGO selecionado — preencha os dados e salve para substituir.');
   };
 
   const mutation = useMutation({
