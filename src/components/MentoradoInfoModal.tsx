@@ -311,7 +311,7 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
                     <span className="text-xs text-muted-foreground w-20 flex-shrink-0">
                       {format(new Date(e.inicio), 'dd/MM/yyyy')}
                     </span>
-                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-blue-500/10 text-blue-600 flex-shrink-0">Agenda</span>
+                    <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary/10 text-primary flex-shrink-0">Agenda</span>
                     <span className="text-xs font-medium truncate">{e.titulo}</span>
                   </div>
                 ))}
