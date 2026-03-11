@@ -157,10 +157,12 @@ export default function EncontrosPage() {
       {/* Mobile: Card layout */}
       {isMobile ? (
         <div className="space-y-2">
-          {filtered.map(e => (
+          {filtered.map(e => {
+            const isPast = new Date(e.fim) < new Date();
+            return (
             <div
               key={e.id}
-              className="rounded-xl border bg-card p-4 space-y-2 active:bg-secondary/40"
+              className={`rounded-xl border p-4 space-y-2 ${isPast ? 'bg-muted/40 opacity-50' : 'bg-card active:bg-secondary/40'}`}
               onClick={() => setSelectedEncontro(e)}
             >
               <div className="flex items-start justify-between gap-2">
