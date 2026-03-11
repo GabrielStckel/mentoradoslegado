@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Encontro, Mentor } from '@/types';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { isHoliday } from '@/data/holidays';
 
 type ViewMode = 'day' | 'week' | 'month';
 
