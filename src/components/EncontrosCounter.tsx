@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePinSettings } from '@/hooks/usePinSettings';
 import { PinVerifyModal } from '@/components/PinModal';
 import { Button } from '@/components/ui/button';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 import { Plus, Minus } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,7 +22,10 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
   const { data: pinSettings } = usePinSettings();
   const { user } = useAuth();
   const [showPin, setShowPin] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [pendingAction, setPendingAction] = useState<'add' | 'remove' | null>(null);
+
+  const pinEnabled = !!(pinSettings?.pin && pinSettings.enabled);
 
   const mutation = useMutation({
     mutationFn: async (action: 'add' | 'remove') => {
@@ -33,7 +37,6 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
         .eq('id', mentoradoId);
       if (updateError) throw updateError;
 
-      // Log to historicos
       const logMentorId = mentorId || user?.id || mentoradoId;
       const { error: logError } = await supabase.from('historicos').insert({
         mentorado_id: mentoradoId,
@@ -55,20 +58,28 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
   });
 
   const handleAction = (action: 'add' | 'remove') => {
-    if (pinSettings?.pin && pinSettings.enabled) {
-      setPendingAction(action);
+    setPendingAction(action);
+    if (pinEnabled) {
       setShowPin(true);
     } else {
-      mutation.mutate(action);
+      setShowConfirm(true);
     }
   };
 
-  const handlePinVerified = () => {
+  const handleConfirmed = () => {
     if (pendingAction) {
       mutation.mutate(pendingAction);
       setPendingAction(null);
     }
   };
+
+  const handlePinVerified = () => {
+    handleConfirmed();
+  };
+
+  const confirmMessage = pendingAction === 'add'
+    ? `Marcar mais 1 encontro realizado para ${mentoradoNome}? (${realizados} → ${realizados + 1})`
+    : `Remover 1 encontro realizado de ${mentoradoNome}? (${realizados} → ${Math.max(0, realizados - 1)})`;
 
   return (
     <>
@@ -98,6 +109,20 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
         </Button>
       </div>
       <PinVerifyModal open={showPin} onOpenChange={setShowPin} onVerified={handlePinVerified} />
+      <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Confirmar alteração</AlertDialogTitle>
+            <AlertDialogDescription>{confirmMessage}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setPendingAction(null)}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={() => { setShowConfirm(false); handleConfirmed(); }}>
+              Confirmar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
