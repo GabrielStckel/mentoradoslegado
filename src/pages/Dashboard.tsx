@@ -42,6 +42,12 @@ export default function Dashboard() {
     }),
   [encontros, rangeFilter]);
 
+  const mentoradoMap = useMemo(() => {
+    const m: Record<string, string> = {};
+    mentorados.forEach(mt => { m[mt.id] = mt.nome; });
+    return m;
+  }, [mentorados]);
+
   const stats = useMemo(() => {
     const ativos = mentorados.filter(m => m.status === 'Ativo').length;
     const total = encontrosNoRange.length;
@@ -63,12 +69,6 @@ export default function Dashboard() {
       })
       .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
   }, [encontrosNoRange, searchQuery, mentoradoMap]);
-
-  const mentoradoMap = useMemo(() => {
-    const m: Record<string, string> = {};
-    mentorados.forEach(mt => { m[mt.id] = mt.nome; });
-    return m;
-  }, [mentorados]);
 
   const encontrosCount = useMemo(() => {
     const map: Record<string, number> = {};
