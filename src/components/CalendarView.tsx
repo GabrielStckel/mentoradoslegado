@@ -110,9 +110,13 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                     isMobile ? 'w-6 h-6' : 'w-6 h-6',
                     isToday && 'bg-primary text-primary-foreground',
                     !isCurrentMonth && 'text-muted-foreground/50',
+                    holiday && !isToday && 'text-destructive',
                   )}>
                     {format(d, 'd')}
                   </div>
+                  {holiday && !isMobile && (
+                    <p className="text-[9px] text-destructive font-medium truncate text-center leading-tight">{holiday.name}</p>
+                  )}
                   <div className="space-y-0.5">
                     {isMobile ? (
                       events.length > 0 && (
