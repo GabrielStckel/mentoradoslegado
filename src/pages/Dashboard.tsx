@@ -155,6 +155,17 @@ export default function Dashboard() {
         ))}
       </div>
 
+      {/* Search */}
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+        <Input
+          placeholder="Buscar por título ou mentorado..."
+          value={searchQuery}
+          onChange={e => setSearchQuery(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       {/* Two columns: Mentorados (left) + Próximos Encontros (right) */}
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Próximos Encontros de Mentorados - LEFT */}
