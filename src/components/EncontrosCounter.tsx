@@ -4,9 +4,12 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePinSettings } from '@/hooks/usePinSettings';
 import { PinVerifyModal } from '@/components/PinModal';
 import { Button } from '@/components/ui/button';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Minus } from 'lucide-react';
+import { Plus, Minus, Save } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
@@ -23,12 +26,14 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
   const { user } = useAuth();
   const [showPin, setShowPin] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showObservacao, setShowObservacao] = useState(false);
+  const [observacao, setObservacao] = useState('');
   const [pendingAction, setPendingAction] = useState<'add' | 'remove' | null>(null);
 
   const pinEnabled = !!(pinSettings?.pin && pinSettings.enabled);
 
   const mutation = useMutation({
-    mutationFn: async (action: 'add' | 'remove') => {
+    mutationFn: async ({ action, obs }: { action: 'add' | 'remove'; obs?: string }) => {
       const newRealizados = action === 'add' ? realizados + 1 : Math.max(0, realizados - 1);
 
       const { error: updateError } = await supabase
@@ -38,12 +43,14 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
       if (updateError) throw updateError;
 
       const logMentorId = mentorId || user?.id || mentoradoId;
+
+      // Log the counter change
       const { error: logError } = await supabase.from('historicos').insert({
         mentorado_id: mentoradoId,
         mentor_id: logMentorId,
-        tipo: 'Observação',
+        tipo: 'Sessão Realizada',
         conteudo: action === 'add'
-          ? `Encontros realizados alterados: ${realizados} → ${newRealizados} (+1)`
+          ? `Encontro realizado #${newRealizados}${obs ? ` — ${obs}` : ''}`
           : `Encontros realizados alterados: ${realizados} → ${newRealizados} (-1)`,
         visibilidade: 'Admin',
       });
@@ -67,10 +74,27 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
   };
 
   const handleConfirmed = () => {
-    if (pendingAction) {
-      mutation.mutate(pendingAction);
+    if (pendingAction === 'add') {
+      // Show observation dialog for add
+      setShowObservacao(true);
+    } else if (pendingAction) {
+      mutation.mutate({ action: pendingAction });
       setPendingAction(null);
     }
+  };
+
+  const handleSaveObservacao = () => {
+    mutation.mutate({ action: 'add', obs: observacao.trim() || undefined });
+    setShowObservacao(false);
+    setObservacao('');
+    setPendingAction(null);
+  };
+
+  const handleSkipObservacao = () => {
+    mutation.mutate({ action: 'add' });
+    setShowObservacao(false);
+    setObservacao('');
+    setPendingAction(null);
   };
 
   const handlePinVerified = () => {
@@ -108,7 +132,9 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
           <Plus className="h-3 w-3" />
         </Button>
       </div>
+
       <PinVerifyModal open={showPin} onOpenChange={setShowPin} onVerified={handlePinVerified} />
+
       <AlertDialog open={showConfirm} onOpenChange={setShowConfirm}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -123,6 +149,37 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Observation dialog after confirming + */}
+      <Dialog open={showObservacao} onOpenChange={(o) => { if (!o) handleSkipObservacao(); }}>
+        <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
+          <DialogHeader>
+            <DialogTitle className="text-base">Observação da sessão</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <p className="text-sm text-muted-foreground">
+              Sessão #{realizados + 1} de {mentoradoNome} registrada. Deseja adicionar uma observação?
+            </p>
+            <Textarea
+              value={observacao}
+              onChange={e => setObservacao(e.target.value)}
+              rows={3}
+              placeholder="Como foi a sessão..."
+              className="text-sm"
+              autoFocus
+            />
+          </div>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={handleSkipObservacao}>
+              Pular
+            </Button>
+            <Button onClick={handleSaveObservacao} disabled={mutation.isPending}>
+              <Save className="h-3.5 w-3.5 mr-1.5" />
+              Salvar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
