@@ -43,6 +43,7 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
       setOrigem(mentorado.origem || 'Outro');
       setStatus(mentorado.status || 'Novo');
       setObservacoes(mentorado.observacoes_gerais || '');
+      setTotalEncontros(String(mentorado.total_encontros || 0));
     }
   }, [mentorado, open]);
 
