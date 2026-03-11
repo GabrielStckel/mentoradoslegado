@@ -202,7 +202,9 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
             {/* Time labels */}
             <div className={cn(timeColWidth, 'flex-shrink-0')}>
               {HOURS.map(h => (
-                <div key={h} className="border-r border-b relative" style={{ height: HOUR_HEIGHT }}>
+                <div key={h} className="border-r relative" style={{ height: HOUR_HEIGHT }}>
+                  <div className="absolute w-full border-b border-border/30" style={{ top: HOUR_HEIGHT / 2 }} />
+                  <div className="absolute w-full border-b" style={{ top: HOUR_HEIGHT - 1 }} />
                   <span className={cn(
                     'absolute -top-2 right-1 text-muted-foreground',
                     isMobile ? 'text-[9px]' : 'text-[10px] right-2',
