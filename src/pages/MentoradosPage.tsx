@@ -1,8 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Phone, CalendarPlus, Pencil, Eye } from 'lucide-react';
 import EncontrosCounter from '@/components/EncontrosCounter';
-import { useMentorados, useEncontros } from '@/hooks/useSupabaseData';
+import { useMentorados } from '@/hooks/useSupabaseData';
 import NovoMentoradoModal from '@/components/NovoMentoradoModal';
 import EditMentoradoModal from '@/components/EditMentoradoModal';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
