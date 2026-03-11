@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Edit, Phone, Mail, MapPin, CalendarPlus, Clock, CheckCircle, XCircle, Target, BarChart3 } from 'lucide-react';
 import { useMentorados, useEncontros, useHistoricos, useMentores } from '@/hooks/useSupabaseData';
 import { StatusBadge, TagBadge, TipoBadge } from '@/components/StatusBadge';
