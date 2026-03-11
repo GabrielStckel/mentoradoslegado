@@ -250,6 +250,7 @@ export default function EncontrosPage() {
         open={!!selectedEncontro}
         onOpenChange={(o) => !o && setSelectedEncontro(null)}
         onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
+        onDelete={(e) => { deleteEncontro.mutate({ id: e.id, google_event_id: e.google_event_id }); setSelectedEncontro(null); }}
       />
 
       <QuickSessionModal
