@@ -127,7 +127,7 @@ export default function MentoradosPage() {
                   </Button>
                   {m.telefone_whatsapp && (
                     <a
-                      href={`https://wa.me/${cleanPhone(m.telefone_whatsapp)}`}
+                      href={whatsappLink(m.telefone_whatsapp)}
                       target="_blank"
                       rel="noopener noreferrer"
                       onClick={e => e.stopPropagation()}
