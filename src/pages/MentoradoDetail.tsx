@@ -18,6 +18,8 @@ import { ptBR } from 'date-fns/locale';
 export default function MentoradoDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fromDashboard = searchParams.get('from') === 'dashboard';
   const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
   const [showEdit, setShowEdit] = useState(false);
   const [showNovoEncontro, setShowNovoEncontro] = useState(false);
