@@ -12,11 +12,11 @@ import { Textarea } from '@/components/ui/textarea';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Calendar } from '@/components/ui/calendar';
-import { useMentorados, useMentores, useLocais } from '@/hooks/useSupabaseData';
+import { useMentorados, useMentores, useLocais, useEncontros } from '@/hooks/useSupabaseData';
 import { toast } from 'sonner';
-import { Check, ChevronsUpDown, CalendarIcon, Settings2 } from 'lucide-react';
+import { Check, ChevronsUpDown, CalendarIcon, Settings2, Clock, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { format } from 'date-fns';
+import { format, isSameDay } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import LocaisManagerModal from '@/components/LocaisManagerModal';
 
