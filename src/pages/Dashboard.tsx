@@ -32,9 +32,14 @@ export default function Dashboard() {
 
   const now = new Date();
   const rangeFilter = useMemo(() => {
-    if (timeRange === 'dia') return { start: startOfDay(now), end: endOfDay(now) };
-    if (timeRange === 'semana') return { start: startOfWeek(now, { weekStartsOn: 0 }), end: endOfWeek(now, { weekStartsOn: 0 }) };
-    return { start: startOfMonth(now), end: endOfMonth(now) };
+    const n = new Date();
+    if (timeRange === 'dia') return { start: startOfDay(n), end: endOfDay(n) };
+    if (timeRange === 'semana') return { start: startOfWeek(n, { weekStartsOn: 0 }), end: endOfWeek(n, { weekStartsOn: 0 }) };
+    if (timeRange === 'mes') return { start: startOfMonth(n), end: endOfMonth(n) };
+    if (timeRange === '3meses') return { start: startOfMonth(n), end: endOfDay(addMonths(n, 3)) };
+    if (timeRange === '6meses') return { start: startOfMonth(n), end: endOfDay(addMonths(n, 6)) };
+    if (timeRange === '9meses') return { start: startOfMonth(n), end: endOfDay(addMonths(n, 9)) };
+    return { start: startOfMonth(n), end: endOfDay(addMonths(n, 12)) };
   }, [timeRange]);
 
   const encontrosNoRange = useMemo(() =>
