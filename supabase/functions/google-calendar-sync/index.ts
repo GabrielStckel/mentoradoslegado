@@ -79,7 +79,6 @@ async function getOrCreateDefaults(supabaseAdmin: any, userId: string) {
     defaultMentor = created;
   }
 
-  // Try to find an existing mentorado linked to this mentor, but DO NOT create a placeholder
   let { data: defaultMentorado } = await supabaseAdmin
     .from("mentorados")
     .select("id")
@@ -87,11 +86,20 @@ async function getOrCreateDefaults(supabaseAdmin: any, userId: string) {
     .limit(1)
     .maybeSingle();
 
-  if (!defaultMentor?.id) {
-    throw new Error("Could not create default mentor for import");
+  if (!defaultMentorado) {
+    const { data: created } = await supabaseAdmin
+      .from("mentorados")
+      .insert({ nome: "Mentorado Geral", mentor_id: defaultMentor.id })
+      .select("id")
+      .single();
+    defaultMentorado = created;
   }
 
-  return { mentorId: defaultMentor.id, mentoradoId: defaultMentorado?.id || null };
+  if (!defaultMentor?.id || !defaultMentorado?.id) {
+    throw new Error("Could not create defaults for import");
+  }
+
+  return { mentorId: defaultMentor.id, mentoradoId: defaultMentorado.id };
 }
 
 async function importEventsBatchForUser(
