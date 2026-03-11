@@ -44,9 +44,10 @@ async function getValidAccessToken(
 
 function getSyncWindow() {
   const now = new Date();
+  const future = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
   return {
-    timeMin: new Date('2026-01-01T00:00:00Z').toISOString(),
-    timeMax: new Date(now.getFullYear() + 1, 11, 31).toISOString(),
+    timeMin: now.toISOString(),
+    timeMax: future.toISOString(),
   };
 }
 
