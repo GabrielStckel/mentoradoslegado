@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Clock, MapPin, Link2, ExternalLink, Send, Trash2 } from 'lucide-react';
+import { Clock, MapPin, Link2, ExternalLink, Send, Trash2, UserMinus } from 'lucide-react';
 import { whatsappLink } from '@/lib/phone';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -22,12 +22,14 @@ interface Props {
   onOpenChange: (open: boolean) => void;
   onStatusChange?: (id: string, status: EncontroStatus) => void;
   onDelete?: (encontro: Encontro) => void;
+  onRevertToVago?: (encontro: Encontro) => void;
 }
 
-export default function MeetingModal({ encontro, mentorado, mentor, open, onOpenChange, onStatusChange, onDelete }: Props) {
+export default function MeetingModal({ encontro, mentorado, mentor, open, onOpenChange, onStatusChange, onDelete, onRevertToVago }: Props) {
   const { connected, syncEvent } = useGoogleCalendar();
   const [syncing, setSyncing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const [confirmRevert, setConfirmRevert] = useState(false);
 
   if (!encontro) return null;
 
@@ -202,32 +204,65 @@ export default function MeetingModal({ encontro, mentorado, mentor, open, onOpen
 
           <Separator />
 
-          {/* Delete section */}
-          <div className="flex justify-end">
-            {confirmDelete ? (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Tem certeza?</span>
-                <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setConfirmDelete(false)}>
-                  Cancelar
+          {/* Actions */}
+          <div className="flex justify-between flex-wrap gap-2">
+            {/* Revert to VAGO */}
+            <div>
+              {encontro.titulo !== 'VAGO' && onRevertToVago && (
+                confirmRevert ? (
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">Desmarcar mentorado?</span>
+                    <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setConfirmRevert(false)}>
+                      Não
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="default"
+                      className="text-xs h-7"
+                      onClick={() => {
+                        onRevertToVago(encontro);
+                        setConfirmRevert(false);
+                        onOpenChange(false);
+                      }}
+                    >
+                      Sim, voltar para VAGO
+                    </Button>
+                  </div>
+                ) : (
+                  <Button size="sm" variant="outline" className="text-xs h-7 text-warning border-warning/30" onClick={() => setConfirmRevert(true)}>
+                    <UserMinus className="h-3.5 w-3.5 mr-1" /> Desmarcar mentorado
+                  </Button>
+                )
+              )}
+            </div>
+
+            {/* Delete */}
+            <div>
+              {confirmDelete ? (
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Tem certeza?</span>
+                  <Button size="sm" variant="outline" className="text-xs h-7" onClick={() => setConfirmDelete(false)}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    className="text-xs h-7"
+                    onClick={() => {
+                      onDelete?.(encontro);
+                      setConfirmDelete(false);
+                      onOpenChange(false);
+                    }}
+                  >
+                    Confirmar exclusão
+                  </Button>
+                </div>
+              ) : (
+                <Button size="sm" variant="outline" className="text-xs h-7 text-destructive border-destructive/30" onClick={() => setConfirmDelete(true)}>
+                  <Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir encontro
                 </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  className="text-xs h-7"
-                  onClick={() => {
-                    onDelete?.(encontro);
-                    setConfirmDelete(false);
-                    onOpenChange(false);
-                  }}
-                >
-                  Confirmar exclusão
-                </Button>
-              </div>
-            ) : (
-              <Button size="sm" variant="outline" className="text-xs h-7 text-destructive border-destructive/30" onClick={() => setConfirmDelete(true)}>
-                <Trash2 className="h-3.5 w-3.5 mr-1" /> Excluir encontro
-              </Button>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </DialogContent>

@@ -1,7 +1,7 @@
 import { useState, useMemo, useCallback } from 'react';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { Plus, Search, UserCheck, XCircle, UserX } from 'lucide-react';
-import { useMentorados, useEncontros, useUpdateEncontroStatus, useDeleteEncontro } from '@/hooks/useSupabaseData';
+import { useMentorados, useEncontros, useUpdateEncontroStatus, useDeleteEncontro, useRevertToVago } from '@/hooks/useSupabaseData';
 import { StatusBadge, TipoBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,6 +29,7 @@ export default function EncontrosPage() {
   const { data: mentorados = [] } = useMentorados();
   const updateStatus = useUpdateEncontroStatus();
   const deleteEncontro = useDeleteEncontro();
+  const revertToVago = useRevertToVago();
   const mentoradoMap = useMemo(() => { const m: Record<string, string> = {}; mentorados.forEach(mt => { m[mt.id] = mt.nome; }); return m; }, [mentorados]);
 
   const filteredMentorados = useMemo(() => {
@@ -218,6 +219,7 @@ export default function EncontrosPage() {
         onOpenChange={(o) => !o && setSelectedEncontro(null)}
         onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
         onDelete={(e) => { deleteEncontro.mutate({ id: e.id, google_event_id: e.google_event_id }); setSelectedEncontro(null); }}
+        onRevertToVago={(e) => { revertToVago.mutate({ id: e.id, mentor_id: e.mentor_id, google_event_id: e.google_event_id }); setSelectedEncontro(null); }}
       />
 
       <QuickSessionModal

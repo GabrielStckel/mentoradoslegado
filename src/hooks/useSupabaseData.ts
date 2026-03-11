@@ -157,3 +157,60 @@ export function useDeleteEncontro() {
     },
   });
 }
+
+export function useRevertToVago() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (encontro: { id: string; mentor_id: string; google_event_id?: string | null }) => {
+      // Find or create "Mentorado Geral" placeholder
+      let { data: placeholder } = await supabase
+        .from('mentorados')
+        .select('id')
+        .eq('nome', 'Mentorado Geral')
+        .limit(1)
+        .single();
+
+      if (!placeholder) {
+        const { data: created, error: createErr } = await supabase
+          .from('mentorados')
+          .insert({ nome: 'Mentorado Geral', mentor_id: encontro.mentor_id })
+          .select('id')
+          .single();
+        if (createErr) throw createErr;
+        placeholder = created;
+      }
+
+      const { data, error } = await supabase
+        .from('encontros')
+        .update({
+          titulo: 'VAGO',
+          mentorado_id: placeholder!.id,
+          tipo: 'Sessão',
+          notas_do_mentor: '',
+          notas_operacionais: '',
+          proxima_acao: '',
+        })
+        .eq('id', encontro.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Sync with Google Calendar
+      if (data?.google_event_id) {
+        try {
+          await supabase.functions.invoke('google-calendar-sync', {
+            body: { action: 'update', encontro: data },
+          });
+        } catch (syncErr) {
+          console.error('Google Calendar sync (revert to VAGO) failed:', syncErr);
+        }
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['encontros'] });
+    },
+  });
+}

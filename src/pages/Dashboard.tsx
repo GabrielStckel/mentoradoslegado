@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus, Eye, Target, TrendingUp, Search } from 'lucide-react';
-import { useMentorados, useEncontros, useUpdateEncontroStatus, useDeleteEncontro } from '@/hooks/useSupabaseData';
+import { useMentorados, useEncontros, useUpdateEncontroStatus, useDeleteEncontro, useRevertToVago } from '@/hooks/useSupabaseData';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -25,6 +25,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const updateStatus = useUpdateEncontroStatus();
   const deleteEncontro = useDeleteEncontro();
+  const revertToVago = useRevertToVago();
 
   const loading = loadingM || loadingE;
 
@@ -288,6 +289,7 @@ export default function Dashboard() {
           mentorado={mentorados.find(m => m.id === selectedEncontro.mentorado_id) as any}
           onStatusChange={(id, status) => { updateStatus.mutate({ id, status }); setSelectedEncontro(null); }}
           onDelete={(e) => { deleteEncontro.mutate({ id: e.id, google_event_id: e.google_event_id }); setSelectedEncontro(null); }}
+          onRevertToVago={(e) => { revertToVago.mutate({ id: e.id, mentor_id: e.mentor_id, google_event_id: e.google_event_id }); setSelectedEncontro(null); }}
         />
       )}
     </div>
