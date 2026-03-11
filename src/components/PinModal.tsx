@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
-import { usePinSettings, useSetPin, useTogglePin } from '@/hooks/usePinSettings';
+import { usePinSettings, useSetPin, useTogglePin, useRemovePin } from '@/hooks/usePinSettings';
 import { toast } from 'sonner';
-import { Lock, ShieldCheck, ShieldOff, Info } from 'lucide-react';
+import { Lock, ShieldCheck, ShieldOff, Info, Trash2 } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
@@ -75,9 +75,11 @@ export function PinSettingsModal({ open, onOpenChange }: PinSetupProps) {
   const { data: pinSettings, isLoading } = usePinSettings();
   const setPin = useSetPin();
   const togglePin = useTogglePin();
+  const removePin = useRemovePin();
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
-  const [step, setStep] = useState<'view' | 'create'>('view');
+  const [removeConfirmPin, setRemoveConfirmPin] = useState('');
+  const [step, setStep] = useState<'view' | 'create' | 'remove'>('view');
   const [error, setError] = useState('');
 
   const hasPin = !!pinSettings?.pin;
@@ -111,8 +113,32 @@ export function PinSettingsModal({ open, onOpenChange }: PinSetupProps) {
     });
   };
 
+  const handleRemove = () => {
+    if (removeConfirmPin !== pinSettings?.pin) {
+      setError('PIN incorreto.');
+      return;
+    }
+    removePin.mutate(undefined, {
+      onSuccess: () => {
+        toast.success('PIN removido com sucesso!');
+        setStep('view');
+        setRemoveConfirmPin('');
+        setError('');
+      },
+      onError: (err: any) => toast.error('Erro: ' + err.message),
+    });
+  };
+
+  const resetState = () => {
+    setStep('view');
+    setNewPin('');
+    setConfirmPin('');
+    setRemoveConfirmPin('');
+    setError('');
+  };
+
   return (
-    <Dialog open={open} onOpenChange={(o) => { if (!o) { setStep('view'); setNewPin(''); setConfirmPin(''); setError(''); } onOpenChange(o); }}>
+    <Dialog open={open} onOpenChange={(o) => { if (!o) resetState(); onOpenChange(o); }}>
       <DialogContent className="sm:max-w-sm">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -156,6 +182,10 @@ export function PinSettingsModal({ open, onOpenChange }: PinSetupProps) {
                 <Button variant="outline" className="w-full" onClick={() => setStep('create')}>
                   Alterar PIN
                 </Button>
+                <Button variant="outline" className="w-full text-destructive hover:text-destructive" onClick={() => setStep('remove')}>
+                  <Trash2 className="h-3.5 w-3.5 mr-1.5" />
+                  Remover PIN
+                </Button>
               </>
             ) : (
               <Button onClick={() => setStep('create')} className="w-full">
@@ -198,6 +228,31 @@ export function PinSettingsModal({ open, onOpenChange }: PinSetupProps) {
               <Button variant="outline" onClick={() => { setStep('view'); setNewPin(''); setConfirmPin(''); setError(''); }}>Voltar</Button>
               <Button onClick={handleCreate} disabled={setPin.isPending}>
                 {setPin.isPending ? 'Salvando...' : 'Salvar PIN'}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {step === 'remove' && (
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground text-center">
+              Para remover o PIN, digite o PIN atual para confirmar.
+            </p>
+            <div className="flex justify-center">
+              <InputOTP maxLength={4} value={removeConfirmPin} onChange={(v) => { setRemoveConfirmPin(v); setError(''); }}>
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} />
+                  <InputOTPSlot index={1} />
+                  <InputOTPSlot index={2} />
+                  <InputOTPSlot index={3} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+            {error && <p className="text-xs text-destructive text-center">{error}</p>}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => { setStep('view'); setRemoveConfirmPin(''); setError(''); }}>Voltar</Button>
+              <Button variant="destructive" onClick={handleRemove} disabled={removeConfirmPin.length < 4 || removePin.isPending}>
+                {removePin.isPending ? 'Removendo...' : 'Remover PIN'}
               </Button>
             </div>
           </div>

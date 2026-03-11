@@ -74,3 +74,22 @@ export function useTogglePin() {
     },
   });
 }
+
+export function useRemovePin() {
+  const qc = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('Não autenticado');
+      const { error } = await supabase
+        .from('pin_settings')
+        .delete()
+        .eq('user_id', user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['pin_settings'] });
+    },
+  });
+}
