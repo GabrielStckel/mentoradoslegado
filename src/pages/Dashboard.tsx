@@ -59,11 +59,15 @@ export default function Dashboard() {
 
   const proximos = useMemo(() => {
     const q = searchQuery.toLowerCase();
+    const todayStart = startOfDay(new Date());
+    const todayEnd = endOfDay(new Date());
     return encontrosNoRange
       .filter(e => {
         if (e.titulo === 'VAGO') return false;
-        if (new Date(e.inicio) < new Date()) return false;
         if (e.status !== 'Agendado') return false;
+        // Show all of today's events (even past ones), plus future ones
+        const d = new Date(e.inicio);
+        if (d < todayStart) return false;
         if (q && !e.titulo.toLowerCase().includes(q) && !(mentoradoMap[e.mentorado_id] || '').toLowerCase().includes(q)) return false;
         return true;
       })
