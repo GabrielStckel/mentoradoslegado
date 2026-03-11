@@ -26,14 +26,15 @@ export default function MentoradosPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showNovo, setShowNovo] = useState(false);
+  const [showStatusManager, setShowStatusManager] = useState(false);
   const [editMentorado, setEditMentorado] = useState<any>(null);
   const [encontroMentoradoId, setEncontroMentoradoId] = useState<string | null>(null);
   const [selectedMentorado, setSelectedMentorado] = useState<any>(null);
   const isMobile = useIsMobile();
 
   const { data: mentorados = [], isLoading } = useMentorados();
+  const { data: statusList = [] } = useStatusMentorado();
 
-  // No longer counting realizados from encontros - using encontros_realizados column directly
 
   const filtered = useMemo(() => {
     return mentorados.filter(m => {
