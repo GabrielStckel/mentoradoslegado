@@ -44,9 +44,10 @@ async function getValidAccessToken(
 
 function getSyncWindow() {
   const now = new Date();
+  const future = new Date(now.getTime() + 180 * 24 * 60 * 60 * 1000);
   return {
-    timeMin: new Date('2026-01-01T00:00:00Z').toISOString(),
-    timeMax: new Date(now.getFullYear() + 1, 11, 31).toISOString(),
+    timeMin: now.toISOString(),
+    timeMax: future.toISOString(),
   };
 }
 
@@ -78,7 +79,6 @@ async function getOrCreateDefaults(supabaseAdmin: any, userId: string) {
     defaultMentor = created;
   }
 
-  // Try to find an existing mentorado linked to this mentor, but DO NOT create a placeholder
   let { data: defaultMentorado } = await supabaseAdmin
     .from("mentorados")
     .select("id")
@@ -86,11 +86,20 @@ async function getOrCreateDefaults(supabaseAdmin: any, userId: string) {
     .limit(1)
     .maybeSingle();
 
-  if (!defaultMentor?.id) {
-    throw new Error("Could not create default mentor for import");
+  if (!defaultMentorado) {
+    const { data: created } = await supabaseAdmin
+      .from("mentorados")
+      .insert({ nome: "Mentorado Geral", mentor_id: defaultMentor.id })
+      .select("id")
+      .single();
+    defaultMentorado = created;
   }
 
-  return { mentorId: defaultMentor.id, mentoradoId: defaultMentorado?.id || null };
+  if (!defaultMentor?.id || !defaultMentorado?.id) {
+    throw new Error("Could not create defaults for import");
+  }
+
+  return { mentorId: defaultMentor.id, mentoradoId: defaultMentorado.id };
 }
 
 async function importEventsBatchForUser(
@@ -127,19 +136,6 @@ async function importEventsBatchForUser(
   const batchEventIds = validEvents.map((evt: any) => evt.id);
 
   const { mentorId, mentoradoId } = await getOrCreateDefaults(supabaseAdmin, tokens.user_id);
-  
-  // Skip import if no mentorado exists to assign events to
-  if (!mentoradoId) {
-    console.log(`Skipping import for user=${tokens.user_id}: no mentorado found`);
-    return {
-      batchProcessed: validEvents.length,
-      batchImported: 0,
-      batchUpdated: 0,
-      batchEventIds: batchEventIds,
-      nextPageToken: data.nextPageToken || null,
-      done: !data.nextPageToken,
-    };
-  }
 
   const mentorIds = await getUserMentorIds(supabaseAdmin, tokens.user_id);
   if (!mentorIds.includes(mentorId)) mentorIds.push(mentorId);
@@ -429,9 +425,6 @@ Deno.serve(async (req) => {
       const mentorIds = await getUserMentorIds(supabaseAdmin, user.id);
       if (!mentorIds.includes(mentorId)) mentorIds.push(mentorId);
 
-      // Skip new event import if no mentorado exists
-      const skipNewImports = !mentoradoId;
-
       // Separate cancelled/deleted events from active ones
       const cancelledIds = allChangedEvents.filter(e => e.status === "cancelled").map(e => e.id).filter(Boolean);
       const activeEvents = allChangedEvents.filter(e => e.status !== "cancelled" && e.id && (e.start?.dateTime || e.start?.date));
@@ -468,8 +461,7 @@ Deno.serve(async (req) => {
       let imported = 0;
       let updated = 0;
 
-      if (!skipNewImports) {
-        const newEvents = activeEvents.filter((e: any) => !existingMap.has(e.id)).map((evt: any) => ({
+      const newEvents = activeEvents.filter((e: any) => !existingMap.has(e.id)).map((evt: any) => ({
           titulo: evt.summary || "Evento importado",
           inicio: evt.start.dateTime || evt.start.date,
           fim: evt.end?.dateTime || evt.end?.date || evt.start.dateTime || evt.start.date,
@@ -490,7 +482,6 @@ Deno.serve(async (req) => {
             imported += ins?.length || chunk.length;
           }
         }
-      }
 
       for (const gEvt of activeEvents) {
         const existing = existingMap.get(gEvt.id);
