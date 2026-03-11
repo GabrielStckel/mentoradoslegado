@@ -62,7 +62,7 @@ export default function MentoradoDetail() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/mentorados')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate(fromDashboard ? '/' : '/mentorados')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1 min-w-0">
