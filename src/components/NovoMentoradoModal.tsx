@@ -45,6 +45,7 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
         cidade,
         origem,
         observacoes_gerais: observacoes,
+        total_encontros: parseInt(totalEncontros) || 0,
       });
       if (error) throw error;
     },
