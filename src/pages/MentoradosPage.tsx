@@ -55,7 +55,7 @@ export default function MentoradosPage() {
           <p className="page-subtitle">{mentorados.length} mentorados cadastrados</p>
         </div>
         <Button onClick={() => setShowNovo(true)} size={isMobile ? 'sm' : 'default'}>
-          <Plus className="h-4 w-4 mr-2" /> Novo
+          <Plus className="h-4 w-4 mr-2" /> Novo Mentorado
         </Button>
       </div>
       <NovoMentoradoModal open={showNovo} onOpenChange={setShowNovo} />
