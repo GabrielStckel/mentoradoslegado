@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus } from 'lucide-react';
+import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus, Eye, Target, TrendingUp } from 'lucide-react';
 import { useMentorados, useEncontros } from '@/hooks/useSupabaseData';
-import { StatusBadge, TipoBadge } from '@/components/StatusBadge';
+import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
@@ -55,6 +56,34 @@ export default function Dashboard() {
     mentorados.forEach(mt => { m[mt.id] = mt.nome; });
     return m;
   }, [mentorados]);
+
+  // Count realizados per mentorado
+  const encontrosCount = useMemo(() => {
+    const map: Record<string, number> = {};
+    encontros.forEach(e => {
+      if (e.status === 'Realizado') {
+        map[e.mentorado_id] = (map[e.mentorado_id] || 0) + 1;
+      }
+    });
+    return map;
+  }, [encontros]);
+
+  // Active mentorados sorted by progress
+  const mentoradosAtivos = useMemo(() =>
+    mentorados
+      .filter(m => m.status === 'Ativo' || m.status === 'Novo')
+      .sort((a, b) => {
+        const progA = a.total_encontros > 0 ? (encontrosCount[a.id] || 0) / a.total_encontros : 0;
+        const progB = b.total_encontros > 0 ? (encontrosCount[b.id] || 0) / b.total_encontros : 0;
+        return progB - progA;
+      }),
+  [mentorados, encontrosCount]);
+
+  // Mentorados with upcoming meetings this range
+  const mentoradosComEncontros = useMemo(() => {
+    const ids = new Set(encontrosNoRange.map(e => e.mentorado_id));
+    return ids.size;
+  }, [encontrosNoRange]);
 
   const rangeLabel = timeRange === 'dia' ? 'Hoje' : timeRange === 'semana' ? 'Esta Semana' : 'Este Mês';
 
@@ -116,46 +145,126 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-base font-semibold flex items-center gap-2">
-              <Clock className="h-4 w-4 text-primary" /> Próximos Encontros
-            </CardTitle>
-            <button onClick={() => navigate('/encontros')} className="text-xs text-primary hover:underline font-medium">
-              Ver todos →
-            </button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
-            {proximos.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">Nenhum encontro agendado.</p>}
-            {proximos.map((e) => (
-              <div
-                key={e.id}
-                className="flex items-center justify-between p-3 rounded-lg border bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer"
-                onClick={() => navigate('/encontros')}
-              >
-              <div className="flex items-center gap-2 md:gap-3 min-w-0">
-                  <div className="text-center flex-shrink-0 w-10 md:w-12">
-                    <p className="text-[10px] md:text-xs text-muted-foreground">{format(new Date(e.inicio), 'dd/MM')}</p>
-                    <p className="text-xs md:text-sm font-semibold">{format(new Date(e.inicio), 'HH:mm')}</p>
+      {/* Two columns: Agenda + Mentorados */}
+      <div className="grid lg:grid-cols-2 gap-6">
+        {/* Próximos Encontros */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <Clock className="h-4 w-4 text-primary" /> Próximos Encontros
+              </CardTitle>
+              <button onClick={() => navigate('/encontros')} className="text-xs text-primary hover:underline font-medium">
+                Ver todos →
+              </button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+              {proximos.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">Nenhum encontro agendado.</p>}
+              {proximos.map((e) => (
+                <div
+                  key={e.id}
+                  className="flex items-center justify-between p-3 rounded-lg border bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer"
+                  onClick={() => navigate('/encontros')}
+                >
+                  <div className="flex items-center gap-2 md:gap-3 min-w-0">
+                    <div className="text-center flex-shrink-0 w-10 md:w-12">
+                      <p className="text-[10px] md:text-xs text-muted-foreground">{format(new Date(e.inicio), 'dd/MM')}</p>
+                      <p className="text-xs md:text-sm font-semibold">{format(new Date(e.inicio), 'HH:mm')}</p>
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-xs md:text-sm font-medium truncate">{e.titulo}</p>
+                      <p className="text-[10px] md:text-xs text-muted-foreground truncate">
+                        {mentoradoMap[e.mentorado_id]}
+                      </p>
+                    </div>
                   </div>
-                  <div className="min-w-0">
-                    <p className="text-xs md:text-sm font-medium truncate">{e.titulo}</p>
-                    <p className="text-[10px] md:text-xs text-muted-foreground truncate">
-                      {mentoradoMap[e.mentorado_id]}
-                    </p>
+                  <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
+                    <StatusBadge status={e.status as any} />
                   </div>
                 </div>
-                <div className="flex items-center gap-1 md:gap-2 flex-shrink-0">
-                  <StatusBadge status={e.status as any} />
-                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Mentorados Overview */}
+        <Card>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" /> Mentorados
+              </CardTitle>
+              <button onClick={() => navigate('/mentorados')} className="text-xs text-primary hover:underline font-medium">
+                Ver todos →
+              </button>
+            </div>
+            <div className="flex items-center gap-4 mt-2">
+              <div className="flex items-center gap-1.5">
+                <div className="h-2 w-2 rounded-full bg-success" />
+                <span className="text-xs text-muted-foreground">{mentoradosAtivos.length} ativos</span>
               </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+              <div className="flex items-center gap-1.5">
+                <TrendingUp className="h-3 w-3 text-primary" />
+                <span className="text-xs text-muted-foreground">{mentoradosComEncontros} com encontros ({rangeLabel.toLowerCase()})</span>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 max-h-[500px] overflow-y-auto pr-1">
+              {mentoradosAtivos.length === 0 && <p className="text-sm text-muted-foreground py-4 text-center">Nenhum mentorado ativo.</p>}
+              {mentoradosAtivos.map((m) => {
+                const realizados = encontrosCount[m.id] || 0;
+                const progress = m.total_encontros > 0 ? (realizados / m.total_encontros) * 100 : 0;
+                const nextMeeting = encontrosNoRange.find(e => e.mentorado_id === m.id && e.status === 'Agendado' && new Date(e.inicio) > new Date());
+
+                return (
+                  <div
+                    key={m.id}
+                    className="flex items-center justify-between p-3 rounded-lg border bg-secondary/20 hover:bg-secondary/40 transition-colors cursor-pointer"
+                    onClick={() => navigate(`/mentorados/${m.id}`)}
+                  >
+                    <div className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="h-9 w-9 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs flex-shrink-0">
+                        {m.nome.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium truncate">{m.nome}</p>
+                        <div className="flex items-center gap-2">
+                          {m.total_encontros > 0 && (
+                            <div className="flex items-center gap-1.5 flex-1 min-w-0">
+                              <Progress value={progress} className="h-1.5 flex-1 max-w-[100px]" />
+                              <span className="text-[10px] text-muted-foreground flex-shrink-0">{realizados}/{m.total_encontros}</span>
+                            </div>
+                          )}
+                          {nextMeeting && (
+                            <span className="text-[10px] text-primary flex-shrink-0">
+                              📅 {format(new Date(nextMeeting.inicio), 'dd/MM HH:mm')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 flex-shrink-0">
+                      <StatusBadge status={m.status as any} />
+                      <Button
+                        size="icon"
+                        variant="ghost"
+                        className="h-7 w-7"
+                        onClick={(e) => { e.stopPropagation(); navigate(`/mentorados/${m.id}`); }}
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <NovoEncontroModal open={showNovo} onOpenChange={setShowNovo} />
     </div>
   );
