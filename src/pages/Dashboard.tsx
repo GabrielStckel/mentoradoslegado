@@ -25,6 +25,7 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const updateStatus = useUpdateEncontroStatus();
   const deleteEncontro = useDeleteEncontro();
+  const revertToVago = useRevertToVago();
 
   const loading = loadingM || loadingE;
 
