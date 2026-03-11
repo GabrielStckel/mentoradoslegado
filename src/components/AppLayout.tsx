@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { NavLink as RouterNavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, CalendarDays, CalendarClock,
-  Menu, Search, Bell, ChevronLeft, LogOut
+  Menu, Search, Bell, ChevronLeft, LogOut, ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,11 +11,11 @@ import { useMentorados, useMentores } from '@/hooks/useSupabaseData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { PinSettingsModal } from '@/components/PinModal';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/mentorados', label: 'Mentorados', icon: Users },
-  
   { to: '/encontros', label: 'Encontros', icon: CalendarClock },
   { to: '/calendario', label: 'Calendário', icon: CalendarDays },
 ];
@@ -25,6 +25,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
+  const [showPinSettings, setShowPinSettings] = useState(false);
   
   const searchRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
@@ -113,6 +114,16 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             </button>
             {!collapsed && <span className="text-xs text-sidebar-muted">{theme === 'light' ? 'Claro' : 'Escuro'}</span>}
           </div>
+
+          {/* PIN Settings */}
+          <button
+            onClick={() => setShowPinSettings(true)}
+            className={cn('sidebar-item sidebar-item-inactive w-full', collapsed && 'justify-center px-2')}
+          >
+            <ShieldCheck className="h-5 w-5 flex-shrink-0" />
+            {!collapsed && <span>Configurar PIN</span>}
+          </button>
+
           <button
             onClick={() => setCollapsed(!collapsed)}
             className="hidden md:flex sidebar-item sidebar-item-inactive w-full justify-center"
@@ -204,6 +215,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
+      <PinSettingsModal open={showPinSettings} onOpenChange={setShowPinSettings} />
     </div>
   );
 }

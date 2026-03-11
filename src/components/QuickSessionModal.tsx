@@ -6,14 +6,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { InputOTP, InputOTPGroup, InputOTPSlot } from '@/components/ui/input-otp';
 import { toast } from 'sonner';
-import { format, addDays, addWeeks, nextMonday, nextTuesday, nextWednesday, nextThursday, nextFriday, setHours, setMinutes } from 'date-fns';
+import { format, addDays, addWeeks } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { CalendarPlus, Lock, Clock, Zap, Check } from 'lucide-react';
+import { CalendarPlus, Clock, Zap, Check } from 'lucide-react';
 import { useMentores, useEncontros } from '@/hooks/useSupabaseData';
-
-const ADMIN_PIN = '1234';
 
 const QUICK_TIMES = ['08:00', '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'];
 
@@ -37,10 +34,7 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState('');
   const [observacao, setObservacao] = useState('');
-  const [pin, setPin] = useState('');
-  const [pinError, setPinError] = useState(false);
 
-  // Find the last completed meeting to suggest pattern
   const lastMeeting = useMemo(() => {
     if (!mentorado) return null;
     return encontros
@@ -48,7 +42,6 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
       .sort((a, b) => new Date(b.inicio).getTime() - new Date(a.inicio).getTime())[0] || null;
   }, [mentorado, encontros]);
 
-  // Suggest next date based on pattern (same weekday next week, same time)
   const suggestedDate = useMemo(() => {
     if (!lastMeeting) return addDays(new Date(), 7);
     const last = new Date(lastMeeting.inicio);
@@ -61,16 +54,13 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
     return format(last, 'HH:mm');
   }, [lastMeeting]);
 
-  // Auto-select suggested date/time on open
   useEffect(() => {
     if (open && mentorado) {
-      // Only if the suggested date is in the future
       const suggested = suggestedDate;
       if (suggested > new Date()) {
         setSelectedDate(suggested);
         setSelectedTime(suggestedTime);
       } else {
-        // Find next occurrence of the same weekday
         const today = new Date();
         const dayOfWeek = suggestedDate.getDay();
         let next = addDays(today, 1);
@@ -83,17 +73,11 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
     }
   }, [open, mentorado, suggestedDate, suggestedTime]);
 
-  // Quick date options
   const quickDates = useMemo(() => {
-    const today = new Date();
-    const tomorrow = addDays(today, 1);
     const days: { label: string; date: Date }[] = [];
-
-    // Next 7 weekdays
-    let d = addDays(today, 1);
+    let d = addDays(new Date(), 1);
     for (let i = 0; i < 7; i++) {
       if (d.getDay() !== 0 && d.getDay() !== 6) {
-        const isNextWeekSameDay = selectedDate && d.toDateString() === suggestedDate.toDateString();
         days.push({
           label: format(d, "EEE dd/MM", { locale: ptBR }),
           date: d,
@@ -102,7 +86,7 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
       d = addDays(d, 1);
     }
     return days;
-  }, [suggestedDate, selectedDate]);
+  }, []);
 
   const proximoEncontro = mentorado
     ? encontros
@@ -114,17 +98,10 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
     setSelectedDate(null);
     setSelectedTime('');
     setObservacao('');
-    setPin('');
-    setPinError(false);
   };
 
   const mutation = useMutation({
     mutationFn: async () => {
-      if (pin !== ADMIN_PIN) {
-        setPinError(true);
-        throw new Error('PIN incorreto');
-      }
-
       const mentorId = mentorado?.mentor_id || mentores[0]?.id;
       if (!mentorId) throw new Error('Nenhum mentor disponível');
 
@@ -150,7 +127,6 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
         }).select().single();
         if (error) throw error;
 
-        // Auto-sync to Google Calendar
         if (connected && inserted) {
           try {
             await syncEvent('create', inserted);
@@ -161,9 +137,10 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
       }
 
       if (observacao.trim()) {
+        const mentorId2 = mentorado?.mentor_id || mentores[0]?.id;
         const { error } = await supabase.from('historicos').insert({
           mentorado_id: mentorado!.id,
-          mentor_id: mentorId,
+          mentor_id: mentorId2,
           tipo: 'Observação',
           conteudo: observacao,
           visibilidade: 'Admin',
@@ -179,9 +156,7 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
       onOpenChange(false);
     },
     onError: (err: any) => {
-      if (err.message !== 'PIN incorreto') {
-        toast.error('Erro: ' + err.message);
-      }
+      toast.error('Erro: ' + err.message);
     },
   });
 
@@ -205,7 +180,6 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
         </DialogHeader>
 
         <div className="space-y-4">
-          {/* Next scheduled meeting info */}
           {proximoEncontro && (
             <div className="p-3 rounded-lg border bg-secondary/30">
               <p className="text-xs text-muted-foreground mb-1">Próximo encontro já agendado</p>
@@ -215,7 +189,6 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
             </div>
           )}
 
-          {/* Quick date selection */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <CalendarPlus className="h-4 w-4 text-primary" />
@@ -238,7 +211,6 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
             </div>
           </div>
 
-          {/* Quick time selection */}
           <div className="space-y-2">
             <div className="flex items-center gap-2">
               <Clock className="h-4 w-4 text-primary" />
@@ -261,7 +233,6 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
             </div>
           </div>
 
-          {/* Summary of selection */}
           {selectedDate && selectedTime && (
             <div className="flex items-center gap-2 p-2.5 rounded-lg bg-primary/10 border border-primary/20">
               <Check className="h-4 w-4 text-primary flex-shrink-0" />
@@ -271,7 +242,6 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
             </div>
           )}
 
-          {/* Observation */}
           <div className="space-y-1.5">
             <Label htmlFor="qs-obs" className="text-sm font-semibold">Observação (opcional)</Label>
             <Textarea
@@ -283,31 +253,11 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
             />
           </div>
 
-          {/* PIN */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <Lock className="h-4 w-4 text-muted-foreground" />
-              <Label className="text-sm font-semibold">PIN</Label>
-            </div>
-            <div className="flex justify-center">
-              <InputOTP maxLength={4} value={pin} onChange={(v) => { setPin(v); setPinError(false); }}>
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                  <InputOTPSlot index={3} />
-                </InputOTPGroup>
-              </InputOTP>
-            </div>
-            {pinError && <p className="text-xs text-destructive text-center">PIN incorreto.</p>}
-          </div>
-
-          {/* Actions */}
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button
               onClick={() => mutation.mutate()}
-              disabled={pin.length < 4 || mutation.isPending}
+              disabled={mutation.isPending}
             >
               {mutation.isPending ? 'Salvando...' : 'Salvar'}
             </Button>

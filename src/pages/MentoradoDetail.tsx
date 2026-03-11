@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Edit, Phone, Mail, MapPin, CalendarPlus, Clock, CheckCircle, XCircle, Target, BarChart3 } from 'lucide-react';
-import { useMentorados, useEncontros, useHistoricos } from '@/hooks/useSupabaseData';
+import { useMentorados, useEncontros, useHistoricos, useMentores } from '@/hooks/useSupabaseData';
 import { StatusBadge, TagBadge, TipoBadge } from '@/components/StatusBadge';
 import EditMentoradoModal from '@/components/EditMentoradoModal';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
 import MeetingModal from '@/components/MeetingModal';
+import EncontrosCounter from '@/components/EncontrosCounter';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -24,6 +25,7 @@ export default function MentoradoDetail() {
   const { data: mentorados = [], isLoading: lm } = useMentorados();
   const { data: encontros = [], isLoading: le } = useEncontros();
   const { data: historicos = [] } = useHistoricos(id);
+  const { data: mentores = [] } = useMentores();
 
   const mentorado = mentorados.find(m => m.id === id);
   const mentoradoEncontros = useMemo(
@@ -31,7 +33,12 @@ export default function MentoradoDetail() {
     [id, encontros]
   );
 
-  // Metrics
+  const mentorId = useMemo(() => {
+    if (mentorado?.mentor_id) return mentorado.mentor_id;
+    if (mentores.length > 0) return mentores[0].id;
+    return '';
+  }, [mentorado, mentores]);
+
   const metrics = useMemo(() => {
     const total = mentoradoEncontros.length;
     const realizados = mentoradoEncontros.filter(e => e.status === 'Realizado').length;
@@ -39,13 +46,10 @@ export default function MentoradoDetail() {
     const faltas = mentoradoEncontros.filter(e => e.status === 'Faltou').length;
     const agendados = mentoradoEncontros.filter(e => e.status === 'Agendado').length;
     const taxaPresenca = total > 0 ? Math.round((realizados / (realizados + faltas || 1)) * 100) : 0;
-
     const diasMentoria = mentorado ? differenceInDays(new Date(), new Date(mentorado.data_inicio)) : 0;
-
     const proximoEncontro = mentoradoEncontros
       .filter(e => e.status === 'Agendado' && new Date(e.inicio) > new Date())
       .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime())[0] || null;
-
     return { total, realizados, cancelados, faltas, agendados, taxaPresenca, diasMentoria, proximoEncontro };
   }, [mentoradoEncontros, mentorado]);
 
@@ -116,10 +120,20 @@ export default function MentoradoDetail() {
               <Target className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <p className="text-2xl font-bold">{metrics.realizados}/{mentorado.total_encontros || '∞'}</p>
-              <p className="text-xs text-muted-foreground">Progresso</p>
+              <div className="flex items-center gap-3">
+                <p className="text-sm text-muted-foreground">Contratados</p>
+                <EncontrosCounter
+                  mentoradoId={mentorado.id}
+                  mentoradoNome={mentorado.nome}
+                  mentorId={mentorId}
+                  currentTotal={mentorado.total_encontros}
+                />
+              </div>
               {mentorado.total_encontros > 0 && (
-                <Progress value={(metrics.realizados / mentorado.total_encontros) * 100} className="h-1.5 mt-1" />
+                <div className="mt-1">
+                  <p className="text-xs text-muted-foreground mb-0.5">{metrics.realizados}/{mentorado.total_encontros} realizados</p>
+                  <Progress value={(metrics.realizados / mentorado.total_encontros) * 100} className="h-1.5" />
+                </div>
               )}
             </div>
           </CardContent>
