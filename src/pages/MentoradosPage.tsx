@@ -239,7 +239,7 @@ export default function MentoradosPage() {
         </div>
       )}
 
-      <QuickSessionModal
+      <MentoradoInfoModal
         mentorado={selectedMentorado}
         open={!!selectedMentorado}
         onOpenChange={(o) => !o && setSelectedMentorado(null)}
