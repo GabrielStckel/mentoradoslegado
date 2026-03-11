@@ -29,6 +29,7 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
   const [cidade, setCidade] = useState('');
   const [origem, setOrigem] = useState('Outro');
   const [observacoes, setObservacoes] = useState('');
+  const [totalEncontros, setTotalEncontros] = useState('12');
 
   const reset = () => {
     setNome(''); setEmail(''); setTelefone(''); setCidade('');
