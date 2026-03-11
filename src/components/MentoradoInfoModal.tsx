@@ -40,6 +40,7 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
   const { data: historicos = [] } = useHistoricos(mentorado?.id);
   const { data: encontros = [] } = useEncontros();
   const { user } = useAuth();
+  const [novaObs, setNovaObs] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editText, setEditText] = useState('');
 
