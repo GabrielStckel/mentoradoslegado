@@ -1,3 +1,4 @@
+// Google Calendar Sync v2 - with proper unique constraint
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
