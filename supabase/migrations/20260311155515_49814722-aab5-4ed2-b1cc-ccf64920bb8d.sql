@@ -1,0 +1,2 @@
+ALTER TABLE public.historicos DROP CONSTRAINT historicos_tipo_check;
+ALTER TABLE public.historicos ADD CONSTRAINT historicos_tipo_check CHECK (tipo = ANY (ARRAY['Mensagem'::text, 'Observação'::text, 'Tarefa'::text, 'Check-in'::text, 'Sessão Realizada'::text]));
