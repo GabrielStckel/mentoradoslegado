@@ -190,7 +190,8 @@ export default function EncontrosPage() {
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
           {filtered.length === 0 && (
             <p className="text-center py-8 text-muted-foreground text-sm">Nenhum encontro encontrado.</p>
           )}
