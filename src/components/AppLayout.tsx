@@ -2,7 +2,7 @@ import { useState, useMemo, useRef, useEffect } from 'react';
 import { NavLink as RouterNavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, CalendarDays, CalendarClock,
-  Menu, Search, Bell, ChevronLeft, LogOut, KeyRound
+  Menu, Search, Bell, ChevronLeft, LogOut
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,7 +11,6 @@ import { useMentorados, useMentores } from '@/hooks/useSupabaseData';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ChangePinModal } from '@/components/PinModal';
 
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
@@ -26,7 +25,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [globalSearch, setGlobalSearch] = useState('');
   const [searchOpen, setSearchOpen] = useState(false);
-  const [changePinOpen, setChangePinOpen] = useState(false);
+  
   const searchRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
@@ -134,13 +133,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
               </div>
             )}
           </div>
-          <button
-            onClick={() => setChangePinOpen(true)}
-            className={cn('sidebar-item sidebar-item-inactive w-full mt-2', collapsed && 'justify-center px-2')}
-          >
-            <KeyRound className="h-4 w-4 flex-shrink-0" />
-            {!collapsed && <span className="text-sm">Alterar PIN</span>}
-          </button>
+          
           <button
             onClick={signOut}
             className={cn('sidebar-item sidebar-item-inactive w-full mt-1', collapsed && 'justify-center px-2')}
@@ -211,7 +204,6 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         </main>
       </div>
 
-      <ChangePinModal open={changePinOpen} onOpenChange={setChangePinOpen} />
     </div>
   );
 }

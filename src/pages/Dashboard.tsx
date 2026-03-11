@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { format, isToday, isThisWeek, isThisMonth, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus } from 'lucide-react';
 import { useMentorados, useEncontros } from '@/hooks/useSupabaseData';
@@ -9,7 +9,6 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { Skeleton } from '@/components/ui/skeleton';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
-import PinModal, { usePinGate } from '@/components/PinModal';
 
 type TimeRange = 'dia' | 'semana' | 'mes';
 
@@ -18,7 +17,6 @@ export default function Dashboard() {
   const { data: mentorados = [], isLoading: loadingM } = useMentorados();
   const { data: encontros = [], isLoading: loadingE } = useEncontros();
   const [showNovo, setShowNovo] = useState(false);
-  const { pinOpen, setPinOpen, requirePin, onPinSuccess } = usePinGate();
   const [timeRange, setTimeRange] = useState<TimeRange>('semana');
 
   const loading = loadingM || loadingE;
@@ -159,7 +157,6 @@ export default function Dashboard() {
         </CardContent>
       </Card>
       <NovoEncontroModal open={showNovo} onOpenChange={setShowNovo} />
-      <PinModal open={pinOpen} onOpenChange={setPinOpen} onSuccess={onPinSuccess} />
     </div>
   );
 }
