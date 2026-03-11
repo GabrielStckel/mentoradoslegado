@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Edit, Phone, Mail, MapPin, CalendarPlus, Clock, CheckCircle, XCircle, Target, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Edit, Phone, Mail, MapPin, CalendarPlus, Clock, Target, Calendar } from 'lucide-react';
 import { useMentorados, useEncontros, useHistoricos, useMentores } from '@/hooks/useSupabaseData';
 import { StatusBadge, TagBadge, TipoBadge } from '@/components/StatusBadge';
 import EditMentoradoModal from '@/components/EditMentoradoModal';
@@ -83,49 +83,17 @@ export default function MentoradoDetail() {
       </div>
 
       {/* Metrics cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {/* Sessões contratadas/realizadas */}
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
             <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-              <BarChart3 className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{metrics.total}</p>
-              <p className="text-xs text-muted-foreground">Total encontros</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center">
-              <CheckCircle className="h-5 w-5 text-success" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{metrics.realizados}</p>
-              <p className="text-xs text-muted-foreground">Realizados</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-destructive/10 flex items-center justify-center">
-              <XCircle className="h-5 w-5 text-destructive" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{metrics.faltas}</p>
-              <p className="text-xs text-muted-foreground">Faltas</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-lg bg-accent/50 flex items-center justify-center">
               <Target className="h-5 w-5 text-primary" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-muted-foreground mb-1">Contratados: <span className="font-semibold text-foreground">{mentorado.total_encontros}</span></p>
+              <p className="text-sm text-muted-foreground mb-1">Sessões contratadas: <span className="font-semibold text-foreground">{mentorado.total_encontros}</span></p>
               <div className="flex items-center gap-3">
-                <p className="text-sm text-muted-foreground">Realizados</p>
+                <p className="text-sm text-muted-foreground">Realizadas</p>
                 <EncontrosCounter
                   mentoradoId={mentorado.id}
                   mentoradoNome={mentorado.nome}
@@ -142,22 +110,30 @@ export default function MentoradoDetail() {
             </div>
           </CardContent>
         </Card>
-      </div>
 
-      {/* Próximo encontro banner */}
-      {metrics.proximoEncontro && (
-        <div className="p-4 rounded-xl border bg-primary/5 border-primary/20 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-muted-foreground mb-0.5">Próximo encontro agendado</p>
-            <p className="text-sm font-semibold text-primary">
-              {format(new Date(metrics.proximoEncontro.inicio), "EEEE, dd 'de' MMMM 'às' HH:mm", { locale: ptBR })}
-            </p>
-          </div>
-          <Button size="sm" variant="outline" onClick={() => setSelectedEncontro(metrics.proximoEncontro)}>
-            Ver detalhes
-          </Button>
-        </div>
-      )}
+        {/* Próxima sessão */}
+        <Card>
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-lg bg-accent/50 flex items-center justify-center">
+              <Calendar className="h-5 w-5 text-primary" />
+            </div>
+            {metrics.proximoEncontro ? (
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-muted-foreground mb-0.5">Próxima sessão</p>
+                <p className="text-sm font-semibold text-foreground truncate">
+                  {format(new Date(metrics.proximoEncontro.inicio), "dd/MM/yyyy 'às' HH:mm")}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">{metrics.proximoEncontro.titulo}</p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-muted-foreground mb-0.5">Próxima sessão</p>
+                <p className="text-sm font-medium text-muted-foreground">Nenhuma agendada</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Sidebar - Info */}
