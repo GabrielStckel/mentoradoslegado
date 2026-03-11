@@ -1,13 +1,13 @@
 import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Phone, CalendarPlus, Pencil, Eye, Settings } from 'lucide-react';
+import { Plus, Search, Phone, CalendarPlus, Pencil, Eye } from 'lucide-react';
 import EncontrosCounter from '@/components/EncontrosCounter';
 import { useMentorados, useStatusMentorado } from '@/hooks/useSupabaseData';
 import NovoMentoradoModal from '@/components/NovoMentoradoModal';
 import EditMentoradoModal from '@/components/EditMentoradoModal';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
 import QuickSessionModal from '@/components/QuickSessionModal';
-import StatusManagerModal from '@/components/StatusManagerModal';
+
 import { StatusBadge, TagBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,7 +23,7 @@ export default function MentoradosPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [showNovo, setShowNovo] = useState(false);
-  const [showStatusManager, setShowStatusManager] = useState(false);
+  
   const [editMentorado, setEditMentorado] = useState<any>(null);
   const [encontroMentoradoId, setEncontroMentoradoId] = useState<string | null>(null);
   const [selectedMentorado, setSelectedMentorado] = useState<any>(null);
@@ -55,7 +55,7 @@ export default function MentoradosPage() {
           <p className="page-subtitle">{mentorados.length} mentorados cadastrados</p>
         </div>
         <Button onClick={() => setShowNovo(true)} size={isMobile ? 'sm' : 'default'}>
-          <Plus className="h-4 w-4 mr-2" /> Novo
+          <Plus className="h-4 w-4 mr-2" /> Novo Mentorado
         </Button>
       </div>
       <NovoMentoradoModal open={showNovo} onOpenChange={setShowNovo} />
@@ -65,7 +65,6 @@ export default function MentoradosPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Buscar por nome, email ou telefone..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
         </div>
-        <div className="flex gap-2">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
             <SelectTrigger className="w-full sm:w-[140px]"><SelectValue placeholder="Status" /></SelectTrigger>
             <SelectContent>
@@ -75,10 +74,6 @@ export default function MentoradosPage() {
               ))}
             </SelectContent>
           </Select>
-          <Button variant="outline" size="icon" onClick={() => setShowStatusManager(true)} title="Gerenciar Status">
-            <Settings className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
 
       {/* Mobile: Card layout */}
@@ -262,7 +257,7 @@ export default function MentoradosPage() {
         open={!!editMentorado}
         onOpenChange={(o) => !o && setEditMentorado(null)}
       />
-      <StatusManagerModal open={showStatusManager} onOpenChange={setShowStatusManager} />
+      
     </div>
   );
 }

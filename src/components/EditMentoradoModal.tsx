@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { Settings, Trash2 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import OrigensManagerModal from '@/components/OrigensManagerModal';
+import StatusManagerModal from '@/components/StatusManagerModal';
 import { PhoneInput } from '@/components/PhoneInput';
 import EmailInput from '@/components/EmailInput';
 import CityInput from '@/components/CityInput';
@@ -27,6 +28,7 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
   const { data: origens = [] } = useOrigens();
   const { data: statusListData = [] } = useStatusMentorado();
   const [showOrigens, setShowOrigens] = useState(false);
+  const [showStatusManager, setShowStatusManager] = useState(false);
 
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
@@ -139,7 +141,12 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Status</Label>
+              <div className="flex items-center justify-between">
+                <Label>Status</Label>
+                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowStatusManager(true)}>
+                  <Settings className="h-3.5 w-3.5" />
+                </Button>
+              </div>
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -190,6 +197,7 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
         </DialogContent>
       </Dialog>
       <OrigensManagerModal open={showOrigens} onOpenChange={setShowOrigens} />
+      <StatusManagerModal open={showStatusManager} onOpenChange={setShowStatusManager} />
     </>
   );
 }
