@@ -461,8 +461,7 @@ Deno.serve(async (req) => {
       let imported = 0;
       let updated = 0;
 
-      if (!skipNewImports) {
-        const newEvents = activeEvents.filter((e: any) => !existingMap.has(e.id)).map((evt: any) => ({
+      const newEvents = activeEvents.filter((e: any) => !existingMap.has(e.id)).map((evt: any) => ({
           titulo: evt.summary || "Evento importado",
           inicio: evt.start.dateTime || evt.start.date,
           fim: evt.end?.dateTime || evt.end?.date || evt.start.dateTime || evt.start.date,
@@ -483,7 +482,6 @@ Deno.serve(async (req) => {
             imported += ins?.length || chunk.length;
           }
         }
-      }
 
       for (const gEvt of activeEvents) {
         const existing = existingMap.get(gEvt.id);
