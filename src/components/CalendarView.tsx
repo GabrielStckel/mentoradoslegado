@@ -103,7 +103,7 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                     !isCurrentMonth && 'bg-muted/20',
                     isToday && 'bg-primary/8 ring-1 ring-inset ring-primary/30',
                     holiday && 'bg-destructive/5',
-                    selectedDay && isSameDay(d, selectedDay) && 'ring-2 ring-inset ring-primary',
+                    
                   )}
                   onClick={() => { setCurrentDate(d); setView('day'); }}
                 >
