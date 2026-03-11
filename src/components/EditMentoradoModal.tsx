@@ -141,7 +141,12 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
               </div>
             </div>
             <div className="space-y-2">
-              <Label>Status</Label>
+              <div className="flex items-center justify-between">
+                <Label>Status</Label>
+                <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowStatusManager(true)}>
+                  <Settings className="h-3.5 w-3.5" />
+                </Button>
+              </div>
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
