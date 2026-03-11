@@ -86,7 +86,6 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
           if (obsError) throw obsError;
         }
 
-      if (logError) throw logError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mentorados'] });
