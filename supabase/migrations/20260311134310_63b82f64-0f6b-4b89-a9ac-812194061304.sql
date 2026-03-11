@@ -1,0 +1,1 @@
+ALTER TABLE public.mentorados DROP CONSTRAINT IF EXISTS mentorados_origem_check;
