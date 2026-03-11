@@ -16,10 +16,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { useIsMobile } from '@/hooks/use-mobile';
-
-function cleanPhone(phone: string): string {
-  return phone.replace(/\D/g, '').slice(0, 13);
-}
+import { whatsappLink } from '@/lib/phone';
 
 export default function MentoradosPage() {
   const navigate = useNavigate();
