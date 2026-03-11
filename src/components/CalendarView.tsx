@@ -221,8 +221,8 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
               return (
                 <div key={di} className={cn('flex-1 relative border-r last:border-r-0', isToday && 'bg-accent/10')}>
                   {HOURS.map(h => (
-                    <div key={h} className="border-b border-border/50" style={{ height: HOUR_HEIGHT }}>
-                      <div className="border-b border-border/20 h-1/2" />
+                    <div key={h} className="border-b" style={{ height: HOUR_HEIGHT }}>
+                      <div className="border-b border-border/30" style={{ height: HOUR_HEIGHT / 2 }} />
                     </div>
                   ))}
 
