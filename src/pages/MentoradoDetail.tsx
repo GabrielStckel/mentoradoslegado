@@ -8,6 +8,7 @@ import NovoEncontroModal from '@/components/NovoEncontroModal';
 import MeetingModal from '@/components/MeetingModal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format, differenceInDays } from 'date-fns';
