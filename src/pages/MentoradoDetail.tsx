@@ -162,7 +162,14 @@ export default function MentoradoDetail() {
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Sidebar - Info */}
         <Card className="lg:col-span-1">
-          <CardHeader className="pb-3"><CardTitle className="text-sm font-semibold">Informações</CardTitle></CardHeader>
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-sm font-semibold">Informações</CardTitle>
+              <Button variant="ghost" size="sm" className="h-7 px-2" onClick={() => setShowEdit(true)}>
+                <Edit className="h-3.5 w-3.5 mr-1" /> Editar
+              </Button>
+            </div>
+          </CardHeader>
           <CardContent className="space-y-4 text-sm">
             <div className="flex items-center gap-2 flex-wrap">
               <StatusBadge status={mentorado.status as any} />
