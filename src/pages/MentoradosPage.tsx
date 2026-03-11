@@ -162,12 +162,10 @@ export default function MentoradosPage() {
             <TableHeader>
               <TableRow className="bg-secondary/30 hover:bg-secondary/30">
                 <TableHead className="table-header">Nome</TableHead>
-                <TableHead className="table-header">Cidade</TableHead>
-                <TableHead className="table-header">Origem</TableHead>
-                <TableHead className="table-header">Tags</TableHead>
+                <TableHead className="table-header">Encontros</TableHead>
                 <TableHead className="table-header">Status</TableHead>
-                 <TableHead className="table-header">Contato</TableHead>
-                 <TableHead className="table-header w-[90px]">Ações</TableHead>
+                <TableHead className="table-header">Contato</TableHead>
+                <TableHead className="table-header w-[90px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
