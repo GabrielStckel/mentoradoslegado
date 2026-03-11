@@ -60,7 +60,7 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [historicos]);
 
-  // Observações only
+  // All observations (manual + session-linked)
   const observacoes = useMemo(() => {
     return historicos
       .filter(h => h.tipo !== 'Sessão Realizada')
@@ -187,11 +187,11 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
               <p className="font-medium">{format(new Date(mentorado.data_inicio), 'dd/MM/yyyy')}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Encontros contratados</p>
+              <p className="text-xs text-muted-foreground">Sessões contratadas</p>
               <p className="font-medium">{mentorado.total_encontros}</p>
             </div>
             <div>
-              <p className="text-xs text-muted-foreground">Realizados</p>
+              <p className="text-xs text-muted-foreground">Realizadas</p>
               <p className="font-medium">{mentorado.encontros_realizados || 0}</p>
             </div>
           </div>
@@ -273,46 +273,24 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
               <div className="space-y-2 max-h-[300px] overflow-y-auto">
                 {/* Sessões marcadas manualmente (via +) */}
                 {sessoesRealizadas.map(h => (
-                  <div key={h.id} className="p-3 rounded-lg border bg-secondary/20 space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-accent text-accent-foreground">Sessão Manual</span>
-                        <span className="text-xs text-muted-foreground">
-                          {format(new Date(h.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                        </span>
-                      </div>
-                      <div className="flex gap-1">
-                        <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => { setEditingId(h.id); setEditText(h.conteudo); }}>
-                          <Pencil className="h-3 w-3" />
-                        </Button>
-                        <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive hover:text-destructive" onClick={() => deleteObsMutation.mutate(h.id)}>
-                          <Trash2 className="h-3 w-3" />
-                        </Button>
-                      </div>
-                    </div>
-                    {editingId === h.id ? (
-                      <div className="flex gap-2">
-                        <Textarea value={editText} onChange={e => setEditText(e.target.value)} rows={2} className="text-sm flex-1" autoFocus />
-                        <div className="flex flex-col gap-1">
-                          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => updateObsMutation.mutate({ id: h.id, conteudo: editText })}><Check className="h-3 w-3" /></Button>
-                          <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => setEditingId(null)}><X className="h-3 w-3" /></Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">{h.conteudo}</p>
-                    )}
+                  <div key={h.id} className="flex items-center gap-3 text-sm p-2.5 rounded-lg bg-secondary/20 border">
+                    <Check className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                    <span className="text-xs font-semibold text-foreground flex-shrink-0">{h.conteudo}</span>
+                    <span className="text-xs text-muted-foreground ml-auto flex-shrink-0">
+                      {format(new Date(h.created_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </span>
                   </div>
                 ))}
 
-                {/* Encontros do calendário com status Realizado */}
+                {/* Sessões da agenda com status Realizado */}
                 {encontrosRealizados.map(e => (
-                  <div key={e.id} className="flex items-center gap-2 text-sm p-2.5 rounded-lg bg-secondary/30 border">
+                  <div key={e.id} className="flex items-center gap-3 text-sm p-2.5 rounded-lg bg-secondary/30 border">
                     <Clock className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
-                    <span className="text-xs text-muted-foreground w-20 flex-shrink-0">
-                      {format(new Date(e.inicio), 'dd/MM/yyyy')}
-                    </span>
+                    <span className="text-xs font-semibold text-foreground flex-shrink-0">{e.titulo}</span>
                     <span className="text-[10px] font-medium px-1.5 py-0.5 rounded bg-primary/10 text-primary flex-shrink-0">Agenda</span>
-                    <span className="text-xs font-medium truncate">{e.titulo}</span>
+                    <span className="text-xs text-muted-foreground ml-auto flex-shrink-0">
+                      {format(new Date(e.inicio), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
+                    </span>
                   </div>
                 ))}
 
