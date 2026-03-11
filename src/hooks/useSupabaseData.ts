@@ -49,7 +49,7 @@ export function useMentorados() {
   return useQuery({
     queryKey: ['mentorados'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('mentorados').select('*').order('nome');
+      const { data, error } = await supabase.from('mentorados').select('*').neq('nome', 'Mentorado Geral').order('nome');
       if (error) throw error;
       return data;
     },
