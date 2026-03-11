@@ -95,45 +95,6 @@ export default function EncontrosPage() {
       </div>
       <NovoEncontroModal open={showNovo} onOpenChange={setShowNovo} />
 
-      {/* Quick register section */}
-      <div className="rounded-xl border bg-card p-3 md:p-4 space-y-3">
-        <div className="flex items-center gap-2 mb-1">
-          <UserCheck className="h-5 w-5 text-primary" />
-          <h2 className="text-sm font-semibold">Registro Rápido</h2>
-        </div>
-        <p className="text-xs text-muted-foreground">Busque o mentorado e clique no nome para registrar a sessão.</p>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder="Buscar mentorado..."
-            value={mentoradoSearch}
-            onChange={e => setMentoradoSearch(e.target.value)}
-            className="pl-9"
-          />
-        </div>
-        {mentoradoSearch.trim() && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 max-h-48 overflow-y-auto">
-            {filteredMentorados.map(m => (
-              <button
-                key={m.id}
-                onClick={() => { setSelectedMentorado(m); setMentoradoSearch(''); }}
-                className="flex items-center gap-3 p-3 rounded-lg border border-border hover:border-primary/40 hover:bg-accent/40 transition-colors text-left"
-              >
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs flex-shrink-0">
-                  {m.nome.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
-                </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{m.nome}</p>
-                  <p className="text-xs text-muted-foreground truncate">{m.email || m.cidade || 'Sem info'}</p>
-                </div>
-              </button>
-            ))}
-            {filteredMentorados.length === 0 && (
-              <p className="text-sm text-muted-foreground col-span-full py-2">Nenhum mentorado encontrado.</p>
-            )}
-          </div>
-        )}
-      </div>
 
       {/* Filters */}
       <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
