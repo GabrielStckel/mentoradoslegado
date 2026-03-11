@@ -197,6 +197,27 @@ export type Database = {
           },
         ]
       }
+      locais: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
       mentorados: {
         Row: {
           cidade: string
