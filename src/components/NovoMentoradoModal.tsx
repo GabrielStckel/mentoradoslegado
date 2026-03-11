@@ -94,6 +94,12 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
               <CityInput value={cidade} onValueChange={setCidade} />
             </div>
             <div className="space-y-2">
+              <Label htmlFor="totalEncontros">Encontros contratados</Label>
+              <Input id="totalEncontros" type="number" min="1" value={totalEncontros} onChange={e => setTotalEncontros(e.target.value)} placeholder="12" />
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>Origem</Label>
                 <Button type="button" variant="ghost" size="icon" className="h-6 w-6" onClick={() => setShowOrigens(true)}>
@@ -107,8 +113,6 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
                 </SelectContent>
               </Select>
             </div>
-          </div>
-          <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label>Status</Label>
@@ -122,10 +126,6 @@ export default function NovoMentoradoModal({ open, onOpenChange }: Props) {
                   {statusList.map((s: any) => <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>)}
                 </SelectContent>
               </Select>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="totalEncontros">Encontros contratados</Label>
-              <Input id="totalEncontros" type="number" min="1" value={totalEncontros} onChange={e => setTotalEncontros(e.target.value)} placeholder="12" />
             </div>
           </div>
           <div className="space-y-2">
