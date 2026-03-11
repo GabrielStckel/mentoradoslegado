@@ -51,11 +51,18 @@ export default function Dashboard() {
     return { ativos, total, agendados, cancelados, faltas };
   }, [mentorados, encontrosNoRange]);
 
-  const proximos = useMemo(() =>
-    encontrosNoRange
-      .filter(e => new Date(e.inicio) >= new Date() && e.status === 'Agendado')
-      .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime()),
-  [encontrosNoRange]);
+  const proximos = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return encontrosNoRange
+      .filter(e => {
+        if (e.titulo === 'VAGO') return false;
+        if (new Date(e.inicio) < new Date()) return false;
+        if (e.status !== 'Agendado') return false;
+        if (q && !e.titulo.toLowerCase().includes(q) && !(mentoradoMap[e.mentorado_id] || '').toLowerCase().includes(q)) return false;
+        return true;
+      })
+      .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
+  }, [encontrosNoRange, searchQuery, mentoradoMap]);
 
   const mentoradoMap = useMemo(() => {
     const m: Record<string, string> = {};
