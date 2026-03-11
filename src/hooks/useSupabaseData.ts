@@ -133,3 +133,27 @@ export function useUpdateEncontroStatus() {
     },
   });
 }
+
+export function useDeleteEncontro() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (encontro: { id: string; google_event_id?: string | null }) => {
+      // Delete from Google Calendar first if linked
+      if (encontro.google_event_id) {
+        try {
+          await supabase.functions.invoke('google-calendar-sync', {
+            body: { action: 'delete', encontro },
+          });
+        } catch (syncErr) {
+          console.error('Google Calendar sync on delete failed:', syncErr);
+        }
+      }
+
+      const { error } = await supabase.from('encontros').delete().eq('id', encontro.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['encontros'] });
+    },
+  });
+}

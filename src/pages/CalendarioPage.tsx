@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useEncontros, useMentorados, useMentores } from '@/hooks/useSupabaseData';
+import { useEncontros, useMentorados, useMentores, useUpdateEncontroStatus, useDeleteEncontro } from '@/hooks/useSupabaseData';
 import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 import CalendarView from '@/components/CalendarView';
 import MeetingModal from '@/components/MeetingModal';
@@ -22,6 +22,8 @@ export default function CalendarioPage() {
   const { data: encontros = [], isLoading } = useEncontros();
   const { data: mentorados = [] } = useMentorados();
   const { data: mentores = [] } = useMentores();
+  const updateStatus = useUpdateEncontroStatus();
+  const deleteEncontro = useDeleteEncontro();
   const { connected, loading: gcLoading, connect, importEvents, importProgress, importing } = useGoogleCalendar();
 
   const filtered = encontros.filter(e => {
@@ -134,6 +136,8 @@ export default function CalendarioPage() {
         mentor={selectedEncontro ? mentores.find(m => m.id === selectedEncontro.mentor_id) as any : undefined}
         open={!!selectedEncontro}
         onOpenChange={(o) => !o && setSelectedEncontro(null)}
+        onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
+        onDelete={(e) => { deleteEncontro.mutate({ id: e.id, google_event_id: e.google_event_id }); setSelectedEncontro(null); }}
       />
     </div>
   );
