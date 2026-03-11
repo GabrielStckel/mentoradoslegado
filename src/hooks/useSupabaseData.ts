@@ -12,6 +12,17 @@ export function useOrigens() {
   });
 }
 
+export function useLocais() {
+  return useQuery({
+    queryKey: ['locais'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('locais' as any).select('*').order('ordem');
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+}
+
 export function useStatusMentorado() {
   return useQuery({
     queryKey: ['status_mentorado'],
