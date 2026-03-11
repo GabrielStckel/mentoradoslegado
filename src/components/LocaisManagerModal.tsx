@@ -52,10 +52,10 @@ function SortableItem({ item, editingId, editingNome, setEditingNome, setEditing
       ) : (
         <>
           <span className="text-sm flex-1">{item.nome}</span>
-          <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100" onClick={() => { setEditingId(item.id); setEditingNome(item.nome); }}>
+          <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0" onClick={() => { setEditingId(item.id); setEditingNome(item.nome); }}>
             <Pencil className="h-3.5 w-3.5" />
           </Button>
-          <Button size="icon" variant="ghost" className="h-7 w-7 opacity-0 group-hover:opacity-100 text-destructive" onClick={() => onDelete(item.id)}>
+          <Button size="icon" variant="ghost" className="h-7 w-7 shrink-0 text-destructive" onClick={() => onDelete(item.id)}>
             <Trash2 className="h-3.5 w-3.5" />
           </Button>
         </>
