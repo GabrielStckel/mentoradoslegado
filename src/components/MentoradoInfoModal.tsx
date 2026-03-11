@@ -60,7 +60,7 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
       .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
   }, [historicos]);
 
-  // Observações only
+  // All observations (manual + session-linked)
   const observacoes = useMemo(() => {
     return historicos
       .filter(h => h.tipo !== 'Sessão Realizada')
