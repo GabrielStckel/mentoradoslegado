@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, Edit, Phone, Mail, MapPin, CalendarPlus, Clock, CheckCircle, XCircle, Target, BarChart3 } from 'lucide-react';
 import { useMentorados, useEncontros, useHistoricos, useMentores } from '@/hooks/useSupabaseData';
 import { StatusBadge, TagBadge, TipoBadge } from '@/components/StatusBadge';
@@ -18,6 +18,8 @@ import { ptBR } from 'date-fns/locale';
 export default function MentoradoDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const fromDashboard = searchParams.get('from') === 'dashboard';
   const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
   const [showEdit, setShowEdit] = useState(false);
   const [showNovoEncontro, setShowNovoEncontro] = useState(false);
@@ -60,7 +62,7 @@ export default function MentoradoDetail() {
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Button variant="ghost" size="icon" onClick={() => navigate('/mentorados')}>
+        <Button variant="ghost" size="icon" onClick={() => navigate(fromDashboard ? '/' : '/mentorados')}>
           <ArrowLeft className="h-5 w-5" />
         </Button>
         <div className="flex-1 min-w-0">
