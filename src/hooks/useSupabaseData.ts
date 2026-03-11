@@ -12,6 +12,17 @@ export function useOrigens() {
   });
 }
 
+export function useStatusMentorado() {
+  return useQuery({
+    queryKey: ['status_mentorado'],
+    queryFn: async () => {
+      const { data, error } = await supabase.from('status_mentorado' as any).select('*').order('ordem');
+      if (error) throw error;
+      return data as any[];
+    },
+  });
+}
+
 export function useEspecialidades() {
   return useQuery({
     queryKey: ['especialidades'],

@@ -7,6 +7,7 @@ import EditMentoradoModal from '@/components/EditMentoradoModal';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
 import MeetingModal from '@/components/MeetingModal';
 import EncontrosCounter from '@/components/EncontrosCounter';
+import { whatsappLink } from '@/lib/phone';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -178,7 +179,7 @@ export default function MentoradoDetail() {
               {mentorado.telefone_whatsapp && (
                 <div className="flex items-center gap-2">
                   <Phone className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                  <a href={`https://wa.me/${mentorado.telefone_whatsapp}`} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
+                  <a href={whatsappLink(mentorado.telefone_whatsapp)} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                     {mentorado.telefone_whatsapp}
                   </a>
                 </div>

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { Clock, MapPin, Link2, ExternalLink, Send } from 'lucide-react';
+import { whatsappLink } from '@/lib/phone';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -65,7 +66,7 @@ export default function MeetingModal({ encontro, mentorado, mentor, open, onOpen
         .replace('{data}', format(inicio, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }))
         .replace('{link}', encontro.link_reuniao || 'a definir')
     );
-    return `https://wa.me/${mentorado.telefone_whatsapp}?text=${msg}`;
+    return whatsappLink(mentorado.telefone_whatsapp, decodeURIComponent(msg));
   };
 
   return (

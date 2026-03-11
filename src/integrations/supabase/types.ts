@@ -382,6 +382,30 @@ export type Database = {
         }
         Relationships: []
       }
+      status_mentorado: {
+        Row: {
+          cor: string
+          created_at: string
+          id: string
+          nome: string
+          ordem: number
+        }
+        Insert: {
+          cor?: string
+          created_at?: string
+          id?: string
+          nome: string
+          ordem?: number
+        }
+        Update: {
+          cor?: string
+          created_at?: string
+          id?: string
+          nome?: string
+          ordem?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
