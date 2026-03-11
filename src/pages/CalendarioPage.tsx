@@ -24,6 +24,7 @@ export default function CalendarioPage() {
   const { data: mentores = [] } = useMentores();
   const updateStatus = useUpdateEncontroStatus();
   const deleteEncontro = useDeleteEncontro();
+  const revertToVago = useRevertToVago();
   const { connected, loading: gcLoading, connect, importEvents, importProgress, importing } = useGoogleCalendar();
 
   const filtered = encontros.filter(e => {
