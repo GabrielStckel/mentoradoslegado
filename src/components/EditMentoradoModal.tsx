@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 import { Settings, Trash2 } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import OrigensManagerModal from '@/components/OrigensManagerModal';
+import StatusManagerModal from '@/components/StatusManagerModal';
 import { PhoneInput } from '@/components/PhoneInput';
 import EmailInput from '@/components/EmailInput';
 import CityInput from '@/components/CityInput';
