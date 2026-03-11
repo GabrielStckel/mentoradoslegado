@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { ArrowLeft, Edit, Phone, Mail, MapPin, CalendarPlus, Clock, CheckCircle, XCircle, Target, BarChart3 } from 'lucide-react';
+import { ArrowLeft, Edit, Phone, Mail, MapPin, CalendarPlus, Clock, Target, Calendar } from 'lucide-react';
 import { useMentorados, useEncontros, useHistoricos, useMentores } from '@/hooks/useSupabaseData';
 import { StatusBadge, TagBadge, TipoBadge } from '@/components/StatusBadge';
 import EditMentoradoModal from '@/components/EditMentoradoModal';
