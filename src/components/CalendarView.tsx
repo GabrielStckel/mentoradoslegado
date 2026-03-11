@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Encontro, Mentor } from '@/types';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { isHoliday } from '@/data/holidays';
 
 type ViewMode = 'day' | 'week' | 'month';
 
@@ -91,6 +92,7 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
               const events = getEventsForDay(d);
               const isToday = isSameDay(d, today);
               const isCurrentMonth = isSameMonth(d, monthStart);
+              const holiday = isHoliday(d);
               return (
                 <div
                   key={di}
@@ -99,6 +101,7 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                     isMobile ? 'min-h-[60px]' : 'min-h-[110px]',
                     !isCurrentMonth && 'bg-muted/20',
                     isToday && 'bg-primary/8 ring-1 ring-inset ring-primary/30',
+                    holiday && 'bg-destructive/5',
                   )}
                   onClick={() => { setCurrentDate(d); setView('day'); }}
                 >
@@ -107,9 +110,13 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
                     isMobile ? 'w-6 h-6' : 'w-6 h-6',
                     isToday && 'bg-primary text-primary-foreground',
                     !isCurrentMonth && 'text-muted-foreground/50',
+                    holiday && !isToday && 'text-destructive',
                   )}>
                     {format(d, 'd')}
                   </div>
+                  {holiday && !isMobile && (
+                    <p className="text-[9px] text-destructive font-medium truncate text-center leading-tight">{holiday.name}</p>
+                  )}
                   <div className="space-y-0.5">
                     {isMobile ? (
                       events.length > 0 && (
@@ -175,22 +182,33 @@ export default function CalendarView({ encontros, mentores, onEventClick }: Prop
           <div className={cn(timeColWidth, 'flex-shrink-0 border-r')} />
           {days.map((d, i) => {
             const isToday = isSameDay(d, today);
+            const holiday = isHoliday(d);
             return (
               <div
                 key={i}
-                className="flex-1 text-center py-1.5 md:py-2 border-r last:border-r-0 cursor-pointer hover:bg-accent/20"
+                className={cn(
+                  'flex-1 text-center py-1.5 md:py-2 border-r last:border-r-0 cursor-pointer hover:bg-accent/20',
+                  holiday && 'bg-destructive/5',
+                )}
                 onClick={() => { setCurrentDate(d); setView('day'); }}
               >
-                <div className="text-[10px] md:text-[11px] font-semibold text-muted-foreground tracking-wider">
+                <div className={cn(
+                  'text-[10px] md:text-[11px] font-semibold tracking-wider',
+                  holiday ? 'text-destructive' : 'text-muted-foreground',
+                )}>
                   {isMobile ? DAY_NAMES_TINY[d.getDay()] : `${DAY_NAMES_SHORT[d.getDay()]}.`}
                 </div>
                 <div className={cn(
                   'font-semibold mt-0.5 flex items-center justify-center rounded-full mx-auto',
                   isMobile ? 'text-sm w-7 h-7' : 'text-xl w-10 h-10',
                   isToday && 'bg-primary text-primary-foreground',
+                  holiday && !isToday && 'text-destructive',
                 )}>
                   {format(d, 'd')}
                 </div>
+                {holiday && !isMobile && (
+                  <p className="text-[9px] text-destructive font-medium truncate leading-tight mt-0.5">{holiday.name}</p>
+                )}
               </div>
             );
           })}
