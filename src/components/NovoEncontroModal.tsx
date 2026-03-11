@@ -259,18 +259,20 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
 
             {dataSelecionada && (() => {
               const encontrosDoDia = encontros
-                .filter(e => isSameDay(new Date(e.inicio), dataSelecionada) && e.status !== 'Cancelado' && e.titulo !== 'VAGO')
+                .filter(e => isSameDay(new Date(e.inicio), dataSelecionada) && e.status !== 'Cancelado')
                 .sort((a, b) => new Date(a.inicio).getTime() - new Date(b.inicio).getTime());
 
-              // Check for time conflict
-              const hasConflict = horaInicio && horaFim && dataSelecionada && encontrosDoDia.some(e => {
-                const dateStr = format(dataSelecionada, 'yyyy-MM-dd');
-                const newStart = new Date(`${dateStr}T${horaInicio}`).getTime();
-                const newEnd = new Date(`${dateStr}T${horaFim}`).getTime();
-                const eStart = new Date(e.inicio).getTime();
-                const eFim = new Date(e.fim).getTime();
-                return newStart < eFim && newEnd > eStart;
-              });
+              // Check for time conflict (exclude VAGO from conflict check)
+              const hasConflict = horaInicio && horaFim && dataSelecionada && encontrosDoDia
+                .filter(e => e.titulo !== 'VAGO' && e.id !== replacingVagoId)
+                .some(e => {
+                  const dateStr = format(dataSelecionada, 'yyyy-MM-dd');
+                  const newStart = new Date(`${dateStr}T${horaInicio}`).getTime();
+                  const newEnd = new Date(`${dateStr}T${horaFim}`).getTime();
+                  const eStart = new Date(e.inicio).getTime();
+                  const eFim = new Date(e.fim).getTime();
+                  return newStart < eFim && newEnd > eStart;
+                });
 
               return (
                 <div className="space-y-2">
@@ -283,15 +285,38 @@ export default function NovoEncontroModal({ open, onOpenChange }: Props) {
                       ✅ Dia livre — nenhum compromisso agendado.
                     </p>
                   ) : (
-                    <div className="space-y-1 max-h-32 overflow-y-auto">
-                      {encontrosDoDia.map(e => (
-                        <div key={e.id} className="flex items-center gap-2 text-xs bg-secondary/30 rounded-md px-3 py-1.5">
-                          <span className="font-semibold text-foreground flex-shrink-0">
-                            {format(new Date(e.inicio), 'HH:mm')} - {format(new Date(e.fim), 'HH:mm')}
-                          </span>
-                          <span className="text-muted-foreground truncate">{e.titulo}</span>
-                        </div>
-                      ))}
+                    <div className="space-y-1 max-h-40 overflow-y-auto">
+                      {encontrosDoDia.map(e => {
+                        const isVago = e.titulo === 'VAGO';
+                        const isSelected = replacingVagoId === e.id;
+                        return (
+                          <div
+                            key={e.id}
+                            onClick={isVago ? () => handleSelectVago(e) : undefined}
+                            className={cn(
+                              "flex items-center gap-2 text-xs rounded-md px-3 py-1.5 transition-colors",
+                              isVago
+                                ? isSelected
+                                  ? "bg-primary/15 border border-primary/40 cursor-pointer ring-1 ring-primary/30"
+                                  : "bg-success/10 border border-success/30 cursor-pointer hover:bg-success/20"
+                                : "bg-secondary/30",
+                            )}
+                          >
+                            <span className="font-semibold text-foreground flex-shrink-0">
+                              {format(new Date(e.inicio), 'HH:mm')} - {format(new Date(e.fim), 'HH:mm')}
+                            </span>
+                            <span className={cn("truncate", isVago ? "text-success font-medium" : "text-muted-foreground")}>
+                              {e.titulo}
+                            </span>
+                            {isVago && !isSelected && (
+                              <span className="ml-auto text-[10px] text-success flex-shrink-0">Clique para usar</span>
+                            )}
+                            {isSelected && (
+                              <span className="ml-auto text-[10px] text-primary font-medium flex-shrink-0">✓ Selecionado</span>
+                            )}
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
                   {hasConflict && (
