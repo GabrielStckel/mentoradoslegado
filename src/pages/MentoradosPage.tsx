@@ -31,18 +31,8 @@ export default function MentoradosPage() {
   const isMobile = useIsMobile();
 
   const { data: mentorados = [], isLoading } = useMentorados();
-  const { data: encontros = [] } = useEncontros();
 
-  // Count realizados per mentorado
-  const encontrosCount = useMemo(() => {
-    const map: Record<string, number> = {};
-    encontros.forEach(e => {
-      if (e.status === 'Realizado') {
-        map[e.mentorado_id] = (map[e.mentorado_id] || 0) + 1;
-      }
-    });
-    return map;
-  }, [encontros]);
+  // No longer counting realizados from encontros - using encontros_realizados column directly
 
   const filtered = useMemo(() => {
     return mentorados.filter(m => {
