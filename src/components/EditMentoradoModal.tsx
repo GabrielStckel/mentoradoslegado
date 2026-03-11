@@ -142,10 +142,9 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Novo">Novo</SelectItem>
-                  <SelectItem value="Ativo">Ativo</SelectItem>
-                  <SelectItem value="Pausado">Pausado</SelectItem>
-                  <SelectItem value="Finalizado">Finalizado</SelectItem>
+                  {(statusListData || []).map((s: any) => (
+                    <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
