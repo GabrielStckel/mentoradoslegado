@@ -28,7 +28,7 @@ const DAY_NAMES_TINY = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 export default function CalendarView({ encontros, mentores, onEventClick }: Props) {
   const [currentDate, setCurrentDate] = useState(new Date());
   const [view, setView] = useState<ViewMode>('month');
-  const [selectedDay, setSelectedDay] = useState<Date | null>(null);
+  
   const scrollRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
