@@ -7,7 +7,7 @@ import NovoMentoradoModal from '@/components/NovoMentoradoModal';
 import EditMentoradoModal from '@/components/EditMentoradoModal';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
 import QuickSessionModal from '@/components/QuickSessionModal';
-import StatusManagerModal from '@/components/StatusManagerModal';
+
 import { StatusBadge, TagBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
