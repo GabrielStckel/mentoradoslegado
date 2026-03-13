@@ -3,6 +3,7 @@ import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, end
 import { ptBR } from 'date-fns/locale';
 import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Search, ChevronDown } from 'lucide-react';
 import { useMentorados, useEncontros, useUpdateEncontroStatus, useDeleteEncontro, useRevertToVago } from '@/hooks/useSupabaseData';
+import { toTitleCase } from '@/lib/utils';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -49,7 +50,7 @@ export default function Dashboard() {
 
   const mentoradoMap = useMemo(() => {
     const m: Record<string, string> = {};
-    mentorados.forEach(mt => { m[mt.id] = mt.nome; });
+    mentorados.forEach(mt => { m[mt.id] = toTitleCase(mt.nome); });
     return m;
   }, [mentorados]);
 

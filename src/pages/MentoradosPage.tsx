@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { toTitleCase } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Phone, CalendarPlus, Pencil, Eye } from 'lucide-react';
 import EncontrosCounter from '@/components/EncontrosCounter';
@@ -87,7 +88,7 @@ export default function MentoradosPage() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-base text-primary truncate">{m.nome}</p>
+                  <p className="font-semibold text-base text-primary truncate">{toTitleCase(m.nome)}</p>
                   <p className="text-xs text-muted-foreground truncate">{m.email}</p>
                 </div>
                 <StatusBadge status={m.status as any} />
@@ -167,7 +168,7 @@ export default function MentoradosPage() {
                 <TableRow key={m.id} className="hover:bg-secondary/20">
                   <TableCell>
                     <button className="text-left hover:underline" onClick={() => setSelectedMentorado(m)}>
-                      <p className="font-semibold text-base text-primary">{m.nome}</p>
+                      <p className="font-semibold text-base text-primary">{toTitleCase(m.nome)}</p>
                       <p className="text-xs text-muted-foreground">{m.email}</p>
                     </button>
                   </TableCell>
