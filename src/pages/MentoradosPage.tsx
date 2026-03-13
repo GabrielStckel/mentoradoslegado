@@ -88,7 +88,7 @@ export default function MentoradosPage() {
             >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
-                  <p className="font-semibold text-base text-primary truncate">{m.nome}</p>
+                  <p className="font-semibold text-base text-primary truncate">{toTitleCase(m.nome)}</p>
                   <p className="text-xs text-muted-foreground truncate">{m.email}</p>
                 </div>
                 <StatusBadge status={m.status as any} />
