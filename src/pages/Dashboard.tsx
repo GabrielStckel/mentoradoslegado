@@ -19,7 +19,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { data: mentorados = [], isLoading: loadingM } = useMentorados();
   const { data: encontros = [], isLoading: loadingE } = useEncontros();
-  const [showNovo, setShowNovo] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('semana');
   const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
