@@ -177,9 +177,6 @@ export default function Dashboard() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <Button onClick={() => setShowNovo(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Novo Encontro
-          </Button>
         </div>
       </div>
 
