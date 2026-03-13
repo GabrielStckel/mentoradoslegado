@@ -50,7 +50,7 @@ export default function Dashboard() {
 
   const mentoradoMap = useMemo(() => {
     const m: Record<string, string> = {};
-    mentorados.forEach(mt => { m[mt.id] = mt.nome; });
+    mentorados.forEach(mt => { m[mt.id] = toTitleCase(mt.nome); });
     return m;
   }, [mentorados]);
 
