@@ -276,9 +276,6 @@ export default function Dashboard() {
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Clock className="h-4 w-4 text-primary" /> Próximos Encontros (Geral)
               </CardTitle>
-              <button onClick={() => navigate('/encontros')} className="text-xs text-primary hover:underline font-medium">
-                Ver todos →
-              </button>
             </div>
           </CardHeader>
           <CardContent>
