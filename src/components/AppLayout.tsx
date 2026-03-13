@@ -16,8 +16,6 @@ import { PinSettingsModal } from '@/components/PinModal';
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/mentorados', label: 'Mentorados', icon: Users },
-  { to: '/encontros', label: 'Encontros', icon: CalendarClock },
-  { to: '/calendario', label: 'Calendário', icon: CalendarDays },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
