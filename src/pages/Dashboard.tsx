@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Plus, Eye, Target, TrendingUp, Search, ChevronDown } from 'lucide-react';
+import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Search, ChevronDown } from 'lucide-react';
 import { useMentorados, useEncontros, useUpdateEncontroStatus, useDeleteEncontro, useRevertToVago } from '@/hooks/useSupabaseData';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +11,6 @@ import { Progress } from '@/components/ui/progress';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import NovoEncontroModal from '@/components/NovoEncontroModal';
 import MeetingModal from '@/components/MeetingModal';
 
 type TimeRange = 'dia' | 'semana' | 'mes' | '3meses' | '6meses' | '9meses' | '1ano';
@@ -20,7 +19,6 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const { data: mentorados = [], isLoading: loadingM } = useMentorados();
   const { data: encontros = [], isLoading: loadingE } = useEncontros();
-  const [showNovo, setShowNovo] = useState(false);
   const [timeRange, setTimeRange] = useState<TimeRange>('semana');
   const [selectedEncontro, setSelectedEncontro] = useState<any>(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -177,9 +175,6 @@ export default function Dashboard() {
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <Button onClick={() => setShowNovo(true)}>
-            <Plus className="h-4 w-4 mr-2" /> Novo Encontro
-          </Button>
         </div>
       </div>
 
@@ -309,7 +304,6 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <NovoEncontroModal open={showNovo} onOpenChange={setShowNovo} />
       {selectedEncontro && (
         <MeetingModal
           open={!!selectedEncontro}
