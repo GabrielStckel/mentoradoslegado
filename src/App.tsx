@@ -8,9 +8,6 @@ import AppLayout from "./components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import MentoradosPage from "./pages/MentoradosPage";
 import MentoradoDetail from "./pages/MentoradoDetail";
-
-import EncontrosPage from "./pages/EncontrosPage";
-import CalendarioPage from "./pages/CalendarioPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
