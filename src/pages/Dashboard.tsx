@@ -304,7 +304,6 @@ export default function Dashboard() {
         </Card>
       </div>
 
-      <NovoEncontroModal open={showNovo} onOpenChange={setShowNovo} />
       {selectedEncontro && (
         <MeetingModal
           open={!!selectedEncontro}
