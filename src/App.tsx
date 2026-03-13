@@ -34,9 +34,6 @@ function ProtectedRoutes() {
         <Route path="/" element={<Dashboard />} />
         <Route path="/mentorados" element={<MentoradosPage />} />
         <Route path="/mentorados/:id" element={<MentoradoDetail />} />
-        
-        <Route path="/encontros" element={<EncontrosPage />} />
-        <Route path="/calendario" element={<CalendarioPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
