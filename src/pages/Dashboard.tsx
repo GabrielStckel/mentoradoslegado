@@ -215,9 +215,6 @@ export default function Dashboard() {
               <CardTitle className="text-base font-semibold flex items-center gap-2">
                 <Users className="h-4 w-4 text-primary" /> Próximos Encontros de Mentorados
               </CardTitle>
-              <button onClick={() => navigate('/mentorados')} className="text-xs text-primary hover:underline font-medium">
-                Ver mentorados →
-              </button>
             </div>
           </CardHeader>
           <CardContent>
