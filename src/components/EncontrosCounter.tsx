@@ -25,8 +25,6 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
   const { user } = useAuth();
   const [showPin, setShowPin] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [showObservacao, setShowObservacao] = useState(false);
-  const [observacao, setObservacao] = useState('');
   const [pendingAction, setPendingAction] = useState<'add' | 'remove' | null>(null);
 
   const pinEnabled = !!(pinSettings?.pin && pinSettings.enabled);
