@@ -105,27 +105,10 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
   };
 
   const handleConfirmed = () => {
-    if (pendingAction === 'add') {
-      // Show observation dialog for add
-      setShowObservacao(true);
-    } else if (pendingAction) {
+    if (pendingAction) {
       mutation.mutate({ action: pendingAction });
       setPendingAction(null);
     }
-  };
-
-  const handleSaveObservacao = () => {
-    mutation.mutate({ action: 'add', obs: observacao.trim() || undefined });
-    setShowObservacao(false);
-    setObservacao('');
-    setPendingAction(null);
-  };
-
-  const handleSkipObservacao = () => {
-    mutation.mutate({ action: 'add' });
-    setShowObservacao(false);
-    setObservacao('');
-    setPendingAction(null);
   };
 
   const handlePinVerified = () => {
