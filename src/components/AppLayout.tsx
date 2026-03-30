@@ -16,6 +16,7 @@ import { PinSettingsModal } from '@/components/PinModal';
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/mentorados', label: 'Mentorados', icon: Users },
+  { to: '/concluidos', label: 'Concluídos', icon: UserCheck },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
