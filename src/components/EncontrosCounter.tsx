@@ -6,7 +6,7 @@ import { PinVerifyModal } from '@/components/PinModal';
 import { Button } from '@/components/ui/button';
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+
 import { toast } from 'sonner';
 import { Plus, Minus, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
