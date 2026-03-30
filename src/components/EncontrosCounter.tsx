@@ -4,12 +4,11 @@ import { supabase } from '@/integrations/supabase/client';
 import { usePinSettings } from '@/hooks/usePinSettings';
 import { PinVerifyModal } from '@/components/PinModal';
 import { Button } from '@/components/ui/button';
-import { Textarea } from '@/components/ui/textarea';
 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+
 import { toast } from 'sonner';
-import { Plus, Minus, Save, CheckCircle } from 'lucide-react';
+import { Plus, Minus, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
@@ -26,8 +25,6 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
   const { user } = useAuth();
   const [showPin, setShowPin] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
-  const [showObservacao, setShowObservacao] = useState(false);
-  const [observacao, setObservacao] = useState('');
   const [pendingAction, setPendingAction] = useState<'add' | 'remove' | null>(null);
 
   const pinEnabled = !!(pinSettings?.pin && pinSettings.enabled);
@@ -105,27 +102,10 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
   };
 
   const handleConfirmed = () => {
-    if (pendingAction === 'add') {
-      // Show observation dialog for add
-      setShowObservacao(true);
-    } else if (pendingAction) {
+    if (pendingAction) {
       mutation.mutate({ action: pendingAction });
       setPendingAction(null);
     }
-  };
-
-  const handleSaveObservacao = () => {
-    mutation.mutate({ action: 'add', obs: observacao.trim() || undefined });
-    setShowObservacao(false);
-    setObservacao('');
-    setPendingAction(null);
-  };
-
-  const handleSkipObservacao = () => {
-    mutation.mutate({ action: 'add' });
-    setShowObservacao(false);
-    setObservacao('');
-    setPendingAction(null);
   };
 
   const handlePinVerified = () => {
@@ -223,36 +203,6 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Observation dialog after confirming + */}
-      <Dialog open={showObservacao} onOpenChange={(o) => { if (!o) handleSkipObservacao(); }}>
-        <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
-          <DialogHeader>
-            <DialogTitle className="text-base">Observação da sessão</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Sessão #{realizados + 1} de {mentoradoNome} registrada. Deseja adicionar uma observação?
-            </p>
-            <Textarea
-              value={observacao}
-              onChange={e => setObservacao(e.target.value)}
-              rows={3}
-              placeholder="Como foi a sessão..."
-              className="text-sm"
-              autoFocus
-            />
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={handleSkipObservacao}>
-              Pular
-            </Button>
-            <Button onClick={handleSaveObservacao} disabled={mutation.isPending}>
-              <Save className="h-3.5 w-3.5 mr-1.5" />
-              Salvar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
