@@ -9,7 +9,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Minus, Save } from 'lucide-react';
+import { Plus, Minus, Save, CheckCircle } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Props {
