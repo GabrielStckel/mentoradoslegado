@@ -36,6 +36,7 @@ export default function MentoradosPage() {
 
   const filtered = useMemo(() => {
     return mentorados.filter(m => {
+      if (m.status === 'Concluído') return false;
       const matchSearch = !search || m.nome.toLowerCase().includes(search.toLowerCase()) ||
         m.email.toLowerCase().includes(search.toLowerCase()) ||
         m.telefone_whatsapp.includes(search);
