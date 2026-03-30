@@ -206,36 +206,6 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Observation dialog after confirming + */}
-      <Dialog open={showObservacao} onOpenChange={(o) => { if (!o) handleSkipObservacao(); }}>
-        <DialogContent className="sm:max-w-md" onClick={(e) => e.stopPropagation()}>
-          <DialogHeader>
-            <DialogTitle className="text-base">Observação da sessão</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Sessão #{realizados + 1} de {mentoradoNome} registrada. Deseja adicionar uma observação?
-            </p>
-            <Textarea
-              value={observacao}
-              onChange={e => setObservacao(e.target.value)}
-              rows={3}
-              placeholder="Como foi a sessão..."
-              className="text-sm"
-              autoFocus
-            />
-          </div>
-          <DialogFooter className="gap-2 sm:gap-0">
-            <Button variant="outline" onClick={handleSkipObservacao}>
-              Pular
-            </Button>
-            <Button onClick={handleSaveObservacao} disabled={mutation.isPending}>
-              <Save className="h-3.5 w-3.5 mr-1.5" />
-              Salvar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 }
