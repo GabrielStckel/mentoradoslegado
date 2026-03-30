@@ -8,6 +8,7 @@ import AppLayout from "./components/AppLayout";
 import Dashboard from "./pages/Dashboard";
 import MentoradosPage from "./pages/MentoradosPage";
 import MentoradoDetail from "./pages/MentoradoDetail";
+import ConcluidosPage from "./pages/ConcluidosPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
