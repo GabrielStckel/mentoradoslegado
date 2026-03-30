@@ -136,6 +136,20 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
     ? `Marcar mais 1 sessão realizada para ${mentoradoNome}? (${realizados} → ${realizados + 1})`
     : `Remover 1 sessão realizada de ${mentoradoNome}? (${realizados} → ${Math.max(0, realizados - 1)})`;
 
+  const completeMutation = useMutation({
+    mutationFn: async () => {
+      const { error } = await supabase.from('mentorados').update({ status: 'Concluído' }).eq('id', mentoradoId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['mentorados'] });
+      toast.success(`${mentoradoNome} marcado como concluído!`);
+    },
+    onError: (err: any) => toast.error('Erro: ' + err.message),
+  });
+
+  const isComplete = totalContratados > 0 && realizados >= totalContratados;
+
   return (
     <>
       <div className="flex items-center gap-1.5">
@@ -162,6 +176,34 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
         >
           <Plus className="h-3 w-3" />
         </Button>
+        {isComplete && (
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-7 gap-1 text-xs border-green-500/50 text-green-600 hover:bg-green-50 dark:text-green-400 dark:hover:bg-green-950/30"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <CheckCircle className="h-3.5 w-3.5" /> Concluir
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent onClick={(e) => e.stopPropagation()}>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Marcar como concluído?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  <strong>{mentoradoNome}</strong> completou todas as {totalContratados} sessões contratadas. Deseja mover para a seção de Concluídos?
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction onClick={() => completeMutation.mutate()} className="bg-green-600 hover:bg-green-700 text-white">
+                  Marcar como Concluído
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        )}
       </div>
 
       <PinVerifyModal open={showPin} onOpenChange={setShowPin} onVerified={handlePinVerified} />
