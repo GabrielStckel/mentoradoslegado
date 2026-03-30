@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { NavLink as RouterNavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Users,
+  LayoutDashboard, Users, UserCheck,
   Menu, Search, ChevronLeft, LogOut, Sun, Moon, ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -16,6 +16,7 @@ import { PinSettingsModal } from '@/components/PinModal';
 const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/mentorados', label: 'Mentorados', icon: Users },
+  { to: '/concluidos', label: 'Concluídos', icon: UserCheck },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

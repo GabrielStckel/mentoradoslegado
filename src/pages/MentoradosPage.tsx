@@ -36,6 +36,7 @@ export default function MentoradosPage() {
 
   const filtered = useMemo(() => {
     return mentorados.filter(m => {
+      if (m.status === 'Concluído') return false;
       const matchSearch = !search || m.nome.toLowerCase().includes(search.toLowerCase()) ||
         m.email.toLowerCase().includes(search.toLowerCase()) ||
         m.telefone_whatsapp.includes(search);
@@ -53,7 +54,7 @@ export default function MentoradosPage() {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="page-title">Mentorados</h1>
-          <p className="page-subtitle">{mentorados.length} mentorados cadastrados</p>
+          <p className="page-subtitle">{mentorados.filter(m => m.status !== 'Concluído').length} mentorados cadastrados</p>
         </div>
         <Button onClick={() => setShowNovo(true)} size={isMobile ? 'sm' : 'default'}>
           <Plus className="h-4 w-4 mr-2" /> Novo Mentorado
