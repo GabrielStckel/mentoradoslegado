@@ -55,7 +55,7 @@ export default function Dashboard() {
   }, [mentorados]);
 
   const stats = useMemo(() => {
-    const ativos = mentorados.filter(m => m.status === 'Ativo').length;
+    const ativos = mentorados.filter(m => m.status === 'Ativo' || m.status === 'Novo').length;
     const concluidos = mentorados.filter(m => m.status === 'Concluído').length;
     const total = encontrosNoRange.length;
     const agendados = encontrosNoRange.filter(e => e.status === 'Agendado').length;
