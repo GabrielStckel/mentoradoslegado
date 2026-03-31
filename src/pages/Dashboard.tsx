@@ -111,15 +111,14 @@ export default function Dashboard() {
   const statCards = [
     { label: 'Mentorados Ativos', value: stats.ativos, icon: Users, color: 'text-primary' },
     { label: 'Concluídos', value: stats.concluidos, icon: UserCheck, color: 'text-success' },
-    { label: `Encontros (${rangeLabel})`, value: stats.total, icon: CalendarDays, color: 'text-info' },
   ];
 
   if (loading) {
     return (
       <div className="space-y-6">
         <div><h1 className="page-title">Dashboard</h1><p className="page-subtitle">Visão geral das mentorias</p></div>
-        <div className="grid grid-cols-3 gap-4">
-          {[1,2,3].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
+        <div className="grid grid-cols-2 gap-4">
+          {[1,2].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
         </div>
       </div>
     );
@@ -127,54 +126,12 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="page-title">Dashboard</h1>
-          <p className="page-subtitle">Visão geral das mentorias</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center rounded-lg border bg-secondary/30 p-0.5">
-            {(['dia', 'semana', 'mes'] as TimeRange[]).map(r => (
-              <button
-                key={r}
-                onClick={() => setTimeRange(r)}
-                className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${
-                  timeRange === r ? 'bg-primary text-primary-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                {r === 'dia' ? 'Dia' : r === 'semana' ? 'Semana' : 'Mês'}
-              </button>
-            ))}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button
-                  className={`px-2 py-1.5 text-xs font-medium rounded-md transition-colors flex items-center gap-1 ${
-                    ['3meses', '6meses', '9meses', '1ano'].includes(timeRange)
-                      ? 'bg-primary text-primary-foreground shadow-sm'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {['3meses', '6meses', '9meses', '1ano'].includes(timeRange) ? rangeLabelMap[timeRange] : 'Mais'}
-                  <ChevronDown className="h-3 w-3" />
-                </button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                {([['3meses', '3 Meses'], ['6meses', '6 Meses'], ['9meses', '9 Meses'], ['1ano', '1 Ano']] as [TimeRange, string][]).map(([value, label]) => (
-                  <DropdownMenuItem
-                    key={value}
-                    onClick={() => setTimeRange(value)}
-                    className={timeRange === value ? 'bg-accent font-medium' : ''}
-                  >
-                    {label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
+      <div>
+        <h1 className="page-title">Dashboard</h1>
+        <p className="page-subtitle">Visão geral das mentorias</p>
       </div>
 
-      <div className="grid grid-cols-3 gap-2 md:gap-4">
+      <div className="grid grid-cols-2 gap-2 md:gap-4">
         {statCards.map((s) => (
           <div key={s.label} className="stat-card p-3 md:p-5">
             <div className="flex items-center justify-between mb-2 md:mb-3">
