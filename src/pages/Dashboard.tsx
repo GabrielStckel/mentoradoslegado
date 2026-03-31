@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { format, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, addMonths } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Users, CalendarDays, CalendarCheck, XCircle, AlertTriangle, Clock, Search, ChevronDown } from 'lucide-react';
+import { Users, CalendarDays, CalendarCheck, UserCheck, Clock, Search, ChevronDown } from 'lucide-react';
 import { useMentorados, useEncontros, useUpdateEncontroStatus, useDeleteEncontro, useRevertToVago } from '@/hooks/useSupabaseData';
 import { toTitleCase } from '@/lib/utils';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -56,22 +56,19 @@ export default function Dashboard() {
 
   const stats = useMemo(() => {
     const ativos = mentorados.filter(m => m.status === 'Ativo').length;
+    const concluidos = mentorados.filter(m => m.status === 'Concluído').length;
     const total = encontrosNoRange.length;
     const agendados = encontrosNoRange.filter(e => e.status === 'Agendado').length;
-    const cancelados = encontrosNoRange.filter(e => e.status === 'Cancelado').length;
-    const faltas = encontrosNoRange.filter(e => e.status === 'Faltou').length;
-    return { ativos, total, agendados, cancelados, faltas };
+    return { ativos, concluidos, total, agendados };
   }, [mentorados, encontrosNoRange]);
 
   const proximos = useMemo(() => {
     const q = searchQuery.toLowerCase();
     const todayStart = startOfDay(new Date());
-    const todayEnd = endOfDay(new Date());
     return encontrosNoRange
       .filter(e => {
         if (e.titulo === 'VAGO') return false;
         if (e.status !== 'Agendado') return false;
-        // Show all of today's events (even past ones), plus future ones
         const d = new Date(e.inicio);
         if (d < todayStart) return false;
         if (q && !e.titulo.toLowerCase().includes(q) && !(mentoradoMap[e.mentorado_id] || '').toLowerCase().includes(q)) return false;
@@ -113,18 +110,16 @@ export default function Dashboard() {
 
   const statCards = [
     { label: 'Mentorados Ativos', value: stats.ativos, icon: Users, color: 'text-primary' },
+    { label: 'Concluídos', value: stats.concluidos, icon: UserCheck, color: 'text-success' },
     { label: `Encontros (${rangeLabel})`, value: stats.total, icon: CalendarDays, color: 'text-info' },
-    { label: 'Agendados', value: stats.agendados, icon: CalendarCheck, color: 'text-success' },
-    { label: 'Cancelados', value: stats.cancelados, icon: XCircle, color: 'text-destructive' },
-    { label: 'Faltas', value: stats.faltas, icon: AlertTriangle, color: 'text-warning' },
   ];
 
   if (loading) {
     return (
       <div className="space-y-6">
         <div><h1 className="page-title">Dashboard</h1><p className="page-subtitle">Visão geral das mentorias</p></div>
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
+        <div className="grid grid-cols-3 gap-4">
+          {[1,2,3].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
         </div>
       </div>
     );
@@ -179,13 +174,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
+      <div className="grid grid-cols-3 gap-2 md:gap-4">
         {statCards.map((s) => (
           <div key={s.label} className="stat-card p-3 md:p-5">
             <div className="flex items-center justify-between mb-2 md:mb-3">
               <s.icon className={`h-4 w-4 md:h-5 md:w-5 ${s.color}`} />
             </div>
-            <p className="text-xl md:text-2xl font-bold">0</p>
+            <p className="text-xl md:text-2xl font-bold">{s.value}</p>
             <p className="text-[11px] md:text-xs text-muted-foreground mt-1">{s.label}</p>
           </div>
         ))}
