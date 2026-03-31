@@ -56,22 +56,19 @@ export default function Dashboard() {
 
   const stats = useMemo(() => {
     const ativos = mentorados.filter(m => m.status === 'Ativo').length;
+    const concluidos = mentorados.filter(m => m.status === 'Concluído').length;
     const total = encontrosNoRange.length;
     const agendados = encontrosNoRange.filter(e => e.status === 'Agendado').length;
-    const cancelados = encontrosNoRange.filter(e => e.status === 'Cancelado').length;
-    const faltas = encontrosNoRange.filter(e => e.status === 'Faltou').length;
-    return { ativos, total, agendados, cancelados, faltas };
+    return { ativos, concluidos, total, agendados };
   }, [mentorados, encontrosNoRange]);
 
   const proximos = useMemo(() => {
     const q = searchQuery.toLowerCase();
     const todayStart = startOfDay(new Date());
-    const todayEnd = endOfDay(new Date());
     return encontrosNoRange
       .filter(e => {
         if (e.titulo === 'VAGO') return false;
         if (e.status !== 'Agendado') return false;
-        // Show all of today's events (even past ones), plus future ones
         const d = new Date(e.inicio);
         if (d < todayStart) return false;
         if (q && !e.titulo.toLowerCase().includes(q) && !(mentoradoMap[e.mentorado_id] || '').toLowerCase().includes(q)) return false;
@@ -113,10 +110,8 @@ export default function Dashboard() {
 
   const statCards = [
     { label: 'Mentorados Ativos', value: stats.ativos, icon: Users, color: 'text-primary' },
+    { label: 'Concluídos', value: stats.concluidos, icon: UserCheck, color: 'text-success' },
     { label: `Encontros (${rangeLabel})`, value: stats.total, icon: CalendarDays, color: 'text-info' },
-    { label: 'Agendados', value: stats.agendados, icon: CalendarCheck, color: 'text-success' },
-    { label: 'Cancelados', value: stats.cancelados, icon: XCircle, color: 'text-destructive' },
-    { label: 'Faltas', value: stats.faltas, icon: AlertTriangle, color: 'text-warning' },
   ];
 
   if (loading) {
