@@ -119,7 +119,7 @@ export default function Dashboard() {
       <div className="space-y-6">
         <div><h1 className="page-title">Dashboard</h1><p className="page-subtitle">Visão geral das mentorias</p></div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {[1,2,3,4,5].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
+          {[1,2,3].map(i => <Skeleton key={i} className="h-24 rounded-xl" />)}
         </div>
       </div>
     );
