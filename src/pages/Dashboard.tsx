@@ -185,21 +185,10 @@ export default function Dashboard() {
             <div className="flex items-center justify-between mb-2 md:mb-3">
               <s.icon className={`h-4 w-4 md:h-5 md:w-5 ${s.color}`} />
             </div>
-            <p className="text-xl md:text-2xl font-bold">{s.value}</p>
+            <p className="text-xl md:text-2xl font-bold">0</p>
             <p className="text-[11px] md:text-xs text-muted-foreground mt-1">{s.label}</p>
           </div>
         ))}
-      </div>
-
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Buscar por título ou mentorado..."
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          className="pl-9"
-        />
       </div>
 
       {selectedEncontro && (
