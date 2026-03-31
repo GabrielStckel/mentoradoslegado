@@ -174,13 +174,13 @@ export default function Dashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2 md:gap-4">
+      <div className="grid grid-cols-3 gap-2 md:gap-4">
         {statCards.map((s) => (
           <div key={s.label} className="stat-card p-3 md:p-5">
             <div className="flex items-center justify-between mb-2 md:mb-3">
               <s.icon className={`h-4 w-4 md:h-5 md:w-5 ${s.color}`} />
             </div>
-            <p className="text-xl md:text-2xl font-bold">0</p>
+            <p className="text-xl md:text-2xl font-bold">{s.value}</p>
             <p className="text-[11px] md:text-xs text-muted-foreground mt-1">{s.label}</p>
           </div>
         ))}
