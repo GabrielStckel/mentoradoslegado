@@ -87,6 +87,8 @@ export default function HistoricoEncontrosPage() {
         .select('id, titulo, mentorado_id, inicio, status')
         .gte('fim', doisMesesAtras.toISOString())
         .lt('fim', agora)
+        .not('mentorado_id', 'is', null)
+        .neq('status', 'vago')
         .order('inicio', { ascending: false });
       if (error) throw error;
       return data || [];
