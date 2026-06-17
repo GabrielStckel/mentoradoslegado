@@ -15,19 +15,19 @@ export const mentores: Mentor[] = [
   {
     id: 'm1', nome: 'Ana Costa', email: 'ana@mentoria.com', telefone_whatsapp: '5511999001001',
     especialidade: 'Liderança e Gestão', status: 'Ativo', carga_max_por_dia: 5,
-    cor_calendario: '#0d9488'
+    cor_calendario: '#0d9488',
     created_at: fmt(addDays(today, -90)), updated_at: fmt(today),
   },
   {
     id: 'm2', nome: 'Bruno Silva', email: 'bruno@mentoria.com', telefone_whatsapp: '5511999002002',
     especialidade: 'Carreira e Transição', status: 'Ativo', carga_max_por_dia: 4,
-    cor_calendario: '#3b82f6'
+    cor_calendario: '#3b82f6',
     created_at: fmt(addDays(today, -60)), updated_at: fmt(today),
   },
   {
     id: 'm3', nome: 'Carla Mendes', email: 'carla@mentoria.com', telefone_whatsapp: '5511999003003',
     especialidade: 'Inteligência Emocional', status: 'Inativo', carga_max_por_dia: 3,
-    cor_calendario: '#f59e0b'
+    cor_calendario: '#f59e0b',
     created_at: fmt(addDays(today, -120)), updated_at: fmt(addDays(today, -30)),
   },
 ];
