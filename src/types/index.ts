@@ -19,8 +19,6 @@ export interface Mentor {
   status: MentorStatus;
   carga_max_por_dia: number;
   cor_calendario: string;
-  google_calendar_connected: boolean;
-  google_calendar_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -55,8 +53,6 @@ export interface Encontro {
   notas_do_mentor: string;
   notas_operacionais: string;
   proxima_acao: string;
-  sincronizado_google: boolean;
-  google_event_id: string | null;
   lembrete_24h_enviado: boolean;
   lembrete_3h_enviado: boolean;
   lembrete_10min_enviado: boolean;

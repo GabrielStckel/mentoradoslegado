@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -29,7 +28,6 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
   const queryClient = useQueryClient();
   const { data: mentores = [] } = useMentores();
   const { data: encontros = [] } = useEncontros();
-  const { connected, syncEvent } = useGoogleCalendar();
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedTime, setSelectedTime] = useState('');
@@ -116,7 +114,7 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
         const fim = new Date(inicio);
         fim.setHours(fim.getHours() + 1);
 
-        const { data: inserted, error } = await supabase.from('encontros').insert({
+        const { error } = await supabase.from('encontros').insert({
           titulo: `Sessão - ${mentorado!.nome}`,
           mentorado_id: mentorado!.id,
           mentor_id: mentorId,
@@ -126,14 +124,6 @@ export default function QuickSessionModal({ mentorado, open, onOpenChange }: Pro
           fim: fim.toISOString(),
         }).select().single();
         if (error) throw error;
-
-        if (connected && inserted) {
-          try {
-            await syncEvent('create', inserted);
-          } catch (syncErr) {
-            console.error('Google Calendar sync failed:', syncErr);
-          }
-        }
       }
 
       if (observacao.trim()) {
