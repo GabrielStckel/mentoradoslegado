@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import MentoradosPage from "./pages/MentoradosPage";
 import MentoradoDetail from "./pages/MentoradoDetail";
 import ConcluidosPage from "./pages/ConcluidosPage";
+import HistoricoEncontrosPage from "./pages/HistoricoEncontrosPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
@@ -36,6 +37,7 @@ function ProtectedRoutes() {
         <Route path="/mentorados" element={<MentoradosPage />} />
         <Route path="/mentorados/:id" element={<MentoradoDetail />} />
         <Route path="/concluidos" element={<ConcluidosPage />} />
+        <Route path="/historico-encontros" element={<HistoricoEncontrosPage />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AppLayout>
