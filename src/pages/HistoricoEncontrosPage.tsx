@@ -80,7 +80,7 @@ export default function HistoricoEncontrosPage() {
       const { data, error } = await supabase
         .from('encontros')
         .select('id, titulo, mentorado_id, inicio, status')
-        .eq('status', 'Realizado')
+        .or('status.eq.Realizado,fim.lt.now()')
         .order('inicio', { ascending: false });
       if (error) throw error;
       return data || [];
