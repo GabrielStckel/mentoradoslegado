@@ -108,11 +108,24 @@ export default function HistoricoEncontrosPage() {
       byEnc.get(l.encontro_id)!.push(l);
     });
 
-    const items = encontros.map(e => ({
-      encontro: e,
-      mentoradoNome: mentoradoMap.get(e.mentorado_id) || '—',
-      logs: byEnc.get(e.id) || [],
-    }));
+    const isVagoVal = (v: string | null) => (v || '').trim().toLowerCase() === 'vago';
+
+    const items = encontros
+      .filter(e => e.mentorado_id && mentoradoMap.has(e.mentorado_id))
+      .map(e => {
+        const rawLogs = byEnc.get(e.id) || [];
+        const filteredLogs = rawLogs.filter(l => {
+          if (l.field_name === 'titulo' || l.field_name === 'status') {
+            if (isVagoVal(l.old_value) || isVagoVal(l.new_value)) return false;
+          }
+          return true;
+        });
+        return {
+          encontro: e,
+          mentoradoNome: mentoradoMap.get(e.mentorado_id!) || '—',
+          logs: filteredLogs,
+        };
+      });
 
     const q = search.trim().toLowerCase();
     return q
