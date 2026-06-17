@@ -18,7 +18,6 @@ export type Database = {
         Row: {
           created_at: string
           fim: string
-          google_event_id: string | null
           id: string
           inicio: string
           lembrete_10min_enviado: boolean
@@ -31,7 +30,6 @@ export type Database = {
           notas_do_mentor: string
           notas_operacionais: string
           proxima_acao: string
-          sincronizado_google: boolean
           status: string
           tipo: string
           titulo: string
@@ -40,7 +38,6 @@ export type Database = {
         Insert: {
           created_at?: string
           fim: string
-          google_event_id?: string | null
           id?: string
           inicio: string
           lembrete_10min_enviado?: boolean
@@ -53,7 +50,6 @@ export type Database = {
           notas_do_mentor?: string
           notas_operacionais?: string
           proxima_acao?: string
-          sincronizado_google?: boolean
           status?: string
           tipo?: string
           titulo: string
@@ -62,7 +58,6 @@ export type Database = {
         Update: {
           created_at?: string
           fim?: string
-          google_event_id?: string | null
           id?: string
           inicio?: string
           lembrete_10min_enviado?: boolean
@@ -75,7 +70,6 @@ export type Database = {
           notas_do_mentor?: string
           notas_operacionais?: string
           proxima_acao?: string
-          sincronizado_google?: boolean
           status?: string
           tipo?: string
           titulo?: string
@@ -152,42 +146,6 @@ export type Database = {
           created_at?: string
           id?: string
           nome?: string
-        }
-        Relationships: []
-      }
-      google_calendar_tokens: {
-        Row: {
-          access_token: string
-          calendar_id: string | null
-          created_at: string
-          id: string
-          last_synced_at: string | null
-          refresh_token: string
-          token_expires_at: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          access_token: string
-          calendar_id?: string | null
-          created_at?: string
-          id?: string
-          last_synced_at?: string | null
-          refresh_token: string
-          token_expires_at: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          access_token?: string
-          calendar_id?: string | null
-          created_at?: string
-          id?: string
-          last_synced_at?: string | null
-          refresh_token?: string
-          token_expires_at?: string
-          updated_at?: string
-          user_id?: string
         }
         Relationships: []
       }
@@ -326,8 +284,6 @@ export type Database = {
           created_at: string
           email: string
           especialidade: string
-          google_calendar_connected: boolean
-          google_calendar_id: string | null
           id: string
           nome: string
           status: string
@@ -341,8 +297,6 @@ export type Database = {
           created_at?: string
           email: string
           especialidade?: string
-          google_calendar_connected?: boolean
-          google_calendar_id?: string | null
           id?: string
           nome: string
           status?: string
@@ -356,8 +310,6 @@ export type Database = {
           created_at?: string
           email?: string
           especialidade?: string
-          google_calendar_connected?: boolean
-          google_calendar_id?: string | null
           id?: string
           nome?: string
           status?: string
