@@ -150,8 +150,8 @@ export default function Dashboard() {
           encontro={selectedEncontro}
           mentorado={mentorados.find(m => m.id === selectedEncontro.mentorado_id) as any}
           onStatusChange={(id, status) => { updateStatus.mutate({ id, status }); setSelectedEncontro(null); }}
-          onDelete={(e) => { deleteEncontro.mutate({ id: e.id, google_event_id: e.google_event_id }); setSelectedEncontro(null); }}
-          onRevertToVago={(e) => { revertToVago.mutate({ id: e.id, mentor_id: e.mentor_id, google_event_id: e.google_event_id }); setSelectedEncontro(null); }}
+          onDelete={(e) => { deleteEncontro.mutate({ id: e.id }); setSelectedEncontro(null); }}
+          onRevertToVago={(e) => { revertToVago.mutate({ id: e.id, mentor_id: e.mentor_id }); setSelectedEncontro(null); }}
         />
       )}
     </div>

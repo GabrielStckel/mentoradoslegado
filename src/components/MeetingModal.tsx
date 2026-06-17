@@ -11,8 +11,6 @@ import { StatusBadge, TipoBadge } from '@/components/StatusBadge';
 import { Encontro, EncontroStatus, Mentorado, Mentor } from '@/types';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useGoogleCalendar } from '@/hooks/useGoogleCalendar';
-import { toast } from 'sonner';
 
 interface Props {
   encontro: Encontro | null;
@@ -26,8 +24,6 @@ interface Props {
 }
 
 export default function MeetingModal({ encontro, mentorado, mentor, open, onOpenChange, onStatusChange, onDelete, onRevertToVago }: Props) {
-  const { connected, syncEvent } = useGoogleCalendar();
-  const [syncing, setSyncing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [confirmRevert, setConfirmRevert] = useState(false);
 
@@ -36,31 +32,6 @@ export default function MeetingModal({ encontro, mentorado, mentor, open, onOpen
   const inicio = new Date(encontro.inicio);
   const fim = new Date(encontro.fim);
 
-  const handleSyncToGoogle = async () => {
-    setSyncing(true);
-    try {
-      const action = encontro.google_event_id ? 'update' : 'create';
-      await syncEvent(action, encontro);
-      toast.success(action === 'create' ? 'Sincronizado com Google Agenda!' : 'Atualizado no Google Agenda!');
-    } catch (err) {
-      toast.error('Erro ao sincronizar com Google Agenda');
-      console.error(err);
-    }
-    setSyncing(false);
-  };
-
-  const handleRemoveFromGoogle = async () => {
-    if (!encontro.google_event_id) return;
-    setSyncing(true);
-    try {
-      await syncEvent('delete', encontro);
-      toast.success('Removido do Google Agenda!');
-    } catch (err) {
-      toast.error('Erro ao remover do Google Agenda');
-      console.error(err);
-    }
-    setSyncing(false);
-  };
 
   const buildWhatsAppLink = (template: string) => {
     if (!mentorado) return '#';
@@ -136,7 +107,6 @@ export default function MeetingModal({ encontro, mentorado, mentor, open, onOpen
             <TabsList className="w-full">
               <TabsTrigger value="notas" className="flex-1">Notas</TabsTrigger>
               <TabsTrigger value="lembretes" className="flex-1">Lembretes</TabsTrigger>
-              <TabsTrigger value="google" className="flex-1">Google</TabsTrigger>
             </TabsList>
 
             <TabsContent value="notas" className="space-y-3 pt-2">
@@ -174,31 +144,6 @@ export default function MeetingModal({ encontro, mentorado, mentor, open, onOpen
                   </Button>
                 </div>
               ))}
-            </TabsContent>
-
-            <TabsContent value="google" className="space-y-3 pt-2">
-              <div className="p-4 rounded-lg border bg-secondary/30 text-center space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  {encontro.sincronizado_google
-                    ? '✅ Sincronizado com Google Agenda'
-                    : '⏳ Não sincronizado com Google Agenda'}
-                </p>
-                {connected && (
-                  <div className="flex gap-2 justify-center flex-wrap">
-                    <Button size="sm" variant={encontro.sincronizado_google ? 'outline' : 'default'} onClick={handleSyncToGoogle} disabled={syncing}>
-                      {syncing ? 'Sincronizando...' : encontro.sincronizado_google ? 'Atualizar no Google' : 'Sincronizar agora'}
-                    </Button>
-                    {encontro.sincronizado_google && (
-                      <Button size="sm" variant="outline" className="text-destructive" onClick={handleRemoveFromGoogle} disabled={syncing}>
-                        Remover do Google
-                      </Button>
-                    )}
-                  </div>
-                )}
-                {!connected && (
-                  <p className="text-xs text-muted-foreground">Conecte o Google Calendar para sincronizar.</p>
-                )}
-              </div>
             </TabsContent>
           </Tabs>
 

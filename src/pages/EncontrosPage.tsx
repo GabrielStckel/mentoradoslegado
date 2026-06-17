@@ -132,11 +132,11 @@ export default function EncontrosPage() {
                   <p className="font-medium text-sm truncate">{e.titulo}</p>
                   <p className="text-xs text-muted-foreground truncate">{mentoradoMap[e.mentorado_id]}</p>
                 </div>
-                {(!e.google_event_id || e.status !== 'Agendado') && <StatusBadge status={e.status as any} />}
+                <StatusBadge status={e.status as any} />
               </div>
               <div className="flex items-center justify-between text-xs text-muted-foreground">
                 <span>{format(new Date(e.inicio), 'dd/MM/yyyy')} · {format(new Date(e.inicio), 'HH:mm')} — {format(new Date(e.fim), 'HH:mm')}</span>
-                {(!e.google_event_id || (e.tipo !== 'Sessão' && e.tipo !== '')) && <TipoBadge tipo={e.tipo as any} />}
+                <TipoBadge tipo={e.tipo as any} />
               </div>
               {e.local && (
                 <p className="text-xs text-muted-foreground">{e.local}</p>
@@ -186,9 +186,9 @@ export default function EncontrosPage() {
                   </TableCell>
                   <TableCell className="text-sm font-medium">{e.titulo}</TableCell>
                   <TableCell className="text-sm">{mentoradoMap[e.mentorado_id]}</TableCell>
-                  <TableCell>{(!e.google_event_id || (e.tipo !== 'Sessão' && e.tipo !== '')) ? <TipoBadge tipo={e.tipo as any} /> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
+                  <TableCell><TipoBadge tipo={e.tipo as any} /></TableCell>
                   <TableCell className="text-sm text-muted-foreground">{e.local}</TableCell>
-                  <TableCell>{(!e.google_event_id || e.status !== 'Agendado') ? <StatusBadge status={e.status as any} /> : <span className="text-xs text-muted-foreground">—</span>}</TableCell>
+                  <TableCell><StatusBadge status={e.status as any} /></TableCell>
                   <TableCell>
                     {e.status === 'Agendado' && (
                       <div className="flex gap-1">
@@ -218,8 +218,8 @@ export default function EncontrosPage() {
         open={!!selectedEncontro}
         onOpenChange={(o) => !o && setSelectedEncontro(null)}
         onStatusChange={(id, status) => updateStatus.mutate({ id, status })}
-        onDelete={(e) => { deleteEncontro.mutate({ id: e.id, google_event_id: e.google_event_id }); setSelectedEncontro(null); }}
-        onRevertToVago={(e) => { revertToVago.mutate({ id: e.id, mentor_id: e.mentor_id, google_event_id: e.google_event_id }); setSelectedEncontro(null); }}
+        onDelete={(e) => { deleteEncontro.mutate({ id: e.id }); setSelectedEncontro(null); }}
+        onRevertToVago={(e) => { revertToVago.mutate({ id: e.id, mentor_id: e.mentor_id }); setSelectedEncontro(null); }}
       />
 
       <QuickSessionModal

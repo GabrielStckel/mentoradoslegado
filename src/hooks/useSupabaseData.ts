@@ -114,18 +114,6 @@ export function useUpdateEncontroStatus() {
     mutationFn: async ({ id, status }: { id: string; status: string }) => {
       const { data, error } = await supabase.from('encontros').update({ status }).eq('id', id).select().single();
       if (error) throw error;
-
-      // Auto-sync status change to Google Calendar
-      if (data) {
-        try {
-          await supabase.functions.invoke('google-calendar-sync', {
-            body: { action: 'update', encontro: data },
-          });
-        } catch (syncErr) {
-          console.error('Google Calendar sync on status change failed:', syncErr);
-        }
-      }
-
       return data;
     },
     onSuccess: () => {
@@ -137,18 +125,7 @@ export function useUpdateEncontroStatus() {
 export function useDeleteEncontro() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (encontro: { id: string; google_event_id?: string | null }) => {
-      // Delete from Google Calendar first if linked
-      if (encontro.google_event_id) {
-        try {
-          await supabase.functions.invoke('google-calendar-sync', {
-            body: { action: 'delete', encontro },
-          });
-        } catch (syncErr) {
-          console.error('Google Calendar sync on delete failed:', syncErr);
-        }
-      }
-
+    mutationFn: async (encontro: { id: string }) => {
       const { error } = await supabase.from('encontros').delete().eq('id', encontro.id);
       if (error) throw error;
     },
@@ -161,8 +138,7 @@ export function useDeleteEncontro() {
 export function useRevertToVago() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (encontro: { id: string; mentor_id: string; google_event_id?: string | null }) => {
-      // Find or create "Mentorado Geral" placeholder
+    mutationFn: async (encontro: { id: string; mentor_id: string }) => {
       let { data: placeholder } = await supabase
         .from('mentorados')
         .select('id')
@@ -195,18 +171,6 @@ export function useRevertToVago() {
         .single();
 
       if (error) throw error;
-
-      // Sync with Google Calendar
-      if (data?.google_event_id) {
-        try {
-          await supabase.functions.invoke('google-calendar-sync', {
-            body: { action: 'update', encontro: data },
-          });
-        } catch (syncErr) {
-          console.error('Google Calendar sync (revert to VAGO) failed:', syncErr);
-        }
-      }
-
       return data;
     },
     onSuccess: () => {

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Wifi, WifiOff, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Pencil, Trash2 } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useMentores } from '@/hooks/useSupabaseData';
@@ -8,7 +8,6 @@ import EditMentorModal from '@/components/EditMentorModal';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
@@ -77,7 +76,6 @@ export default function MentoresPage() {
               <TableHead className="table-header">Especialidade</TableHead>
               <TableHead className="table-header">Carga/dia</TableHead>
               <TableHead className="table-header">Status</TableHead>
-              <TableHead className="table-header">Google Agenda</TableHead>
               <TableHead className="table-header">Cor</TableHead>
               <TableHead className="table-header text-right">Ações</TableHead>
             </TableRow>
@@ -95,17 +93,6 @@ export default function MentoresPage() {
                 <TableCell className="text-sm">{m.carga_max_por_dia} sessões</TableCell>
                 <TableCell><StatusBadge status={m.status as any} /></TableCell>
                 <TableCell>
-                  {m.google_calendar_connected ? (
-                    <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/20">
-                      <Wifi className="h-3 w-3 mr-1" /> Conectado
-                    </Badge>
-                  ) : (
-                    <Button size="sm" variant="outline" className="text-xs h-7">
-                      <WifiOff className="h-3 w-3 mr-1.5" /> Conectar
-                    </Button>
-                  )}
-                </TableCell>
-                <TableCell>
                   <div className="w-6 h-6 rounded-full border-2 border-border" style={{ backgroundColor: m.cor_calendario }} />
                 </TableCell>
                 <TableCell className="text-right">
@@ -121,7 +108,7 @@ export default function MentoresPage() {
               </TableRow>
             ))}
             {mentores.length === 0 && (
-              <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">Nenhum mentor cadastrado.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">Nenhum mentor cadastrado.</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
