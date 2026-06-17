@@ -77,9 +77,13 @@ export default function HistoricoEncontrosPage() {
   const { data: encontros = [], isLoading: loadingEnc } = useQuery({
     queryKey: ['encontros-realizados-historico'],
     queryFn: async () => {
+      const doisMesesAtras = new Date();
+      doisMesesAtras.setMonth(doisMesesAtras.getMonth() - 2);
+      doisMesesAtras.setHours(0, 0, 0, 0);
       const { data, error } = await supabase
         .from('encontros')
         .select('id, titulo, mentorado_id, inicio, status')
+        .gte('fim', doisMesesAtras.toISOString())
         .or('status.eq.Realizado,fim.lt.now()')
         .order('inicio', { ascending: false });
       if (error) throw error;
