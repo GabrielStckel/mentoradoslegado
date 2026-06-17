@@ -67,6 +67,7 @@ export default function HistoricoEncontrosPage() {
       const { data, error } = await supabase
         .from('encontros_audit_log')
         .select('*')
+        .not('changed_by', 'is', null)
         .order('changed_at', { ascending: false })
         .limit(5000);
       if (error) throw error;
