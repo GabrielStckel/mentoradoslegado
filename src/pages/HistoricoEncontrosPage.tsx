@@ -110,7 +110,7 @@ export default function HistoricoEncontrosPage() {
     const isVagoVal = (v: string | null) => (v || '').trim().toLowerCase() === 'vago';
 
     const items = encontros
-      .filter(e => e.mentorado_id && mentoradoMap.has(e.mentorado_id))
+      .filter(e => !isVagoVal(e.titulo))
       .map(e => {
         const rawLogs = byEnc.get(e.id) || [];
         const filteredLogs = rawLogs.filter(l => {
@@ -119,9 +119,10 @@ export default function HistoricoEncontrosPage() {
           }
           return true;
         });
+        const nome = (e.mentorado_id && mentoradoMap.get(e.mentorado_id)) || e.titulo || '—';
         return {
           encontro: e,
-          mentoradoNome: mentoradoMap.get(e.mentorado_id!) || '—',
+          mentoradoNome: nome,
           logs: filteredLogs,
         };
       });
