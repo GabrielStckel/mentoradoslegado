@@ -87,8 +87,7 @@ export default function HistoricoEncontrosPage() {
         .select('id, titulo, mentorado_id, inicio, status')
         .gte('fim', doisMesesAtras.toISOString())
         .lt('fim', agora)
-        .not('mentorado_id', 'is', null)
-        .neq('status', 'vago')
+        .not('titulo', 'ilike', 'vago')
         .order('inicio', { ascending: false });
       if (error) throw error;
       return data || [];
@@ -111,7 +110,7 @@ export default function HistoricoEncontrosPage() {
     const isVagoVal = (v: string | null) => (v || '').trim().toLowerCase() === 'vago';
 
     const items = encontros
-      .filter(e => e.mentorado_id && mentoradoMap.has(e.mentorado_id))
+      .filter(e => !isVagoVal(e.titulo))
       .map(e => {
         const rawLogs = byEnc.get(e.id) || [];
         const filteredLogs = rawLogs.filter(l => {
@@ -120,9 +119,10 @@ export default function HistoricoEncontrosPage() {
           }
           return true;
         });
+        const nome = (e.mentorado_id && mentoradoMap.get(e.mentorado_id)) || e.titulo || '—';
         return {
           encontro: e,
-          mentoradoNome: mentoradoMap.get(e.mentorado_id!) || '—',
+          mentoradoNome: nome,
           logs: filteredLogs,
         };
       });
