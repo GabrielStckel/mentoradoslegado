@@ -25,6 +25,7 @@ export type AtividadeLog = {
 };
 
 export const FIELD_LABELS: Record<string, string> = {
+  arquivado_at: 'Arquivamento',
   titulo: 'Título',
   tipo: 'Tipo',
   inicio: 'Início',
