@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useHistoricos, useEncontros } from '@/hooks/useSupabaseData';
+import { useHistoricos, useEncontros, useAtividadesLog } from '@/hooks/useSupabaseData';
+import TimelineAtividade, { AtividadeLog } from '@/components/TimelineAtividade';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Mail, Phone, MapPin, User, Plus, Pencil, Trash2, X, Check, Clock, CalendarDays } from 'lucide-react';
+import { Mail, Phone, MapPin, User, Plus, Pencil, Trash2, X, Check, Clock, CalendarDays, ScrollText } from 'lucide-react';
 import { whatsappLink } from '@/lib/phone';
 import { useAuth } from '@/hooks/useAuth';
 
