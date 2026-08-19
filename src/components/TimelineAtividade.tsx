@@ -20,9 +20,11 @@ export type AtividadeLog = {
   changed_by: string | null;
   changed_by_nome: string | null;
   changed_at: string;
+  enc_realizados: number | null;
+  enc_contratados: number | null;
 };
 
-const FIELD_LABELS: Record<string, string> = {
+export const FIELD_LABELS: Record<string, string> = {
   titulo: 'Título',
   tipo: 'Tipo',
   inicio: 'Início',
