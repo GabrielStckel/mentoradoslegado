@@ -7,8 +7,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AtividadeLog, FIELD_LABELS } from '@/components/TimelineAtividade';
-import { normalizar, toTitleCase } from '@/lib/utils';
-import { cn } from '@/lib/utils';
+import { cn, normalizar, toTitleCase } from '@/lib/utils';
 
 const TZ = 'America/Sao_Paulo';
 
