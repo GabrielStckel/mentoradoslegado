@@ -60,12 +60,34 @@ export function useMentorados() {
   return useQuery({
     queryKey: ['mentorados'],
     queryFn: async () => {
-      const { data, error } = await supabase.from('mentorados').select('*').neq('nome', 'Mentorado Geral').order('nome');
+      const { data, error } = await supabase
+        .from('mentorados')
+        .select('*')
+        .neq('nome', 'Mentorado Geral')
+        .is('arquivado_at', null)
+        .order('nome');
       if (error) throw error;
       return data;
     },
   });
 }
+
+export function useMentoradosArquivados() {
+  return useQuery({
+    queryKey: ['mentorados_arquivados'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('mentorados')
+        .select('*')
+        .neq('nome', 'Mentorado Geral')
+        .not('arquivado_at', 'is', null)
+        .order('arquivado_at', { ascending: false });
+      if (error) throw error;
+      return data;
+    },
+  });
+}
+
 
 export function useEncontros() {
   return useQuery({
