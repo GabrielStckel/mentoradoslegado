@@ -9,7 +9,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 
 import { toast } from 'sonner';
 import { Plus, Minus, CheckCircle } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+
 
 interface Props {
   mentoradoId: string;
@@ -22,7 +22,7 @@ interface Props {
 export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId, totalContratados, realizados }: Props) {
   const queryClient = useQueryClient();
   const { data: pinSettings } = usePinSettings();
-  const { user } = useAuth();
+  
   const [showPin, setShowPin] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [pendingAction, setPendingAction] = useState<'add' | 'remove' | null>(null);
