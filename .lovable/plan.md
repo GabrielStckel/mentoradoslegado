@@ -7,13 +7,15 @@ Verifiquei o estado atual: `atividades_log` tem 455 registros e **não** possui 
 ## Migration 1 — colunas estruturadas
 - `ALTER TABLE public.atividades_log ADD COLUMN IF NOT EXISTS enc_realizados integer, enc_contratados integer`.
 - `CREATE OR REPLACE FUNCTION public.log_mentorados_changes()` exatamente com o SQL enviado: INSERT, UPDATE (encontros_realizados, total_encontros, status, nome, mentor_id, email, telefone_whatsapp, cidade, origem, observacoes_gerais) e DELETE (contagem de encontros/históricos que caem por cascade + motivo via `app.motivo_exclusao`), todos gravando `enc_realizados` / `enc_contratados`.
-- Preenchimento retroativo das duas colunas nos registros já existentes (`valor_novo` numérico e `total_encontros` atual do mentorado).
+- Preenchimento retroativo das duas colunas nos registros já existentes (`valor_novo` numérico e `total_encontros` atual do mentorado). O último `UPDATE` recebe `AND l.entidade = 'mentorado'`, para não vazar `enc_contratados` em linhas de `entidade = 'encontro'`.
 
 ## Migration 2 — reconstrução (idempotente)
 - (A) Um registro `INSERT` "cadastrado (registro reconstruído)" por mentorado sem INSERT no log, datado pelo `created_at`.
-- (B) Parsing dos 292 registros de `historicos` em eventos `+1 / -1` de `encontros_realizados`, com data original.
+- (B) Parsing dos 292 registros de `historicos` em eventos de `encontros_realizados`, com data original. Como todos os 292 estão no formato `Sessão #N`, sairão apenas eventos `+1` — nenhum `-1`.
 - Ambos marcados com `changed_by_nome = 'Reconstruído'` e sufixo "(registro reconstruído)". Guardas `NOT EXISTS` impedem duplicação em nova execução.
-- Nada sintético para status/nome/e-mail/telefone/cidade/exclusões anteriores a 19/08 — esse dado nunca existiu.
+- Nada sintético para status/nome/e-mail/telefone/cidade/exclusões anteriores a 19/08 — esse dado nunca existiu. Também não há observações antigas a recuperar: os 292 registros de `historicos` são todos de sessão.
+- `enc_contratados` dos eventos reconstruídos usa o total contratado **atual** do mentorado, não o da época (esse valor nunca foi gravado).
+- Volume esperado: ~330 novos registros sobre os 455 atuais; a maioria do histórico passa a ser "Reconstruído" e o filtro de período controla a visualização.
 
 ## Depois das migrations
 - Regenerar `src/integrations/supabase/types.ts` com as duas colunas novas. Único arquivo de frontend tocado.
