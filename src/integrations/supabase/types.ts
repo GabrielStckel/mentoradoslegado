@@ -280,6 +280,9 @@ export type Database = {
       }
       mentorados: {
         Row: {
+          arquivado_at: string | null
+          arquivado_motivo: string | null
+          arquivado_por: string | null
           cidade: string
           created_at: string
           data_inicio: string
@@ -297,6 +300,9 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          arquivado_at?: string | null
+          arquivado_motivo?: string | null
+          arquivado_por?: string | null
           cidade?: string
           created_at?: string
           data_inicio?: string
@@ -314,6 +320,9 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          arquivado_at?: string | null
+          arquivado_motivo?: string | null
+          arquivado_por?: string | null
           cidade?: string
           created_at?: string
           data_inicio?: string
@@ -504,6 +513,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      arquivar_mentorado: {
+        Args: { p_mentorado_id: string; p_motivo?: string }
+        Returns: number
+      }
       audit_actor_nome: { Args: never; Returns: string }
       excluir_mentorado: {
         Args: { p_mentorado_id: string; p_motivo?: string }
@@ -520,6 +533,10 @@ export type Database = {
       registrar_encontro_realizado: {
         Args: { p_delta: number; p_mentorado_id: string; p_obs?: string }
         Returns: number
+      }
+      restaurar_mentorado: {
+        Args: { p_mentorado_id: string }
+        Returns: undefined
       }
     }
     Enums: {
