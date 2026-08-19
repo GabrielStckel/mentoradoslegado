@@ -79,6 +79,7 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mentorados'] });
+      queryClient.invalidateQueries({ queryKey: ['atividades_log'] });
       toast.success(`${mentoradoNome} marcado como concluído!`);
     },
     onError: (err: any) => toast.error('Erro: ' + err.message),

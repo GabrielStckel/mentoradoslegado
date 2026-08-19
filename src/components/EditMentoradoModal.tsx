@@ -38,6 +38,7 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
   const [status, setStatus] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [totalEncontros, setTotalEncontros] = useState('0');
+  const [motivoExclusao, setMotivoExclusao] = useState('');
 
   useEffect(() => {
     if (mentorado && open) {
