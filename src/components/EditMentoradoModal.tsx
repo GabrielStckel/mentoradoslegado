@@ -53,6 +53,12 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
     }
   }, [mentorado, open]);
 
+  // Fallback: status legado que existe no banco mas não está cadastrado na lista
+  const statusOptions = (() => {
+    const nomes = (statusListData || []).map((s: any) => s.nome as string);
+    return status && !nomes.includes(status) ? [...nomes, status] : nomes;
+  })();
+
   const mutation = useMutation({
     mutationFn: async () => {
       if (!mentorado) throw new Error('Mentorado não encontrado');
@@ -157,8 +163,8 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
               <Select value={status} onValueChange={setStatus}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {(statusListData || []).map((s: any) => (
-                    <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                  {statusOptions.map((nome) => (
+                    <SelectItem key={nome} value={nome}>{nome}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

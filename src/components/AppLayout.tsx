@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { NavLink as RouterNavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, UserCheck, History, ScrollText,
+  LayoutDashboard, Users, UserCheck, ScrollText,
   Menu, Search, ChevronLeft, LogOut, Sun, Moon, ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,8 +17,7 @@ const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/mentorados', label: 'Mentorados', icon: Users },
   { to: '/concluidos', label: 'Concluídos', icon: UserCheck },
-  { to: '/historico', label: 'Histórico Geral', icon: ScrollText },
-  { to: '/historico-encontros', label: 'Histórico de Encontros', icon: History },
+  { to: '/historico', label: 'Histórico', icon: ScrollText },
 ];
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {

@@ -13,6 +13,7 @@ const statusColors: Record<string, string> = {
   Novo: 'bg-info/10 text-info border-info/20',
   Pausado: 'bg-warning/10 text-warning border-warning/20',
   Finalizado: 'bg-muted text-muted-foreground border-border',
+  Concluído: 'bg-success/10 text-success border-success/20',
 };
 
 const tagColors: Record<string, string> = {
