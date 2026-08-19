@@ -10,7 +10,7 @@ import MentoradosPage from "./pages/MentoradosPage";
 import MentoradoDetail from "./pages/MentoradoDetail";
 import ConcluidosPage from "./pages/ConcluidosPage";
 import HistoricoGeralPage from "./pages/HistoricoGeralPage";
-import HistoricoEncontrosPage from "./pages/HistoricoEncontrosPage";
+import AuthPage from "./pages/AuthPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
 
