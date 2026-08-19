@@ -130,7 +130,7 @@ export default function EncontrosPage() {
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <p className="font-medium text-sm truncate">{e.titulo}</p>
-                  <p className="text-xs text-muted-foreground truncate">{mentoradoMap[e.mentorado_id]}</p>
+                  <p className="text-xs text-muted-foreground truncate">{mentoradoMap[e.mentorado_id] || 'Mentorado arquivado'}</p>
                 </div>
                 <StatusBadge status={e.status as any} />
               </div>
@@ -185,7 +185,7 @@ export default function EncontrosPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-sm font-medium">{e.titulo}</TableCell>
-                  <TableCell className="text-sm">{mentoradoMap[e.mentorado_id]}</TableCell>
+                  <TableCell className="text-sm">{mentoradoMap[e.mentorado_id] || 'Mentorado arquivado'}</TableCell>
                   <TableCell><TipoBadge tipo={e.tipo as any} /></TableCell>
                   <TableCell className="text-sm text-muted-foreground">{e.local}</TableCell>
                   <TableCell><StatusBadge status={e.status as any} /></TableCell>

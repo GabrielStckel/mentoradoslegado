@@ -36,6 +36,11 @@ function rotuloAlteracao(log: AtividadeLog): Rotulo {
     if (novo > antigo) return { texto: '+1 encontro', variante: 'verde' };
     if (novo < antigo) return { texto: '−1 encontro', variante: 'amber' };
   }
+  if (log.campo === 'arquivado_at') {
+    return log.valor_novo
+      ? { texto: 'Arquivado', variante: 'amber' }
+      : { texto: 'Restaurado', variante: 'verde' };
+  }
   if (log.acao === 'DELETE' && log.entidade === 'mentorado') return { texto: 'Mentorado excluído', variante: 'vermelho' };
   if (log.acao === 'DELETE' && log.entidade === 'encontro') return { texto: 'Encontro excluído', variante: 'vermelho' };
   if (log.acao === 'INSERT' && log.entidade === 'mentorado') return { texto: 'Cadastrado', variante: 'azul' };
@@ -54,11 +59,12 @@ const VARIANT_CLASS: Record<Rotulo['variante'], string> = {
   cinza: 'bg-muted text-muted-foreground border-border',
 };
 
-type TipoFiltro = 'encontros' | 'mentorados' | 'exclusoes' | 'tudo';
+type TipoFiltro = 'encontros' | 'mentorados' | 'arquivamentos' | 'exclusoes' | 'tudo';
 
 function dentroTipo(tipo: TipoFiltro, l: AtividadeLog): boolean {
   if (tipo === 'encontros') return l.campo === 'encontros_realizados';
   if (tipo === 'mentorados') return l.entidade === 'mentorado';
+  if (tipo === 'arquivamentos') return l.campo === 'arquivado_at';
   if (tipo === 'exclusoes') return l.acao === 'DELETE';
   return true;
 }
@@ -107,11 +113,12 @@ export default function HistoricoGeralPage() {
 
   // contagens por tipo (sem aplicar o próprio filtro de tipo)
   const contagens = useMemo(() => {
-    const c = { encontros: 0, mentorados: 0, exclusoes: 0, tudo: 0 };
+    const c = { encontros: 0, mentorados: 0, arquivamentos: 0, exclusoes: 0, tudo: 0 };
     baseFiltrados.forEach(l => {
       c.tudo++;
       if (l.campo === 'encontros_realizados') c.encontros++;
       if (l.entidade === 'mentorado') c.mentorados++;
+      if (l.campo === 'arquivado_at') c.arquivamentos++;
       if (l.acao === 'DELETE') c.exclusoes++;
     });
     return c;
@@ -213,6 +220,7 @@ export default function HistoricoGeralPage() {
           <SelectContent>
             <SelectItem value="encontros">Encontros (+/−) · {contagens.encontros}</SelectItem>
             <SelectItem value="mentorados">Mentorados · {contagens.mentorados}</SelectItem>
+            <SelectItem value="arquivamentos">Arquivamentos · {contagens.arquivamentos}</SelectItem>
             <SelectItem value="exclusoes">Exclusões · {contagens.exclusoes}</SelectItem>
             <SelectItem value="tudo">Tudo · {contagens.tudo}</SelectItem>
           </SelectContent>
