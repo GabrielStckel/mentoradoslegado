@@ -9,13 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { useOrigens, useStatusMentorado } from '@/hooks/useSupabaseData';
 import { toast } from 'sonner';
-import { Settings, Trash2 } from 'lucide-react';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Settings } from 'lucide-react';
 import OrigensManagerModal from '@/components/OrigensManagerModal';
 import StatusManagerModal from '@/components/StatusManagerModal';
 import { PhoneInput } from '@/components/PhoneInput';
 import EmailInput from '@/components/EmailInput';
 import CityInput from '@/components/CityInput';
+import ArquivarMentoradoDialog from '@/components/ArquivarMentoradoDialog';
 
 interface Props {
   mentorado: any | null;
@@ -38,7 +38,6 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
   const [status, setStatus] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [totalEncontros, setTotalEncontros] = useState('0');
-  const [motivoExclusao, setMotivoExclusao] = useState('');
 
   useEffect(() => {
     if (mentorado && open) {
@@ -82,27 +81,6 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
     },
     onError: (err: any) => {
       toast.error('Erro ao atualizar: ' + err.message);
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async () => {
-      if (!mentorado) throw new Error('Mentorado não encontrado');
-      const { error } = await supabase.rpc('excluir_mentorado', {
-        p_mentorado_id: mentorado.id,
-        p_motivo: motivoExclusao.trim(),
-      });
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['mentorados'] });
-      queryClient.invalidateQueries({ queryKey: ['atividades_log'] });
-      setMotivoExclusao('');
-      toast.success('Mentorado excluído. Registro salvo no histórico.');
-      onOpenChange(false);
-    },
-    onError: (err: any) => {
-      toast.error('Erro ao excluir: ' + err.message);
     },
   });
 
@@ -178,43 +156,13 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
               <Textarea id="edit-obs" value={observacoes} onChange={e => setObservacoes(e.target.value)} rows={3} />
             </div>
             <div className="flex justify-between pt-2">
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button type="button" variant="destructive" size="sm">
-                    <Trash2 className="h-4 w-4 mr-1" /> Excluir
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Excluir mentorado?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Essa ação não pode ser desfeita. O mentorado <strong>{nome}</strong> será removido permanentemente,
-                      junto com <strong>todos os encontros e observações</strong> vinculados a ele.
-                      A exclusão ficará registrada no histórico geral com o motivo informado.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <div className="space-y-2">
-                    <Label htmlFor="motivo-exclusao">Motivo da exclusão *</Label>
-                    <Textarea
-                      id="motivo-exclusao"
-                      value={motivoExclusao}
-                      onChange={e => setMotivoExclusao(e.target.value)}
-                      rows={3}
-                      placeholder="Ex: desistiu na 3ª sessão, não respondeu contato, reembolso solicitado..."
-                    />
-                  </div>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel onClick={() => setMotivoExclusao('')}>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => deleteMutation.mutate()}
-                      disabled={motivoExclusao.trim().length < 5 || deleteMutation.isPending}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Excluir
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              {mentorado && (
+                <ArquivarMentoradoDialog
+                  mentorado={mentorado}
+                  withLabel
+                  onArchived={() => onOpenChange(false)}
+                />
+              )}
               <div className="flex gap-2">
                 <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
                 <Button type="submit" disabled={!nome || mutation.isPending}>

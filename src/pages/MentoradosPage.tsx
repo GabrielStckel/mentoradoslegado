@@ -8,6 +8,7 @@ import NovoMentoradoModal from '@/components/NovoMentoradoModal';
 import EditMentoradoModal from '@/components/EditMentoradoModal';
 import NovoEncontroModal from '@/components/NovoEncontroModal';
 import MentoradoInfoModal from '@/components/MentoradoInfoModal';
+import ArquivarMentoradoDialog from '@/components/ArquivarMentoradoDialog';
 
 import { StatusBadge, TagBadge } from '@/components/StatusBadge';
 import { Button } from '@/components/ui/button';
@@ -142,6 +143,7 @@ export default function MentoradosPage() {
                   >
                     <CalendarPlus className="h-4 w-4" />
                    </Button>
+                  <ArquivarMentoradoDialog mentorado={m} size="md" />
                 </div>
               </div>
             </div>
@@ -161,7 +163,7 @@ export default function MentoradosPage() {
                 <TableHead className="table-header text-center">Realizados</TableHead>
                 <TableHead className="table-header">Status</TableHead>
                 <TableHead className="table-header">Contato</TableHead>
-                <TableHead className="table-header w-[90px]">Ações</TableHead>
+                <TableHead className="table-header w-[130px]">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -229,6 +231,7 @@ export default function MentoradosPage() {
                       >
                         <CalendarPlus className="h-4 w-4" />
                       </Button>
+                      <ArquivarMentoradoDialog mentorado={m} size="sm" />
                     </div>
                   </TableCell>
                 </TableRow>
