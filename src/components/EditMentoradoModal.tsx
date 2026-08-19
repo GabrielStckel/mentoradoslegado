@@ -70,6 +70,7 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mentorados'] });
+      queryClient.invalidateQueries({ queryKey: ['atividades_log'] });
       toast.success('Mentorado atualizado com sucesso!');
       onOpenChange(false);
     },
@@ -81,12 +82,17 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
   const deleteMutation = useMutation({
     mutationFn: async () => {
       if (!mentorado) throw new Error('Mentorado não encontrado');
-      const { error } = await supabase.from('mentorados').delete().eq('id', mentorado.id);
+      const { error } = await supabase.rpc('excluir_mentorado', {
+        p_mentorado_id: mentorado.id,
+        p_motivo: motivoExclusao.trim(),
+      });
       if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['mentorados'] });
-      toast.success('Mentorado excluído com sucesso!');
+      queryClient.invalidateQueries({ queryKey: ['atividades_log'] });
+      setMotivoExclusao('');
+      toast.success('Mentorado excluído. Registro salvo no histórico.');
       onOpenChange(false);
     },
     onError: (err: any) => {
