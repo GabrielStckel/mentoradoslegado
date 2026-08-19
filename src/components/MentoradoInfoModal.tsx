@@ -41,6 +41,7 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
   const queryClient = useQueryClient();
   const { data: historicos = [] } = useHistoricos(mentorado?.id);
   const { data: encontros = [] } = useEncontros();
+  const { data: atividades = [] } = useAtividadesLog(mentorado?.id ? { mentoradoId: mentorado.id } : undefined);
   const { user } = useAuth();
   const [novaObs, setNovaObs] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -212,6 +213,10 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
               <TabsTrigger value="encontros" className="flex-1 text-xs">
                 <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
                 Sessões Realizadas ({sessoesRealizadas.length + encontrosRealizados.length})
+              </TabsTrigger>
+              <TabsTrigger value="historico" className="flex-1 text-xs">
+                <ScrollText className="h-3.5 w-3.5 mr-1.5" />
+                Histórico ({atividades.length})
               </TabsTrigger>
             </TabsList>
 
