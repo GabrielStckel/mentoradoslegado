@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useEffect } from 'react';
 import { NavLink as RouterNavLink, useLocation, useNavigate } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, UserCheck, History,
+  LayoutDashboard, Users, UserCheck, History, ScrollText,
   Menu, Search, ChevronLeft, LogOut, Sun, Moon, ShieldCheck
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -17,6 +17,7 @@ const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/mentorados', label: 'Mentorados', icon: Users },
   { to: '/concluidos', label: 'Concluídos', icon: UserCheck },
+  { to: '/historico', label: 'Histórico Geral', icon: ScrollText },
   { to: '/historico-encontros', label: 'Histórico de Encontros', icon: History },
 ];
 
@@ -75,7 +76,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
         <nav className="flex-1 py-4 px-2 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
-            const active = location.pathname === item.to || (item.to !== '/' && location.pathname.startsWith(item.to));
+            const active = item.to === '/'
+              ? location.pathname === '/'
+              : location.pathname === item.to || location.pathname.startsWith(item.to + '/');
             return (
               <RouterNavLink
                 key={item.to}
