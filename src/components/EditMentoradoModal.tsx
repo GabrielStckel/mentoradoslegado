@@ -182,12 +182,28 @@ export default function EditMentoradoModal({ mentorado, open, onOpenChange }: Pr
                   <AlertDialogHeader>
                     <AlertDialogTitle>Excluir mentorado?</AlertDialogTitle>
                     <AlertDialogDescription>
-                      Essa ação não pode ser desfeita. O mentorado <strong>{nome}</strong> será removido permanentemente.
+                      Essa ação não pode ser desfeita. O mentorado <strong>{nome}</strong> será removido permanentemente,
+                      junto com <strong>todos os encontros e observações</strong> vinculados a ele.
+                      A exclusão ficará registrada no histórico geral com o motivo informado.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
+                  <div className="space-y-2">
+                    <Label htmlFor="motivo-exclusao">Motivo da exclusão *</Label>
+                    <Textarea
+                      id="motivo-exclusao"
+                      value={motivoExclusao}
+                      onChange={e => setMotivoExclusao(e.target.value)}
+                      rows={3}
+                      placeholder="Ex: desistiu na 3ª sessão, não respondeu contato, reembolso solicitado..."
+                    />
+                  </div>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                    <AlertDialogAction onClick={() => deleteMutation.mutate()} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                    <AlertDialogCancel onClick={() => setMotivoExclusao('')}>Cancelar</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => deleteMutation.mutate()}
+                      disabled={motivoExclusao.trim().length < 5 || deleteMutation.isPending}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
                       Excluir
                     </AlertDialogAction>
                   </AlertDialogFooter>
