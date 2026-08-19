@@ -90,7 +90,7 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
       const { error } = await supabase.from('historicos').insert({
         mentorado_id: mentorado.id,
         mentor_id: resolvedMentorId,
-        tipo: 'Observação do Mentorado',
+        tipo: 'Observação',
         conteudo: novaObs.trim(),
         visibilidade: 'Admin',
       });
@@ -98,6 +98,7 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['historicos'] });
+      queryClient.invalidateQueries({ queryKey: ['atividades_log'] });
       setNovaObs('');
       toast.success('Observação adicionada!');
     },
@@ -111,6 +112,7 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['historicos'] });
+      queryClient.invalidateQueries({ queryKey: ['atividades_log'] });
       setEditingId(null);
       toast.success('Observação atualizada!');
     },
@@ -124,6 +126,7 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['historicos'] });
+      queryClient.invalidateQueries({ queryKey: ['atividades_log'] });
       toast.success('Observação removida!');
     },
     onError: (err: any) => toast.error('Erro: ' + err.message),
