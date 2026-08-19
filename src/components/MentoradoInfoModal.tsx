@@ -308,6 +308,18 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
                 )}
               </div>
             </TabsContent>
+
+            {/* Histórico Tab */}
+            <TabsContent value="historico" className="space-y-2">
+              <div className="space-y-2 max-h-[320px] overflow-y-auto">
+                {(atividades as AtividadeLog[]).map(l => (
+                  <TimelineAtividade key={l.id} log={l} />
+                ))}
+                {atividades.length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-3">Nenhuma atividade registrada.</p>
+                )}
+              </div>
+            </TabsContent>
           </Tabs>
         </div>
       </DialogContent>
