@@ -360,7 +360,7 @@ export default function HistoricoGeralPage() {
                         </td>
                       </tr>
                     )}
-                  </>
+                  </Fragment>
                 );
               })}
             </tbody>
