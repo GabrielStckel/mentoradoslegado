@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import MentoradosPage from "./pages/MentoradosPage";
 import MentoradoDetail from "./pages/MentoradoDetail";
 import ConcluidosPage from "./pages/ConcluidosPage";
+import ArquivadosPage from "./pages/ArquivadosPage";
 import HistoricoGeralPage from "./pages/HistoricoGeralPage";
 import AuthPage from "./pages/AuthPage";
 import NotFound from "./pages/NotFound";
