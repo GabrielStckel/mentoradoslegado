@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      atividades_log: {
+        Row: {
+          acao: string
+          campo: string | null
+          changed_at: string
+          changed_by: string | null
+          changed_by_nome: string | null
+          descricao: string
+          entidade: string
+          entidade_id: string
+          id: string
+          mentor_id: string | null
+          mentor_nome: string | null
+          mentorado_id: string | null
+          mentorado_nome: string | null
+          snapshot: Json | null
+          valor_antigo: string | null
+          valor_novo: string | null
+        }
+        Insert: {
+          acao: string
+          campo?: string | null
+          changed_at?: string
+          changed_by?: string | null
+          changed_by_nome?: string | null
+          descricao?: string
+          entidade: string
+          entidade_id: string
+          id?: string
+          mentor_id?: string | null
+          mentor_nome?: string | null
+          mentorado_id?: string | null
+          mentorado_nome?: string | null
+          snapshot?: Json | null
+          valor_antigo?: string | null
+          valor_novo?: string | null
+        }
+        Update: {
+          acao?: string
+          campo?: string | null
+          changed_at?: string
+          changed_by?: string | null
+          changed_by_nome?: string | null
+          descricao?: string
+          entidade?: string
+          entidade_id?: string
+          id?: string
+          mentor_id?: string | null
+          mentor_nome?: string | null
+          mentorado_id?: string | null
+          mentorado_nome?: string | null
+          snapshot?: Json | null
+          valor_antigo?: string | null
+          valor_novo?: string | null
+        }
+        Relationships: []
+      }
       encontros: {
         Row: {
           created_at: string
@@ -441,6 +498,11 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      audit_actor_nome: { Args: never; Returns: string }
+      excluir_mentorado: {
+        Args: { p_mentorado_id: string; p_motivo?: string }
+        Returns: undefined
+      }
       get_user_mentor_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
@@ -448,6 +510,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      registrar_encontro_realizado: {
+        Args: { p_delta: number; p_mentorado_id: string; p_obs?: string }
+        Returns: number
       }
     }
     Enums: {
