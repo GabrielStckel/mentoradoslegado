@@ -59,6 +59,7 @@ function ActionIcon({ action }: { action: AuditRow['action'] }) {
 
 export default function HistoricoEncontrosPage() {
   const [search, setSearch] = useState('');
+  const [periodo, setPeriodo] = useState('90');
   const { data: mentorados = [] } = useMentorados();
 
   const { data: logs = [], isLoading: loadingLogs } = useQuery({
@@ -67,7 +68,6 @@ export default function HistoricoEncontrosPage() {
       const { data, error } = await supabase
         .from('encontros_audit_log')
         .select('*')
-        .not('changed_by', 'is', null)
         .order('changed_at', { ascending: false })
         .limit(5000);
       if (error) throw error;
@@ -76,19 +76,24 @@ export default function HistoricoEncontrosPage() {
   });
 
   const { data: encontros = [], isLoading: loadingEnc } = useQuery({
-    queryKey: ['encontros-realizados-historico'],
+    queryKey: ['encontros-realizados-historico', periodo],
     queryFn: async () => {
-      const doisMesesAtras = new Date();
-      doisMesesAtras.setMonth(doisMesesAtras.getMonth() - 2);
-      doisMesesAtras.setHours(0, 0, 0, 0);
       const agora = new Date().toISOString();
-      const { data, error } = await supabase
+      let q = supabase
         .from('encontros')
         .select('id, titulo, mentorado_id, inicio, status')
-        .gte('fim', doisMesesAtras.toISOString())
         .lt('fim', agora)
         .not('titulo', 'ilike', 'vago')
         .order('inicio', { ascending: false });
+
+      if (periodo !== 'tudo') {
+        const desde = new Date();
+        desde.setDate(desde.getDate() - Number(periodo));
+        desde.setHours(0, 0, 0, 0);
+        q = q.gte('fim', desde.toISOString());
+      }
+
+      const { data, error } = await q;
       if (error) throw error;
       return data || [];
     },
