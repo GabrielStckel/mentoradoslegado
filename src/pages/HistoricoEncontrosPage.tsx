@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Search, Plus, Pencil, Trash2 } from 'lucide-react';
 import { toTitleCase } from '@/lib/utils';
 
@@ -59,6 +60,7 @@ function ActionIcon({ action }: { action: AuditRow['action'] }) {
 
 export default function HistoricoEncontrosPage() {
   const [search, setSearch] = useState('');
+  const [periodo, setPeriodo] = useState('90');
   const { data: mentorados = [] } = useMentorados();
 
   const { data: logs = [], isLoading: loadingLogs } = useQuery({
@@ -67,7 +69,6 @@ export default function HistoricoEncontrosPage() {
       const { data, error } = await supabase
         .from('encontros_audit_log')
         .select('*')
-        .not('changed_by', 'is', null)
         .order('changed_at', { ascending: false })
         .limit(5000);
       if (error) throw error;
@@ -76,19 +77,24 @@ export default function HistoricoEncontrosPage() {
   });
 
   const { data: encontros = [], isLoading: loadingEnc } = useQuery({
-    queryKey: ['encontros-realizados-historico'],
+    queryKey: ['encontros-realizados-historico', periodo],
     queryFn: async () => {
-      const doisMesesAtras = new Date();
-      doisMesesAtras.setMonth(doisMesesAtras.getMonth() - 2);
-      doisMesesAtras.setHours(0, 0, 0, 0);
       const agora = new Date().toISOString();
-      const { data, error } = await supabase
+      let q = supabase
         .from('encontros')
         .select('id, titulo, mentorado_id, inicio, status')
-        .gte('fim', doisMesesAtras.toISOString())
         .lt('fim', agora)
         .not('titulo', 'ilike', 'vago')
         .order('inicio', { ascending: false });
+
+      if (periodo !== 'tudo') {
+        const desde = new Date();
+        desde.setDate(desde.getDate() - Number(periodo));
+        desde.setHours(0, 0, 0, 0);
+        q = q.gte('fim', desde.toISOString());
+      }
+
+      const { data, error } = await q;
       if (error) throw error;
       return data || [];
     },
@@ -146,9 +152,20 @@ export default function HistoricoEncontrosPage() {
         <p className="page-subtitle">{grouped.length} encontros concluídos · todas as alterações registradas</p>
       </div>
 
-      <div className="relative max-w-md">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-        <Input placeholder="Buscar por mentorado ou título..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+      <div className="flex flex-col md:flex-row gap-2 md:items-center">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Buscar por mentorado ou título..." value={search} onChange={e => setSearch(e.target.value)} className="pl-9" />
+        </div>
+        <Select value={periodo} onValueChange={setPeriodo}>
+          <SelectTrigger className="w-full md:w-[170px]"><SelectValue /></SelectTrigger>
+          <SelectContent>
+            <SelectItem value="30">Últimos 30 dias</SelectItem>
+            <SelectItem value="90">Últimos 90 dias</SelectItem>
+            <SelectItem value="365">Último ano</SelectItem>
+            <SelectItem value="tudo">Tudo</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <div className="rounded-xl border bg-card">

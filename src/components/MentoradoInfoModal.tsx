@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useHistoricos, useEncontros } from '@/hooks/useSupabaseData';
+import { useHistoricos, useEncontros, useAtividadesLog } from '@/hooks/useSupabaseData';
+import TimelineAtividade, { AtividadeLog } from '@/components/TimelineAtividade';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
-import { Mail, Phone, MapPin, User, Plus, Pencil, Trash2, X, Check, Clock, CalendarDays } from 'lucide-react';
+import { Mail, Phone, MapPin, User, Plus, Pencil, Trash2, X, Check, Clock, CalendarDays, ScrollText } from 'lucide-react';
 import { whatsappLink } from '@/lib/phone';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -40,6 +41,7 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
   const queryClient = useQueryClient();
   const { data: historicos = [] } = useHistoricos(mentorado?.id);
   const { data: encontros = [] } = useEncontros();
+  const { data: atividades = [] } = useAtividadesLog(mentorado?.id ? { mentoradoId: mentorado.id } : undefined);
   const { user } = useAuth();
   const [novaObs, setNovaObs] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -212,6 +214,10 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
                 <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
                 Sessões Realizadas ({sessoesRealizadas.length + encontrosRealizados.length})
               </TabsTrigger>
+              <TabsTrigger value="historico" className="flex-1 text-xs">
+                <ScrollText className="h-3.5 w-3.5 mr-1.5" />
+                Histórico ({atividades.length})
+              </TabsTrigger>
             </TabsList>
 
             {/* Observações Tab */}
@@ -299,6 +305,18 @@ export default function MentoradoInfoModal({ mentorado, open, onOpenChange }: Pr
 
                 {sessoesRealizadas.length === 0 && encontrosRealizados.length === 0 && (
                   <p className="text-xs text-muted-foreground text-center py-3">Nenhuma sessão realizada registrada.</p>
+                )}
+              </div>
+            </TabsContent>
+
+            {/* Histórico Tab */}
+            <TabsContent value="historico" className="space-y-2">
+              <div className="space-y-2 max-h-[320px] overflow-y-auto">
+                {(atividades as AtividadeLog[]).map(l => (
+                  <TimelineAtividade key={l.id} log={l} />
+                ))}
+                {atividades.length === 0 && (
+                  <p className="text-xs text-muted-foreground text-center py-3">Nenhuma atividade registrada.</p>
                 )}
               </div>
             </TabsContent>
