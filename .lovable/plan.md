@@ -19,11 +19,12 @@ Uma única migration no banco (Lovable Cloud) com o SQL exato do arquivo enviado
 3. **Cria a função helper `audit_actor_nome()`** que devolve o nome legível de quem fez a alteração (profile → mentor → "Sistema").
 4. **Cria a trigger `log_mentorados_changes()`** + triggers `mentorados_audit_upsert` (AFTER INSERT OR UPDATE) e `mentorados_audit_delete` (BEFORE DELETE) — registra INSERT, e cada campo alterado no UPDATE (encontros_realizados, total_encontros, status, nome, mentor_id, email, telefone, cidade, origem, observacoes_gerais) e DELETE (com motivo, snapshot e contagem de encontros/históricos removidos).
 5. **Cria a função `log_encontros_changes_v2()`** + triggers `encontros_audit_upsert` (AFTER INSERT OR UPDATE) e `encontros_audit_delete` (BEFORE DELETE), substituindo a trigger antiga `encontros_audit_trigger`. Registra INSERT, cada campo alterado (título, status, início, fim, tipo, local, mentorado_id, notas, próxima ação, link) e DELETE.
+   - **Correção validada em teste:** quando o encontro é apagado por cascade, o mentorado já saiu da tabela e o nome vinha `NULL` no log (`Encontro "Sessão 1" de — EXCLUÍDO`). Logo após `SELECT nome INTO v_ment_nome FROM public.mentorados WHERE id = v_id;` será adicionado um fallback que recupera o último `mentorado_nome` conhecido em `atividades_log`, garantindo o nome justamente nos registros de exclusão.
 6. **Backfill** dos registros antigos de `encontros_audit_log` → `atividades_log` (evita duplicar registros já migrados).
 7. **Cria a RPC `registrar_encontro_realizado(mentorado_id, delta, obs)`** — operação atômica que atualiza o contador, dispara a auditoria via trigger e insere o `historicos` com tipo válido (`Sessão Realizada`).
 8. **Cria a RPC `excluir_mentorado(mentorado_id, motivo)`** — define o motivo via GUC (`app.motivo_exclusao`) antes do DELETE, para o trigger gravar.
 
-Nenhum arquivo do frontend será alterado nesta etapa.
+Depois de aplicar a migration, `src/integrations/supabase/types.ts` será regenerado para incluir a tabela `atividades_log` e as funções `registrar_encontro_realizado` e `excluir_mentorado` — sem isso a Etapa 2 não compila. Esse é o **único** arquivo de frontend tocado nesta etapa.
 
 ## Como testar (após aplicar)
 
