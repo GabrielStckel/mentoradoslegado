@@ -21,10 +21,21 @@ Hoje `src/pages/ConcluidosPage.tsx` só oferece "Ver detalhes" e "Reativar". Rea
 - Reativar e excluir passam a atualizar também a lista do histórico de atividades.
 - Tudo aplicado nas duas renderizações: cards (mobile) e tabela (desktop).
 
+## 2.3 Corrigir o status "Concluído" (necessário por causa do 2.2)
+
+A lista de status cadastrada no banco tem só Novo, Ativo, Pausado e Finalizado — "Concluído" nunca foi cadastrado, embora 8 mentorados estejam hoje com esse status (confirmado por consulta; é o único status órfão). Como o Passo 2 passa a abrir o modal de edição a partir de Concluídos, o campo Status apareceria em branco e qualquer escolha tiraria o mentorado da lista sem aviso.
+
+- Migration curta e idempotente: cadastrar "Concluído" (cor verde, ordem 5) na lista de status, só se ainda não existir.
+- No modal de edição: se o status atual do mentorado não estiver na lista vinda do banco, incluí-lo como opção extra no seletor — protege contra qualquer outro status legado.
+- No selo de status: adicionar a cor verde de sucesso para "Concluído" (hoje cai no cinza genérico).
+
 ## Detalhes técnicos
 
 - `App.tsx`: `<Route path="/historico-encontros" element={<Navigate to="/historico" replace />} />` (`Navigate` já importado).
 - `ConcluidosPage.tsx`: states `editMentorado` e `selectedMentorado`; imports de `EditMentoradoModal`, `MentoradoInfoModal`, `Textarea`, ícones `Pencil`/`Trash2`; `e.stopPropagation()` nos botões dentro de linha/card.
 - Exclusão via `supabase.rpc('excluir_mentorado', { p_mentorado_id, p_motivo })`; `onSuccess` invalida `['mentorados']` e `['atividades_log']`.
 - `reactivateMutation.onSuccess` passa a invalidar `['atividades_log']` também.
-- Nenhuma migration de banco neste passo.
+- Migration: `INSERT INTO public.status_mentorado (nome, cor, ordem) SELECT 'Concluído', '#10b981', 5 WHERE NOT EXISTS (SELECT 1 FROM public.status_mentorado WHERE nome = 'Concluído');`
+- `EditMentoradoModal.tsx`: no `Select` de status, concatenar o status atual à lista quando ausente.
+- `StatusBadge.tsx`: `Concluído: 'bg-success/10 text-success border-success/20'` no mapa `statusColors`.
+
