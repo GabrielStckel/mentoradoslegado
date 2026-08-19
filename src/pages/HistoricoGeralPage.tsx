@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { Fragment, useEffect, useMemo, useState } from 'react';
 import { ChevronDown, ChevronRight, Search, ArrowUpDown, X } from 'lucide-react';
 import { useAtividadesLog } from '@/hooks/useSupabaseData';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -325,9 +325,8 @@ export default function HistoricoGeralPage() {
                 const isDelete = l.acao === 'DELETE';
                 const temDiff = l.valor_antigo !== null && l.valor_novo !== null;
                 return (
-                  <>
+                  <Fragment key={l.id}>
                     <tr
-                      key={l.id}
                       onClick={() => toggleExpand(l.id)}
                       className={cn(
                         'cursor-pointer border-t hover:bg-muted/30',
