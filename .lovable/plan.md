@@ -32,7 +32,13 @@ Efeito colateral tratado nos três pontos que resolvem nome pelo mapa — `Encon
 
 **B3 — rota e menu**: `/arquivados` em `App.tsx`; item "Arquivados" (ícone `Archive`) em `AppLayout.tsx`, depois de Concluídos e antes de Histórico.
 
-**B4 — trocar excluir por arquivar**: em `MentoradosPage.tsx`, `ConcluidosPage.tsx` e `EditMentoradoModal.tsx` a ação destrutiva passa a ser arquivamento (ícone `Archive`, âmbar, `title="Arquivar"`), com motivo obrigatório e texto explicando preservação de histórico, cancelamento dos encontros futuros e possibilidade de restauração. Toast usa o retorno da RPC: "Mentorado arquivado. N encontro(s) futuro(s) cancelado(s)." Invalidam `['mentorados']`, `['mentorados_arquivados']`, `['encontros']`, `['atividades_log']`. A chamada a `excluir_mentorado` sai do `EditMentoradoModal`.
+**B4 — arquivar nas telas existentes**:
+- `ConcluidosPage.tsx` e `EditMentoradoModal.tsx`: a ação de exclusão existente é **substituída** por arquivamento. A chamada a `excluir_mentorado` sai desses dois arquivos.
+- `MentoradosPage.tsx`: hoje não há botão de exclusão — será **criado** um botão novo de Arquivar, posicionado depois de "Agendar encontro", nas duas renderizações (cards e tabela), com `e.stopPropagation()`. É o caminho principal de quem para no meio.
+- Em todos: ícone `Archive`, âmbar, `title="Arquivar"`, AlertDialog com motivo obrigatório (mín. 5 caracteres) e texto explicando preservação de progresso/histórico, cancelamento dos encontros futuros e possibilidade de restauração. Toast usa o retorno da RPC: "Mentorado arquivado. N encontro(s) futuro(s) cancelado(s)." Invalidam `['mentorados']`, `['mentorados_arquivados']`, `['encontros']`, `['atividades_log']`.
+- Verificação final: `grep -rn "excluir_mentorado" src/` deve retornar apenas `ArquivadosPage.tsx`.
+
+Pendências deixadas de fora por decisão sua: incluir arquivados na busca global do `AppLayout` (com sufixo "(arquivado)") e a fronteira entre o status "Pausado" e o estado Arquivado.
 
 **B5 — histórico**: em `HistoricoGeralPage.tsx`, `rotuloAlteracao` reconhece `campo === 'arquivado_at'` → "Arquivado" (âmbar) quando `valor_novo` não é nulo e "Restaurado" (verde) quando é nulo; o Select de Tipo ganha a opção "Arquivamentos".
 
