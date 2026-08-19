@@ -38,6 +38,7 @@ function ProtectedRoutes() {
         <Route path="/mentorados" element={<MentoradosPage />} />
         <Route path="/mentorados/:id" element={<MentoradoDetail />} />
         <Route path="/concluidos" element={<ConcluidosPage />} />
+        <Route path="/arquivados" element={<ArquivadosPage />} />
         <Route path="/historico" element={<HistoricoGeralPage />} />
         <Route path="/historico-encontros" element={<Navigate to="/historico" replace />} />
         <Route path="*" element={<NotFound />} />
