@@ -40,7 +40,13 @@ FROM public.atividades_log ORDER BY changed_at DESC LIMIT 10;
 Validar:
 - INSERT de mentorado gera log de INSERT.
 - +1 / -1 no contador (RPC) gera log de UPDATE em `encontros_realizados`.
-- Excluir mentorado via RPC (com motivo) gera log de DELETE com snapshot.
+- Excluir mentorado via RPC (com motivo) gera log de DELETE com snapshot, e os encontros apagados por cascade mostram o **nome** do mentorado (não `—`).
+
+Dois avisos sobre esse teste:
+- Rodando SQL direto, `auth.uid()` não resolve, então `changed_by` fica `NULL` e `changed_by_nome` grava "Sistema". É o comportamento correto — pelo app logado aparece o nome real.
+- `registrar_encontro_realizado(<uuid>, 1)` incrementa o contador de verdade. Use um mentorado descartável ou reverta com `-1`.
+
+Limpeza opcional (não incluída nesta migration): a função antiga `log_encontros_changes` fica órfã depois que a trigger dela é dropada. Não atrapalha; pode ser removida com `DROP FUNCTION public.log_encontros_changes();` só depois de confirmar que o log novo está completo.
 
 ## Próximas etapas (não agora)
 
