@@ -22,6 +22,8 @@ export type Database = {
           changed_by: string | null
           changed_by_nome: string | null
           descricao: string
+          enc_contratados: number | null
+          enc_realizados: number | null
           entidade: string
           entidade_id: string
           id: string
@@ -40,6 +42,8 @@ export type Database = {
           changed_by?: string | null
           changed_by_nome?: string | null
           descricao?: string
+          enc_contratados?: number | null
+          enc_realizados?: number | null
           entidade: string
           entidade_id: string
           id?: string
@@ -58,6 +62,8 @@ export type Database = {
           changed_by?: string | null
           changed_by_nome?: string | null
           descricao?: string
+          enc_contratados?: number | null
+          enc_realizados?: number | null
           entidade?: string
           entidade_id?: string
           id?: string
