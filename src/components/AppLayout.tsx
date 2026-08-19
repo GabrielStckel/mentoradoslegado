@@ -17,6 +17,7 @@ const navItems = [
   { to: '/', label: 'Dashboard', icon: LayoutDashboard },
   { to: '/mentorados', label: 'Mentorados', icon: Users },
   { to: '/concluidos', label: 'Concluídos', icon: UserCheck },
+  { to: '/arquivados', label: 'Arquivados', icon: Archive },
   { to: '/historico', label: 'Histórico', icon: ScrollText },
 ];
 
