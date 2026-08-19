@@ -118,6 +118,7 @@ export function useUpdateEncontroStatus() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['encontros'] });
+      qc.invalidateQueries({ queryKey: ['atividades_log'] });
     },
   });
 }
@@ -131,6 +132,7 @@ export function useDeleteEncontro() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['encontros'] });
+      qc.invalidateQueries({ queryKey: ['atividades_log'] });
     },
   });
 }
@@ -175,6 +177,25 @@ export function useRevertToVago() {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['encontros'] });
+      qc.invalidateQueries({ queryKey: ['atividades_log'] });
+    },
+  });
+}
+
+export function useAtividadesLog(filtros?: { mentoradoId?: string; entidade?: string }) {
+  return useQuery({
+    queryKey: ['atividades_log', filtros?.mentoradoId, filtros?.entidade],
+    queryFn: async () => {
+      let q = supabase
+        .from('atividades_log')
+        .select('*')
+        .order('changed_at', { ascending: false })
+        .limit(2000);
+      if (filtros?.mentoradoId) q = q.eq('mentorado_id', filtros.mentoradoId);
+      if (filtros?.entidade) q = q.eq('entidade', filtros.entidade);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data as any[];
     },
   });
 }

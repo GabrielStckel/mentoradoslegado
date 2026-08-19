@@ -29,67 +29,23 @@ export default function EncontrosCounter({ mentoradoId, mentoradoNome, mentorId,
 
   const pinEnabled = !!(pinSettings?.pin && pinSettings.enabled);
 
-  const resolveMentorId = async () => {
-    if (mentorId?.trim()) return mentorId;
-    if (!user?.id) return null;
-
-    const { data, error } = await supabase
-      .from('mentores')
-      .select('id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (error) throw error;
-    return data?.id ?? null;
-  };
-
   const mutation = useMutation({
     mutationFn: async ({ action, obs }: { action: 'add' | 'remove'; obs?: string }) => {
-      const newRealizados = action === 'add' ? realizados + 1 : Math.max(0, realizados - 1);
-
-      const { error: updateError } = await supabase
-        .from('mentorados')
-        .update({ encontros_realizados: newRealizados } as any)
-        .eq('id', mentoradoId);
-      if (updateError) throw updateError;
-
-      const logMentorId = await resolveMentorId();
-      if (!logMentorId) {
-        throw new Error('Não foi possível identificar o mentor para salvar o histórico desta sessão.');
-      }
-
-        // Insert session log
-        const { error: logError } = await supabase.from('historicos').insert({
-          mentorado_id: mentoradoId,
-          mentor_id: logMentorId,
-          tipo: 'Sessão Realizada',
-          conteudo: action === 'add'
-            ? `Sessão #${newRealizados}`
-            : `Sessões realizadas alteradas: ${realizados} → ${newRealizados} (-1)`,
-          visibilidade: 'Admin',
-        });
-
-        if (logError) throw logError;
-
-        // If there's an observation, insert it as a separate entry linked to the session
-        if (action === 'add' && obs) {
-          const { error: obsError } = await supabase.from('historicos').insert({
-            mentorado_id: mentoradoId,
-            mentor_id: logMentorId,
-           tipo: 'Observação da Sessão',
-            conteudo: `[Sessão #${newRealizados}] ${obs}`,
-            visibilidade: 'Admin',
-          });
-          if (obsError) throw obsError;
-        }
-
+      const { data, error } = await supabase.rpc('registrar_encontro_realizado', {
+        p_mentorado_id: mentoradoId,
+        p_delta: action === 'add' ? 1 : -1,
+        p_obs: obs ?? '',
+      });
+      if (error) throw error;
+      return data as number;
     },
-    onSuccess: () => {
+    onSuccess: (novoTotal) => {
       queryClient.invalidateQueries({ queryKey: ['mentorados'] });
       queryClient.invalidateQueries({ queryKey: ['historicos'] });
-      toast.success('Encontros realizados atualizados!');
+      queryClient.invalidateQueries({ queryKey: ['atividades_log'] });
+      toast.success(`Encontros realizados: ${novoTotal}/${totalContratados}`);
     },
-    onError: (err: any) => toast.error('Erro: ' + err.message),
+    onError: (err: any) => toast.error('Erro ao registrar encontro: ' + err.message),
   });
 
   const handleAction = (action: 'add' | 'remove') => {
